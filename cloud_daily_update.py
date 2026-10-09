@@ -1,0 +1,121 @@
+"""Refresh RQData snapshots and rebuild the dashboard on a GitHub runner.
+
+Authentication is provided by the RQDATAC_CONF environment variable, never files.
+This script does not commit, push, or publish; the workflow performs those steps
+only after the complete refresh and static build succeed.
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).resolve().parent
+CORE_UPDATES = (
+    ("rqdata_refresh.py", "rqdata-broad-sentiment.json", ()),
+    ("rqdata_breadth_refresh.py", "rqdata-breadth-sentiment.json", ("--start", "2018-01-01")),
+    ("rqdata_industry_refresh.py", "rqdata-industry-sentiment.json", ()),
+)
+UPDATED_FILES = (
+    "rqdata-broad-sentiment.json", "rqdata-breadth-sentiment.json",
+    "rqdata-industry-sentiment.json", "rqdata-fund-stock-position-history.json",
+    "rqdata-fund-exposure.json", "broad-sentiment-page-cache.json",
+)
+
+
+def read_cache(filename):
+    try:
+        value = json.loads((BASE_DIR / filename).read_text(encoding="utf-8"))
+        return value if isinstance(value, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def caches_current(trade_date):
+    return all(read_cache(filename).get("asOf") == trade_date for _, filename, _ in CORE_UPDATES)
+
+
+def run_stage(script, arguments, *, required=True):
+    print(f"Running {script}", flush=True)
+    # Capture provider logs so credentials are not inadvertently echoed.
+    try:
+        completed = subprocess.run(
+            [sys.executable, str(BASE_DIR / script), *arguments],
+            cwd=BASE_DIR, capture_output=True, text=True, timeout=1800,
+        )
+    except subprocess.TimeoutExpired:
+        if required:
+            raise
+        print(f"Optional update skipped: {script} (timeout)", flush=True)
+        return False
+    if completed.returncode:
+        message = f"{script} failed (exit {completed.returncode}); previous published version retained"
+        if required:
+            raise RuntimeError(message)
+        print(f"Optional update skipped: {script} (exit {completed.returncode})", flush=True)
+        return False
+    return True
+
+
+def verify_core_dates(trade_date):
+    for _, filename, _ in CORE_UPDATES:
+        value = read_cache(filename)
+        if value.get("asOf") != trade_date:
+            raise ValueError(f"{filename} did not reach the expected trading date")
+    if not read_cache("rqdata-breadth-sentiment.json").get("points"):
+        raise ValueError("Market breadth snapshot is empty")
+    if not read_cache("rqdata-industry-sentiment.json").get("industries"):
+        raise ValueError("Industry snapshot is empty")
+
+
+def main():
+    if not os.environ.get("RQDATAC_CONF", "").strip():
+        raise ValueError("Set the GitHub Actions secret RQDATAC_CONF before running this workflow")
+    import rqdatac as rq
+
+    rq.init()
+    latest = rq.get_latest_trading_date()
+    if hasattr(latest, "date"):
+        latest = latest.date()
+    trade_date = latest.isoformat()
+    if caches_current(trade_date):
+        print("No new trading day: existing published data retained")
+        return
+    for script, filename, extra in CORE_UPDATES:
+        run_stage(script, ("--output", filename, *extra))
+    verify_core_dates(trade_date)
+
+    # These supplementary services may not be included in every RQData license.
+    run_stage("rqdata_second_industry_flow_refresh.py",
+              ("--output", "rqdata-industry-sentiment.json"), required=False)
+    if (BASE_DIR / "open-fund-stock-position.xlsx").is_file():
+        run_stage("rqdata_fund_position_refresh.py",
+                  ("--excel", "open-fund-stock-position.xlsx", "--output",
+                   "rqdata-fund-stock-position-history.json", "--start", "2021-07-01"),
+                  required=False)
+    if os.environ.get("AIDO_API_KEY", "").strip():
+        run_stage("rqdata_fund_exposure_refresh.py",
+                  ("--output", "rqdata-fund-exposure.json"), required=False)
+
+    import broad_sentiment
+    broad_sentiment.ENABLE_RQDATA_REFRESH = False
+    # Synchronous generation avoids publishing an old payload while background
+    # calculation is still in progress. The changed source signatures invalidate
+    # the previous page cache without deleting it.
+    payload = broad_sentiment._build_payload()
+    if payload.get("asOf") != trade_date or not payload.get("cards") or not payload.get("series"):
+        raise ValueError("Dashboard rebuild failed to include the new trading date")
+    broad_sentiment.save_page_cache(payload)
+    print(f"RQData snapshots and dashboard ready for {trade_date}", flush=True)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:
+        # Do not print SDK exception text: it can contain connection credentials.
+        print(f"Cloud refresh failed: {type(exc).__name__}. Check credentials, data entitlement, runtime and cached source files.", file=sys.stderr)
+        sys.exit(1)

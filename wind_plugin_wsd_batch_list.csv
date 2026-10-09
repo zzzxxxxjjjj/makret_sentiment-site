@@ -1,0 +1,7 @@
+﻿factor_id,wind_code,type,field,freq,target_sheet,description
+US10Y,US10Y,WSD,yield,D,海外,美国10年期国债收益率
+US01Y,US01Y,WSD,yield,D,海外,美国1年期国债收益率（人民币风险溢价基础）
+DXY,DXY,WSD,close,D,海外,美元指数
+VIX,VIX,WSD,close,D,海外,标普500波动率指数（海外风险厌恶基础）
+CN_CDS5Y,CDS0001,WSD,close,D,海外,中国5年主权CDS利差（bps）
+NORTHBOUND_CUM,880008,WSD,amount,D,资金流,北向资金(沪深港通)累计净流入（近60日口径由Python算）

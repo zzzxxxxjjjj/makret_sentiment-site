@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>宽基指数融资买入额明细</title>
+  <link rel="stylesheet" href="/styles.css?v=53">
+  <link rel="stylesheet" href="/financing-activity.css?v=4">
+  <script src="/financing-activity.js?v=4" defer></script>
+</head>
+<body>
+  <main class="financing-page">
+    <header class="detail-topbar">
+      <a href="/" class="back-link">← 返回宽基情绪</a>
+      <button id="refreshButton" class="refresh-button" type="button">刷新数据</button>
+    </header>
+
+    <section class="detail-hero">
+      <p class="eyebrow">LEVERAGE SENTIMENT</p>
+      <h1>宽基指数融资买入额明细</h1>
+      <p>分别查看全A、沪深300、上证50和科创50的融资买入额、成交额及融资买入额占比。</p>
+      <div id="asOf" class="detail-asof">正在读取数据…</div>
+    </section>
+
+    <section id="summaryGrid" class="financing-summary"></section>
+
+    <section class="detail-panel">
+      <div class="panel-heading">
+        <div><h2>融资买入额占比对比</h2><p>融资买入额 ÷ 同口径成交额，单位：%</p></div>
+        <div class="range-buttons" id="rangeButtons">
+          <button type="button" data-years="1">近1年</button>
+          <button type="button" data-years="3">近3年</button>
+          <button class="active" type="button" data-years="5">近5年</button>
+        </div>
+      </div>
+      <div class="detail-chart-wrap"><canvas id="ratioChart"></canvas><div id="ratioTooltip" class="detail-tooltip"></div></div>
+      <div id="ratioLegend" class="detail-legend"></div>
+    </section>
+
+    <section class="detail-panel">
+      <div class="panel-heading"><div><h2>市场两融风险指标</h2></div></div>
+      <div class="dual-risk-grid">
+        <div class="risk-chart-card">
+          <h3>市场平均担保比例</h3>
+          <div class="detail-chart-wrap compact"><canvas id="guaranteeChart"></canvas><div id="guaranteeTooltip" class="detail-tooltip"></div></div>
+          <div id="guaranteeLegend" class="detail-legend"></div>
+        </div>
+        <div class="risk-chart-card">
+          <h3>有融资融券负债的投资者数量</h3>
+          <div class="detail-chart-wrap compact"><canvas id="investorChart"></canvas><div id="investorTooltip" class="detail-tooltip"></div></div>
+          <div id="investorLegend" class="detail-legend"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="detail-panel">
+      <div class="panel-heading"><div><h2>最新融资明细</h2><p>近5日、近20日均值均按融资买入额占比计算</p></div></div>
+      <div class="table-scroll">
+        <table class="financing-table">
+          <thead><tr><th>指数</th><th>融资买入额</th><th>成交额</th><th>融资买入额占比</th><th>近5日均值</th><th>近20日均值</th><th>日期</th></tr></thead>
+          <tbody id="detailRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="method-note">
+      <strong>统计口径</strong>
+      <p>指数数据按每个交易日的历史成分股汇总；融资买入额与成交额使用同一成分股集合。无融资买入记录按0处理，成交额有效覆盖不足80%的日期不展示。全A采用沪深市场汇总口径。</p>
+    </section>
+  </main>
+</body>
+</html>

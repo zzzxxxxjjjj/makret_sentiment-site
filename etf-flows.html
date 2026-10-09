@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>重点ETF资金流向｜A股市场情绪</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/etf-flows.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">MS</span>
+      <div><strong>A股市场情绪</strong><small>ETF FLOW MONITOR</small></div>
+    </div>
+    <nav><a class="active" href="/">宽基情绪</a><a href="/industry-sentiment.html">行业情绪</a></nav>
+    <div class="status"><span id="statusDot" class="dot loading"></span><span id="statusText">正在读取数据</span></div>
+  </header>
+
+  <main class="etf-main">
+    <section class="etf-hero">
+      <div>
+        <p class="eyebrow">FOCUS ETF / DAILY FLOW</p>
+        <h1>重点ETF资金流向</h1>
+        <p class="summary">跟踪大盘核心、科技成长和中小市值方向的9只代表性ETF。净流量按“份额变化 × 当日收盘价”估算。</p>
+      </div>
+      <div class="etf-meta">
+        <div><span>数据日期</span><strong id="asOf">—</strong></div>
+        <div><span>跟踪标的</span><strong>9只</strong></div>
+        <button id="refreshButton" type="button">刷新数据</button>
+      </div>
+    </section>
+
+    <section id="flowSummary" class="flow-summary" aria-live="polite">
+      <article><span>9只ETF当日合计</span><strong>—</strong><em>亿元</em></article>
+      <article><span>近5日合计</span><strong>—</strong><em>亿元</em></article>
+      <article><span>近20日合计</span><strong>—</strong><em>亿元</em></article>
+    </section>
+
+    <section class="panel etf-table-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">CAPITAL FLOW DETAIL</p>
+          <h2>ETF资金流向明细</h2>
+          <p class="section-description">红色表示净流入，绿色表示净流出；可结合不同期限判断资金是单日脉冲还是持续配置。</p>
+        </div>
+        <div class="flow-legend"><span><i class="inflow"></i>净流入</span><span><i class="outflow"></i>净流出</span></div>
+      </div>
+      <div class="etf-table-wrap">
+        <table class="etf-flow-table">
+          <thead>
+            <tr><th>类别</th><th>指数 / ETF</th><th>当日</th><th>近5日</th><th>近20日</th><th>近期日流量</th></tr>
+          </thead>
+          <tbody id="etfRows"></tbody>
+        </table>
+      </div>
+      <div id="emptyHint" class="etf-empty"></div>
+    </section>
+
+    <p class="method-note">数据来源：RQData。资金净流量为估算口径，不等同于交易所披露的申赎现金，不构成投资建议。</p>
+  </main>
+
+  <script src="/etf-flows.js?v=1" defer></script>
+</body>
+</html>

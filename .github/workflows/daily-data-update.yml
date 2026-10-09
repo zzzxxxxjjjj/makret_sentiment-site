@@ -1,0 +1,68 @@
+name: Daily RQData update
+
+on:
+  schedule:
+    # UTC 10:17 = Asia/Shanghai 18:17, Monday to Friday.
+    - cron: '17 10 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-rqdata-update
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      TZ: Asia/Shanghai
+      ENABLE_RQDATA_REFRESH: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Check out production branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-cloud.txt
+
+      - name: Install data dependencies
+        run: python -m pip install -r requirements-cloud.txt
+
+      - name: Check required authentication
+        env:
+          RQDATAC_CONF: ${{ secrets.RQDATAC_CONF }}
+        run: |
+          if [ -z "$RQDATAC_CONF" ]; then
+            echo 'Add the RQDATAC_CONF secret in Settings > Secrets and variables > Actions.'
+            exit 1
+          fi
+
+      - name: Refresh RQData and regenerate dashboard
+        env:
+          RQDATAC_CONF: ${{ secrets.RQDATAC_CONF }}
+          AIDO_API_KEY: ${{ secrets.AIDO_API_KEY }}
+        run: python cloud_daily_update.py
+
+      - name: Validate static build
+        run: python build_static_site.py
+
+      - name: Commit only refreshed data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for file in rqdata-broad-sentiment.json rqdata-breadth-sentiment.json rqdata-industry-sentiment.json rqdata-fund-stock-position-history.json rqdata-fund-exposure.json broad-sentiment-page-cache.json; do
+            if [ -f "$file" ]; then git add -- "$file"; fi
+          done
+          if git diff --cached --quiet; then
+            echo 'No data changes to publish.'
+            exit 0
+          fi
+          git commit -m 'Update published market data'
+          git push

@@ -1,0 +1,37 @@
+{
+  "market_code": "881001.TI",
+  "benchmark_code": "000001.SH",
+  "option_code": "510050.SH",
+  "history_start": "2000-01-01",
+  "metrics": [
+    {"category": "数量指标", "name": "成交额", "direction": "positive", "ifind_indicator": "amount", "unit": "亿元", "source": "real_time_quotation"},
+    {"category": "数量指标", "name": "换手率", "direction": "positive", "ifind_indicator": "turnoverRatio", "unit": "%", "source": "real_time_quotation"},
+    {"category": "价格指标", "name": "上涨家数", "direction": "positive", "ifind_indicator": "upNum", "unit": "家", "source": "real_time_quotation"},
+    {"category": "价格指标", "name": "下跌家数", "direction": "inverse", "ifind_indicator": "downNum", "unit": "家", "source": "real_time_quotation"},
+    {"category": "资金指标", "name": "机构主动买入净额", "direction": "positive", "ifind_indicator": "mfd_netbuyamt_a_institution", "unit": "亿元", "source": "basic_data_service"},
+    {"category": "资金指标", "name": "散户主动买入净额", "direction": "positive", "ifind_indicator": "mfd_netbuyamt_a_retail", "unit": "亿元", "source": "basic_data_service"},
+    {"category": "资金指标", "name": "融资买入额", "direction": "positive", "ifind_indicator": "margin_buy_amount", "unit": "亿元", "source": "date_sequence"},
+    {"category": "资金指标", "name": "融资余额", "direction": "positive", "ifind_indicator": "margin_balance", "unit": "亿元", "source": "date_sequence"},
+    {"category": "估值", "name": "PE-TTM", "direction": "positive", "ifind_indicator": "pe_ttm", "unit": "倍", "source": "real_time_quotation"},
+    {"category": "估值", "name": "整体市净率", "direction": "positive", "ifind_indicator": "pb_lf", "unit": "倍", "source": "real_time_quotation"},
+    {"category": "风偏", "name": "股权风险溢价", "direction": "inverse", "ifind_indicator": "risk_premium", "unit": "%", "source": "date_sequence"},
+    {"category": "投资者预期", "name": "期权成交量PCR", "direction": "inverse", "ifind_indicator": "volumeratio", "unit": "倍", "source": "real_time_quotation"},
+    {"category": "投资者预期", "name": "期权持仓量PCR", "direction": "inverse", "ifind_indicator": "oiratio", "unit": "倍", "source": "date_sequence"}
+  ],
+  "industry_groups": {
+    "周期": ["煤炭", "石油石化", "基础化工", "有色金属", "建筑材料", "钢铁", "交通运输", "公用事业", "环保"],
+    "先进制造": ["电力设备", "机械设备", "国防军工", "汽车", "轻工制造"],
+    "科技 (TMT)": ["电子", "计算机", "通信", "传媒"],
+    "消费": ["食品饮料", "家用电器", "纺织服饰", "商贸零售", "社会服务", "美容护理", "农林牧渔"],
+    "医药医疗": ["医药生物"],
+    "金融地产": ["银行", "非银金融", "房地产", "建筑装饰"]
+  },
+  "industries": [
+    ["801950.SL", "煤炭"], ["801960.SL", "石油石化"], ["801030.SL", "基础化工"], ["801050.SL", "有色金属"], ["801710.SL", "建筑材料"], ["801040.SL", "钢铁"], ["801170.SL", "交通运输"], ["801160.SL", "公用事业"], ["801970.SL", "环保"],
+    ["801730.SL", "电力设备"], ["801890.SL", "机械设备"], ["801740.SL", "国防军工"], ["801880.SL", "汽车"], ["801140.SL", "轻工制造"],
+    ["801080.SL", "电子"], ["801750.SL", "计算机"], ["801770.SL", "通信"], ["801760.SL", "传媒"],
+    ["801120.SL", "食品饮料"], ["801110.SL", "家用电器"], ["801130.SL", "纺织服饰"], ["801200.SL", "商贸零售"], ["801210.SL", "社会服务"], ["801980.SL", "美容护理"], ["801010.SL", "农林牧渔"],
+    ["801150.SL", "医药生物"],
+    ["801780.SL", "银行"], ["801790.SL", "非银金融"], ["801180.SL", "房地产"], ["801720.SL", "建筑装饰"]
+  ]
+}

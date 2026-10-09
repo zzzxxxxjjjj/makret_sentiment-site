@@ -1,0 +1,66 @@
+{
+  "north_present": {
+    "status": "BOOL",
+    "detail": "False"
+  },
+  "macro_present": {
+    "status": "BOOL",
+    "detail": "False"
+  },
+  "north_names": {
+    "status": "LIST",
+    "detail": "[]"
+  },
+  "fx_fields": {
+    "status": "FAIL",
+    "detail": "ValueError: fields: got invalided value USD/CNY, choose any in ['currency_pair', 'bid_referrence_rate', 'ask_referrence_rate', 'middle_referrence_rate', 'bid_sett"
+  },
+  "fx_rmb": {
+    "status": "FAIL",
+    "detail": "PermissionDenied: no permission to access market hk, please concact us at https://www.ricequant.com/"
+  },
+  "basis_e": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "basis_f": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "basis_g": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "roll_yield": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "opt_contr": {
+    "status": "OK",
+    "detail": "list len=152"
+  },
+  "opt_gk_contract": {
+    "status": "OK",
+    "detail": "DataFrame(12, 2) cols=['iv', 'delta']"
+  },
+  "opt_ind": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "conv_ind2": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "bond_etf_511010": {
+    "status": "OK",
+    "detail": "DataFrame(12, 1) cols=['close']"
+  },
+  "bond_etf_511260": {
+    "status": "OK",
+    "detail": "DataFrame(12, 1) cols=['close']"
+  },
+  "bond_index_search": {
+    "status": "FAIL",
+    "detail": "'str' object has no attribute 'order_book_id'"
+  }
+}

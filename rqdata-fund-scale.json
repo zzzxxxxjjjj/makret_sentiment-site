@@ -1,0 +1,199 @@
+{
+  "asOf": "2026-06-30",
+  "generatedAt": "2026-09-04T16:24:59",
+  "source": "RQData / 聚源公募基金分类",
+  "frequency": "quarterly",
+  "category": "标准股票型",
+  "method": "按每个季度末的聚源三级分类‘标准股票型’恢复当期基金范围；基金规模为有效基金子份额期末净资产合计，季度规模环比包含申赎与净值涨跌影响。",
+  "points": [
+    {
+      "date": "2021-06-30",
+      "netAssets": 7945.73,
+      "estimatedNetSubscription": -478.39,
+      "eligibleFunds": 741,
+      "validFunds": 625,
+      "infoDate": "2021-07-21",
+      "qoqChange": null
+    },
+    {
+      "date": "2021-09-30",
+      "netAssets": 7927.93,
+      "estimatedNetSubscription": -66.18,
+      "eligibleFunds": 790,
+      "validFunds": 678,
+      "infoDate": "2021-10-27",
+      "qoqChange": -0.22
+    },
+    {
+      "date": "2021-12-31",
+      "netAssets": 8435.82,
+      "estimatedNetSubscription": 319.42,
+      "eligibleFunds": 828,
+      "validFunds": 718,
+      "infoDate": "2022-01-24",
+      "qoqChange": 6.41
+    },
+    {
+      "date": "2022-03-31",
+      "netAssets": 6958.62,
+      "estimatedNetSubscription": -41.29,
+      "eligibleFunds": 879,
+      "validFunds": 778,
+      "infoDate": "2022-04-22",
+      "qoqChange": -17.51
+    },
+    {
+      "date": "2022-06-30",
+      "netAssets": 7454.11,
+      "estimatedNetSubscription": -145.38,
+      "eligibleFunds": 899,
+      "validFunds": 796,
+      "infoDate": "2022-07-21",
+      "qoqChange": 7.12
+    },
+    {
+      "date": "2022-09-30",
+      "netAssets": 6526.41,
+      "estimatedNetSubscription": 82.66,
+      "eligibleFunds": 941,
+      "validFunds": 824,
+      "infoDate": "2022-10-27",
+      "qoqChange": -12.45
+    },
+    {
+      "date": "2022-12-31",
+      "netAssets": 6675.73,
+      "estimatedNetSubscription": 147.42,
+      "eligibleFunds": 970,
+      "validFunds": 850,
+      "infoDate": "2023-01-28",
+      "qoqChange": 2.29
+    },
+    {
+      "date": "2023-03-31",
+      "netAssets": 7065.09,
+      "estimatedNetSubscription": 190.25,
+      "eligibleFunds": 991,
+      "validFunds": 871,
+      "infoDate": "2023-04-24",
+      "qoqChange": 5.83
+    },
+    {
+      "date": "2023-06-30",
+      "netAssets": 6749.46,
+      "estimatedNetSubscription": 33.41,
+      "eligibleFunds": 1012,
+      "validFunds": 881,
+      "infoDate": "2023-07-21",
+      "qoqChange": -4.47
+    },
+    {
+      "date": "2023-09-30",
+      "netAssets": 6210.28,
+      "estimatedNetSubscription": -59.38,
+      "eligibleFunds": 1040,
+      "validFunds": 909,
+      "infoDate": "2023-10-25",
+      "qoqChange": -7.99
+    },
+    {
+      "date": "2023-12-31",
+      "netAssets": 5801.65,
+      "estimatedNetSubscription": -127.93,
+      "eligibleFunds": 1077,
+      "validFunds": 931,
+      "infoDate": "2024-01-22",
+      "qoqChange": -6.58
+    },
+    {
+      "date": "2024-03-31",
+      "netAssets": 5330.04,
+      "estimatedNetSubscription": -260.79,
+      "eligibleFunds": 1091,
+      "validFunds": 945,
+      "infoDate": "2024-04-22",
+      "qoqChange": -8.13
+    },
+    {
+      "date": "2024-06-30",
+      "netAssets": 5070.67,
+      "estimatedNetSubscription": -131.59,
+      "eligibleFunds": 1121,
+      "validFunds": 962,
+      "infoDate": "2024-07-19",
+      "qoqChange": -4.87
+    },
+    {
+      "date": "2024-09-30",
+      "netAssets": 5573.62,
+      "estimatedNetSubscription": -130.16,
+      "eligibleFunds": 1135,
+      "validFunds": 984,
+      "infoDate": "2024-10-25",
+      "qoqChange": 9.92
+    },
+    {
+      "date": "2024-12-31",
+      "netAssets": 5032.2,
+      "estimatedNetSubscription": -372.48,
+      "eligibleFunds": 1161,
+      "validFunds": 998,
+      "infoDate": "2025-01-22",
+      "qoqChange": -9.71
+    },
+    {
+      "date": "2025-03-31",
+      "netAssets": 5221.56,
+      "estimatedNetSubscription": -62.4,
+      "eligibleFunds": 1176,
+      "validFunds": 1013,
+      "infoDate": "2025-04-22",
+      "qoqChange": 3.76
+    },
+    {
+      "date": "2025-06-30",
+      "netAssets": 5067.94,
+      "estimatedNetSubscription": -240.43,
+      "eligibleFunds": 1206,
+      "validFunds": 1022,
+      "infoDate": "2025-07-21",
+      "qoqChange": -2.94
+    },
+    {
+      "date": "2025-09-30",
+      "netAssets": 6030.99,
+      "estimatedNetSubscription": -464.02,
+      "eligibleFunds": 1235,
+      "validFunds": 1036,
+      "infoDate": "2025-10-28",
+      "qoqChange": 19.0
+    },
+    {
+      "date": "2025-12-31",
+      "netAssets": 5673.47,
+      "estimatedNetSubscription": -220.8,
+      "eligibleFunds": 1255,
+      "validFunds": 1048,
+      "infoDate": "2026-01-22",
+      "qoqChange": -5.93
+    },
+    {
+      "date": "2026-03-31",
+      "netAssets": 5628.33,
+      "estimatedNetSubscription": -65.95,
+      "eligibleFunds": 1281,
+      "validFunds": 1064,
+      "infoDate": "2026-04-22",
+      "qoqChange": -0.8
+    },
+    {
+      "date": "2026-06-30",
+      "netAssets": 6978.91,
+      "estimatedNetSubscription": -33.07,
+      "eligibleFunds": 1300,
+      "validFunds": 1082,
+      "infoDate": "2026-07-21",
+      "qoqChange": 24.0
+    }
+  ]
+}

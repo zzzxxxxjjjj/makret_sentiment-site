@@ -1,0 +1,58 @@
+{
+  "calibration_M_p5_p95": [
+    10.5,
+    81.8
+  ],
+  "common_window": {
+    "start": "2022-01-13",
+    "end": "2026-09-21",
+    "n": 1137,
+    "note": "本地缓存中周期序列仅自2022起；下方为整合验证，非正式样本外"
+  },
+  "integration_2022_2026": {
+    "label": "共同区间整合(2022-2026)",
+    "medium_only": {
+      "years": 4.51,
+      "total_return": 0.0523,
+      "annualized": 0.0114,
+      "max_drawdown": -0.2071,
+      "sharpe": 0.15,
+      "avg_equity_weight": 60.1,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0055
+    },
+    "dual_horizon": {
+      "years": 4.51,
+      "total_return": 0.088,
+      "annualized": 0.0189,
+      "max_drawdown": -0.1887,
+      "sharpe": 0.23,
+      "avg_equity_weight": 53.9,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.013
+    },
+    "buy_hold": {
+      "years": 4.51,
+      "total_return": 0.0281,
+      "annualized": 0.0062,
+      "max_drawdown": -0.3637,
+      "sharpe": 0.13,
+      "avg_equity_weight": 100.0,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0003
+    },
+    "annualized_turnover": {
+      "medium_only": 1.92,
+      "dual_horizon": 5.43
+    }
+  },
+  "current_recommendation": {
+    "asOf": "2026-09-21",
+    "med_base": 55.5,
+    "dual_target": 65.5,
+    "med_only_target": 55.5,
+    "med_composite": 39.862,
+    "short_sentiment": 59.55,
+    "short_phase": "rising"
+  }
+}

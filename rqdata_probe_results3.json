@@ -1,0 +1,86 @@
+{
+  "sec_margin_cols": {
+    "status": "OK",
+    "detail": "DataFrame(12, 8) cols=['margin_balance', 'buy_on_margin_value', 'short_sell_quantity', 'margin_repayment', 'short_balance_quantity', 'short_repayment_quantity', 'short_balance', 'total_balance']"
+  },
+  "capital_flow_cols": {
+    "status": "OK",
+    "detail": "DataFrame(12, 4) cols=['buy_volume', 'buy_value', 'sell_volume', 'sell_value']"
+  },
+  "fx2": {
+    "status": "FAIL",
+    "detail": "TypeError: get_exchange_rate() got multiple values for argument 'start_date'"
+  },
+  "fx3": {
+    "status": "FAIL",
+    "detail": "ValueError: expect a datetime like object, got <class 'list'>(['USD/CNY'])"
+  },
+  "basis_a": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "basis_b": {
+    "status": "FAIL",
+    "detail": "TypeError: get_basis() got an unexpected keyword argument 'basis_type'"
+  },
+  "basis_c": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "basis_d": {
+    "status": "FAIL",
+    "detail": "TypeError: get_current_basis() got an unexpected keyword argument 'date'"
+  },
+  "opt_contracts2": {
+    "status": "FAIL",
+    "detail": "TypeError: get_contracts() got an unexpected keyword argument 'start_date'"
+  },
+  "opt_greeks2": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "opt_ind2": {
+    "status": "FAIL",
+    "detail": "ValueError: fields: got invalided value iv, choose any in ['VL_PCR', 'OI_PCR', 'AM_PCR', 'skew', 'iv_025_dela', 'iv_minus_025_dela']"
+  },
+  "bond_CBA00301_IB": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "bond_CBA00301_XSHG": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "bond_CBA00301_IND": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "bond_H11001_IB": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "bond_CBA00301": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "north_present": {
+    "status": "OK",
+    "detail": "bool"
+  },
+  "macro_present": {
+    "status": "OK",
+    "detail": "bool"
+  },
+  "conv_ind": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "conv_close": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "leader2": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  }
+}

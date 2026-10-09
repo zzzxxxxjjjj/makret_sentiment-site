@@ -1,0 +1,162 @@
+{
+  "index_price": {
+    "status": "FAIL",
+    "detail": "ValueError: fields: got invalided value turnover_rate, choose any in {'close', 'low', 'high', 'total_turnover', 'prev_close', 'open', 'volume'}"
+  },
+  "index_components": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_index_components'"
+  },
+  "stock_pe": {
+    "status": "OK",
+    "detail": "DataFrame shape=(12, 1)"
+  },
+  "stock_pb": {
+    "status": "OK",
+    "detail": "DataFrame shape=(12, 1)"
+  },
+  "stock_mktcap": {
+    "status": "OK",
+    "detail": "DataFrame shape=(12, 1)"
+  },
+  "index_pe": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "index_pb": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "cn_yield_10y": {
+    "status": "FAIL",
+    "detail": "TypeError: get_yield_curve() got an unexpected keyword argument 'curve_name'"
+  },
+  "cn_yield_curve": {
+    "status": "FAIL",
+    "detail": "TypeError: get_yield_curve() got an unexpected keyword argument 'curve_name'"
+  },
+  "mtss": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_mtss'"
+  },
+  "north_flow": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_north_money_flow'"
+  },
+  "north_money": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_north_flow'"
+  },
+  "money_flow": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_money_flow'"
+  },
+  "fx_usdcny": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "fx_exchangerate": {
+    "status": "FAIL",
+    "detail": "TypeError: get_exchange_rate() got multiple values for argument 'start_date'"
+  },
+  "us_yield": {
+    "status": "FAIL",
+    "detail": "TypeError: get_yield_curve() got an unexpected keyword argument 'curve_name'"
+  },
+  "us_index_dxy": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "fut_basis_if": {
+    "status": "EMPTY",
+    "detail": "None"
+  },
+  "fut_basis_underlying": {
+    "status": "EMPTY",
+    "detail": "None"
+  },
+  "fut_member_rank": {
+    "status": "OK",
+    "detail": "DataFrame shape=(240, 5)"
+  },
+  "member_rank_top": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_member_rank'"
+  },
+  "opt_instruments": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'options' has no attribute 'get_instruments'"
+  },
+  "opt_price": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'options' has no attribute 'get_instruments'"
+  },
+  "opt_greeks_iv": {
+    "status": "FAIL",
+    "detail": "TypeError: get_greeks() got an unexpected keyword argument 'field'"
+  },
+  "opt_implied_vol": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'options' has no attribute 'get_implied_volatility'"
+  },
+  "opt_risk_free": {
+    "status": "EMPTY",
+    "detail": "None"
+  },
+  "style_index": {
+    "status": "OK",
+    "detail": "DataFrame shape=(12, 1)"
+  },
+  "style_index2": {
+    "status": "OK",
+    "detail": "DataFrame shape=(12, 1)"
+  },
+  "bond_cba": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "macro_m2": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_macro'"
+  },
+  "macro_social_fin": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_macro'"
+  },
+  "macro_macrodata": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_macro_data'"
+  },
+  "macro_omo": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_macro'"
+  },
+  "fund_share": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_fund_share'"
+  },
+  "fund_info": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'fund' has no attribute 'get_fund_info'"
+  },
+  "exec_holdings": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_executive_holdings_change'"
+  },
+  "ipo_info": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'rqdatac' has no attribute 'get_ipo_info'"
+  },
+  "conv_bonds": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'convertible' has no attribute 'get_convertible_bonds'"
+  },
+  "cyq_construction": {
+    "status": "FAIL",
+    "detail": "RuntimeError: 需自建成本分布模型, rqdata无接口"
+  },
+  "new_accounts": {
+    "status": "FAIL",
+    "detail": "RuntimeError: 中登开户数 rqdata不直接提供"
+  }
+}

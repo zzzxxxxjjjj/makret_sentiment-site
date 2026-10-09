@@ -1,0 +1,148 @@
+{
+  "calibration_M_p5_p95": [
+    10.5,
+    81.8
+  ],
+  "common_window": {
+    "start": "2022-01-13",
+    "end": "2026-09-21",
+    "n": 1137,
+    "note": "本地缓存中周期自2022起；仅整合验证，非正式样本外"
+  },
+  "RF_1.8%_cash": {
+    "buy_hold": {
+      "years": 4.51,
+      "total_return": 0.0281,
+      "annualized": 0.0062,
+      "max_drawdown": -0.3637,
+      "sharpe": 0.13,
+      "return_drawdown": 0.017,
+      "avg_equity_weight": 100.0,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0003
+    },
+    "v1_dual": {
+      "years": 4.51,
+      "total_return": 0.088,
+      "annualized": 0.0189,
+      "max_drawdown": -0.1887,
+      "sharpe": 0.23,
+      "return_drawdown": 0.1,
+      "avg_equity_weight": 53.9,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.013
+    },
+    "v2_tilt±12": {
+      "years": 4.51,
+      "total_return": 0.0509,
+      "annualized": 0.0111,
+      "max_drawdown": -0.1644,
+      "sharpe": 0.15,
+      "return_drawdown": 0.067,
+      "avg_equity_weight": 56.9,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0052
+    },
+    "v2b_hardFloor75_Cap30": {
+      "years": 4.51,
+      "total_return": 0.0092,
+      "annualized": 0.002,
+      "max_drawdown": -0.1428,
+      "sharpe": 0.07,
+      "return_drawdown": 0.014,
+      "avg_equity_weight": 53.2,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": -0.0038
+    },
+    "medium_only": {
+      "years": 4.51,
+      "total_return": 0.0523,
+      "annualized": 0.0114,
+      "max_drawdown": -0.2071,
+      "sharpe": 0.15,
+      "return_drawdown": 0.055,
+      "avg_equity_weight": 60.1,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0055
+    },
+    "annualized_turnover": {
+      "v1": 5.43,
+      "v2": 3.87,
+      "v2b": 3.6,
+      "medium_only": 1.92
+    },
+    "regime_days": {
+      "up": 313,
+      "down": 376,
+      "osc": 448
+    }
+  },
+  "RF_3.5%_bond_sleeve": {
+    "buy_hold": {
+      "years": 4.51,
+      "total_return": 0.0284,
+      "annualized": 0.0062,
+      "max_drawdown": -0.3636,
+      "sharpe": 0.13,
+      "return_drawdown": 0.017,
+      "avg_equity_weight": 100.0,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0004
+    },
+    "v1_dual": {
+      "years": 4.51,
+      "total_return": 0.128,
+      "annualized": 0.027,
+      "max_drawdown": -0.1697,
+      "sharpe": 0.3,
+      "return_drawdown": 0.159,
+      "avg_equity_weight": 53.9,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0212
+    },
+    "v2_tilt±12": {
+      "years": 4.51,
+      "total_return": 0.087,
+      "annualized": 0.0187,
+      "max_drawdown": -0.1441,
+      "sharpe": 0.22,
+      "return_drawdown": 0.13,
+      "avg_equity_weight": 56.9,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0128
+    },
+    "v2b_hardFloor75_Cap30": {
+      "years": 4.51,
+      "total_return": 0.0467,
+      "annualized": 0.0102,
+      "max_drawdown": -0.1277,
+      "sharpe": 0.15,
+      "return_drawdown": 0.08,
+      "avg_equity_weight": 53.2,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0043
+    },
+    "medium_only": {
+      "years": 4.51,
+      "total_return": 0.0853,
+      "annualized": 0.0183,
+      "max_drawdown": -0.19,
+      "sharpe": 0.21,
+      "return_drawdown": 0.096,
+      "avg_equity_weight": 60.1,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0125
+    },
+    "annualized_turnover": {
+      "v1": 5.43,
+      "v2": 3.87,
+      "v2b": 3.6,
+      "medium_only": 1.92
+    },
+    "regime_days": {
+      "up": 313,
+      "down": 376,
+      "osc": 448
+    }
+  }
+}

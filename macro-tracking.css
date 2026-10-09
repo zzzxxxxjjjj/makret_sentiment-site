@@ -1,0 +1,15 @@
+.macro-hero{margin-bottom:28px}
+.macro-panel{margin-top:0}
+.macro-panel-head{align-items:flex-start;gap:28px}
+.macro-controls{display:flex;flex-direction:column;align-items:flex-end;gap:10px;max-width:660px}
+.macro-bulk-actions{display:flex;gap:7px}
+.macro-bulk-actions button{padding:6px 10px;font-size:9px}
+.macro-chart-wrap{height:470px;position:relative}
+.macro-chart-wrap canvas{width:100%;height:100%}
+.macro-axis-legend{display:flex;align-items:center;gap:20px;margin-top:10px;color:var(--muted);font-size:10px}
+.macro-axis-legend span:nth-child(2){color:var(--blue)}
+.macro-axis-legend span:last-child{margin-left:auto;color:var(--foot)}
+.macro-panel .benchmark-toggle{font-size:10px}
+.macro-panel .benchmark-toggle i{height:3px;border-radius:2px}
+@media(max-width:900px){.macro-panel-head{flex-direction:column}.macro-controls{align-items:flex-start;max-width:none;width:100%}.macro-controls .benchmark-toggles{justify-content:flex-start}.macro-chart-wrap{height:390px}}
+@media(max-width:640px){.macro-chart-wrap{height:310px}.macro-axis-legend{align-items:flex-start;flex-direction:column;gap:5px}.macro-axis-legend span:last-child{margin-left:0}.macro-bulk-actions{width:100%}.macro-bulk-actions button{flex:1}}

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>宏观跟踪｜A股市场情绪</title>
+  <link rel="stylesheet" href="/styles.css?v=25">
+  <link rel="stylesheet" href="/cycle.css?v=24">
+  <link rel="stylesheet" href="/macro-tracking.css?v=1">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">MS</span>
+      <div><strong>A股市场情绪</strong><small>MACRO PULSE TRACKER</small></div>
+    </div>
+    <nav><a href="/">宽基情绪</a><a href="/industry-sentiment.html">行业情绪</a><a class="active" href="/macro-tracking.html">宏观跟踪</a></nav>
+    <div class="status"><span id="statusDot" class="dot loading"></span><span id="statusText">正在读取数据</span></div>
+  </header>
+
+  <main>
+    <section class="hero macro-hero">
+      <div>
+        <p class="eyebrow">CREDIT + FX / MONTHLY</p>
+        <h1>宏观跟踪</h1>
+        <p class="summary">信贷脉冲、全A总市值/居民存款、PPI同比、外汇脉冲与RQData沪深300月度同比集中对比；指标可独立显示或隐藏。</p>
+      </div>
+      <div class="hero-meta">
+        <div><span>最新指标月份</span><strong id="asOf">—</strong></div>
+        <div><span>可用序列</span><strong id="coverage">—</strong></div>
+        <button id="refreshButton" type="button">刷新数据</button>
+      </div>
+    </section>
+
+    <section class="panel macro-panel">
+      <div class="panel-head macro-panel-head">
+        <div>
+          <p class="eyebrow">MACRO COMPOSITE CHART</p>
+          <h2>宏观数据综合面板</h2>
+          <p class="cycle-description">左轴展示信贷脉冲、外汇脉冲和全A总市值/居民存款；右轴展示PPI同比与RQData沪深300月度同比。时间范围最早为2016年。</p>
+        </div>
+        <div class="macro-controls">
+          <div id="macroToggles" class="benchmark-toggles" aria-label="选择显示的宏观指标"></div>
+          <div class="macro-bulk-actions">
+            <button id="showAll" type="button">全部显示</button>
+            <button id="hideAll" type="button">全部隐藏</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="macro-chart-wrap">
+        <canvas id="macroChart"></canvas>
+        <div id="macroHoverLine" class="cycle-hover-line" hidden></div>
+        <div id="macroTooltip" class="cycle-tooltip" role="status" aria-live="polite" hidden></div>
+        <div id="macroEmpty" class="empty-state">暂无可显示的宏观历史序列</div>
+      </div>
+
+      <div class="macro-axis-legend">
+        <span>左轴：信贷脉冲（%）/ 外汇脉冲（点）/ 全A总市值÷居民存款（倍）</span>
+        <span>右轴：PPI同比 / 沪深300月度同比（%）</span>
+        <span id="macroLatest">—</span>
+      </div>
+
+      <div class="cycle-timeline">
+        <span id="macroRangeStart">—</span>
+        <div class="dual-range" aria-label="选择宏观图表时间范围">
+          <div class="range-base"></div>
+          <div id="macroRangeFill" class="range-fill"></div>
+          <input id="macroStart" type="range" min="0" max="100" value="0" step="1" aria-label="起始月份">
+          <input id="macroEnd" type="range" min="0" max="100" value="100" step="1" aria-label="结束月份">
+        </div>
+        <span id="macroRangeEnd">—</span>
+      </div>
+    </section>
+  </main>
+
+  <footer><span>宏观指标用于趋势观察，不构成投资建议</span><span id="generatedAt">—</span></footer>
+  <script src="/macro-tracking.js?v=4" defer></script>
+</body>
+</html>

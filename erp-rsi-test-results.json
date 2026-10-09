@@ -1,0 +1,2222 @@
+{
+  "asOf": "2026-07-09",
+  "sample": {
+    "start": "2018-07-30",
+    "end": "2026-07-09",
+    "trainEnd": "2022-12-31",
+    "outOfSampleStart": "2023-01-01",
+    "observations": 1926
+  },
+  "definitions": {
+    "rsi": "万得全A 14日Wilder RSI，3日指数平滑",
+    "erp": "Excel风险溢价的5年滚动历史分位倒序，20日指数平滑",
+    "cyclePosition": "万得全A在前后各30个交易日价格区间内的位置，仅用于事后验证",
+    "weightLimit": "RSI与ERP新增权重合计不超过30%"
+  },
+  "selected": {
+    "baseline": {
+      "rsiWeight": 0.0,
+      "erpWeight": 0.0,
+      "train": {
+        "observations": 1076,
+        "levelCorrelation": 0.4789,
+        "leadCorrelation5D": 0.3951,
+        "leadCorrelation10D": 0.3503,
+        "topBottomAuc": 0.9974,
+        "topBottomSeparation": 45.6933,
+        "phaseAgreement10D": 0.6976,
+        "objective": 0.5319,
+        "turningPoints": {
+          "turns": 21,
+          "matched": 21,
+          "matchRate": 1.0,
+          "medianAbsLag": 4.0,
+          "medianSignedLag": -4.0,
+          "lags": [
+            -2.0,
+            -9.0,
+            -6.0,
+            -3.0,
+            -9.0,
+            -20.0,
+            -1.0,
+            -21.0,
+            -4.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -11.0,
+            -1.0,
+            -10.0,
+            -4.0,
+            -17.0,
+            -2.0,
+            -10.0
+          ],
+          "dates": [
+            "2018-11-19",
+            "2019-04-18",
+            "2019-07-03",
+            "2019-09-11",
+            "2020-03-06",
+            "2020-09-02",
+            "2021-09-09",
+            "2022-01-14",
+            "2022-08-19",
+            "2022-12-06",
+            "2018-10-17",
+            "2018-12-28",
+            "2019-06-05",
+            "2019-08-08",
+            "2019-11-28",
+            "2020-02-05",
+            "2020-04-01",
+            "2021-02-08",
+            "2021-10-29",
+            "2022-04-27",
+            "2022-10-10"
+          ]
+        },
+        "topMean": 70.4335,
+        "bottomMean": 24.7402
+      },
+      "outOfSample": {
+        "observations": 850,
+        "levelCorrelation": 0.3904,
+        "leadCorrelation5D": 0.4077,
+        "leadCorrelation10D": 0.4038,
+        "topBottomAuc": 0.9771,
+        "topBottomSeparation": 44.3706,
+        "phaseAgreement10D": 0.7428,
+        "objective": 0.5206,
+        "turningPoints": {
+          "turns": 14,
+          "matched": 14,
+          "matchRate": 1.0,
+          "medianAbsLag": 3.0,
+          "medianSignedLag": -2.0,
+          "lags": [
+            -9.0,
+            -12.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -13.0,
+            -1.0,
+            -11.0,
+            -3.0,
+            14.0,
+            -4.0,
+            -1.0,
+            -3.0
+          ],
+          "dates": [
+            "2023-02-13",
+            "2023-11-27",
+            "2024-03-20",
+            "2024-12-12",
+            "2025-03-18",
+            "2026-02-26",
+            "2026-05-12",
+            "2023-10-23",
+            "2024-02-06",
+            "2024-04-18",
+            "2024-09-18",
+            "2025-01-09",
+            "2025-04-09",
+            "2026-03-25"
+          ]
+        },
+        "topMean": 68.7558,
+        "bottomMean": 24.3853
+      },
+      "outOfSampleByYear": {
+        "2023": {
+          "observations": 242,
+          "levelCorrelation": 0.3309,
+          "leadCorrelation5D": 0.3266,
+          "leadCorrelation10D": 0.4586,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 49.3579,
+          "phaseAgreement10D": 0.819,
+          "objective": 0.5045,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 5.0,
+            "medianSignedLag": -5.0,
+            "lags": [
+              -9.0,
+              -1.0
+            ],
+            "dates": [
+              "2023-02-13",
+              "2023-10-23"
+            ]
+          },
+          "topMean": 61.6459,
+          "bottomMean": 12.288
+        },
+        "2024": {
+          "observations": 242,
+          "levelCorrelation": 0.5044,
+          "leadCorrelation5D": 0.5383,
+          "leadCorrelation10D": 0.4679,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 47.9812,
+          "phaseAgreement10D": 0.7619,
+          "objective": 0.6057,
+          "turningPoints": {
+            "turns": 5,
+            "matched": 5,
+            "matchRate": 1.0,
+            "medianAbsLag": 3.0,
+            "medianSignedLag": -1.0,
+            "lags": [
+              -1.0,
+              -1.0,
+              -11.0,
+              -3.0,
+              14.0
+            ],
+            "dates": [
+              "2024-03-20",
+              "2024-12-12",
+              "2024-02-06",
+              "2024-04-18",
+              "2024-09-18"
+            ]
+          },
+          "topMean": 77.6577,
+          "bottomMean": 29.6765
+        },
+        "2025": {
+          "observations": 243,
+          "levelCorrelation": 0.4407,
+          "leadCorrelation5D": 0.4598,
+          "leadCorrelation10D": 0.4126,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 57.6306,
+          "phaseAgreement10D": 0.6952,
+          "objective": 0.5492,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 0.5,
+            "medianSignedLag": -0.5,
+            "lags": [
+              0.0,
+              -1.0
+            ],
+            "dates": [
+              "2025-03-18",
+              "2025-04-09"
+            ]
+          },
+          "topMean": 74.5918,
+          "bottomMean": 16.9612
+        },
+        "2026": {
+          "observations": 123,
+          "levelCorrelation": 0.4937,
+          "leadCorrelation5D": 0.5176,
+          "leadCorrelation10D": 0.5808,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 63.4044,
+          "phaseAgreement10D": 0.6442,
+          "objective": 0.6081,
+          "turningPoints": {
+            "turns": 3,
+            "matched": 3,
+            "matchRate": 1.0,
+            "medianAbsLag": 3.0,
+            "medianSignedLag": -3.0,
+            "lags": [
+              0.0,
+              -13.0,
+              -3.0
+            ],
+            "dates": [
+              "2026-02-26",
+              "2026-05-12",
+              "2026-03-25"
+            ]
+          },
+          "topMean": 70.0944,
+          "bottomMean": 6.69
+        }
+      }
+    },
+    "lowDose": {
+      "rsiWeight": 0.1,
+      "erpWeight": 0.05,
+      "train": {
+        "observations": 1076,
+        "levelCorrelation": 0.5006,
+        "leadCorrelation5D": 0.4095,
+        "leadCorrelation10D": 0.3603,
+        "topBottomAuc": 0.9992,
+        "topBottomSeparation": 42.0799,
+        "phaseAgreement10D": 0.7068,
+        "objective": 0.5452,
+        "turningPoints": {
+          "turns": 21,
+          "matched": 21,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.0,
+          "medianSignedLag": -2.0,
+          "lags": [
+            -2.0,
+            -9.0,
+            -6.0,
+            -3.0,
+            -9.0,
+            -10.0,
+            0.0,
+            -8.0,
+            -4.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -11.0,
+            -1.0,
+            -10.0,
+            -2.0,
+            -17.0,
+            -2.0,
+            -1.0
+          ],
+          "dates": [
+            "2018-11-19",
+            "2019-04-18",
+            "2019-07-03",
+            "2019-09-11",
+            "2020-03-06",
+            "2020-09-02",
+            "2021-09-09",
+            "2022-01-14",
+            "2022-08-19",
+            "2022-12-06",
+            "2018-10-17",
+            "2018-12-28",
+            "2019-06-05",
+            "2019-08-08",
+            "2019-11-28",
+            "2020-02-05",
+            "2020-04-01",
+            "2021-02-08",
+            "2021-10-29",
+            "2022-04-27",
+            "2022-10-10"
+          ]
+        },
+        "topMean": 67.9099,
+        "bottomMean": 25.83
+      },
+      "outOfSample": {
+        "observations": 850,
+        "levelCorrelation": 0.4088,
+        "leadCorrelation5D": 0.4198,
+        "leadCorrelation10D": 0.4104,
+        "topBottomAuc": 0.9825,
+        "topBottomSeparation": 41.4032,
+        "phaseAgreement10D": 0.7523,
+        "objective": 0.5323,
+        "turningPoints": {
+          "turns": 14,
+          "matched": 14,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.5,
+          "medianSignedLag": -1.5,
+          "lags": [
+            -9.0,
+            -12.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -13.0,
+            -1.0,
+            -11.0,
+            -3.0,
+            14.0,
+            -4.0,
+            -1.0,
+            -2.0
+          ],
+          "dates": [
+            "2023-02-13",
+            "2023-11-27",
+            "2024-03-20",
+            "2024-12-12",
+            "2025-03-18",
+            "2026-02-26",
+            "2026-05-12",
+            "2023-10-23",
+            "2024-02-06",
+            "2024-04-18",
+            "2024-09-18",
+            "2025-01-09",
+            "2025-04-09",
+            "2026-03-25"
+          ]
+        },
+        "topMean": 66.7708,
+        "bottomMean": 25.3676
+      },
+      "outOfSampleByYear": {
+        "2023": {
+          "observations": 242,
+          "levelCorrelation": 0.3444,
+          "leadCorrelation5D": 0.334,
+          "leadCorrelation10D": 0.4623,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 44.6641,
+          "phaseAgreement10D": 0.8199,
+          "objective": 0.5113,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 5.0,
+            "medianSignedLag": -5.0,
+            "lags": [
+              -9.0,
+              -1.0
+            ],
+            "dates": [
+              "2023-02-13",
+              "2023-10-23"
+            ]
+          },
+          "topMean": 59.8015,
+          "bottomMean": 15.1374
+        },
+        "2024": {
+          "observations": 242,
+          "levelCorrelation": 0.5228,
+          "leadCorrelation5D": 0.552,
+          "leadCorrelation10D": 0.4789,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 43.7762,
+          "phaseAgreement10D": 0.7714,
+          "objective": 0.6178,
+          "turningPoints": {
+            "turns": 5,
+            "matched": 5,
+            "matchRate": 1.0,
+            "medianAbsLag": 3.0,
+            "medianSignedLag": -1.0,
+            "lags": [
+              -1.0,
+              -1.0,
+              -11.0,
+              -3.0,
+              14.0
+            ],
+            "dates": [
+              "2024-03-20",
+              "2024-12-12",
+              "2024-02-06",
+              "2024-04-18",
+              "2024-09-18"
+            ]
+          },
+          "topMean": 73.2143,
+          "bottomMean": 29.4381
+        },
+        "2025": {
+          "observations": 243,
+          "levelCorrelation": 0.4602,
+          "leadCorrelation5D": 0.4674,
+          "leadCorrelation10D": 0.4134,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 53.0835,
+          "phaseAgreement10D": 0.7115,
+          "objective": 0.5587,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 0.5,
+            "medianSignedLag": -0.5,
+            "lags": [
+              0.0,
+              -1.0
+            ],
+            "dates": [
+              "2025-03-18",
+              "2025-04-09"
+            ]
+          },
+          "topMean": 73.1359,
+          "bottomMean": 20.0525
+        },
+        "2026": {
+          "observations": 123,
+          "levelCorrelation": 0.5247,
+          "leadCorrelation5D": 0.538,
+          "leadCorrelation10D": 0.589,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 57.386,
+          "phaseAgreement10D": 0.6571,
+          "objective": 0.6254,
+          "turningPoints": {
+            "turns": 3,
+            "matched": 3,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -2.0,
+            "lags": [
+              0.0,
+              -13.0,
+              -2.0
+            ],
+            "dates": [
+              "2026-02-26",
+              "2026-05-12",
+              "2026-03-25"
+            ]
+          },
+          "topMean": 70.5915,
+          "bottomMean": 13.2055
+        }
+      }
+    },
+    "balanced": {
+      "rsiWeight": 0.15000000000000002,
+      "erpWeight": 0.05,
+      "train": {
+        "observations": 1076,
+        "levelCorrelation": 0.5069,
+        "leadCorrelation5D": 0.4132,
+        "leadCorrelation10D": 0.3624,
+        "topBottomAuc": 0.9995,
+        "topBottomSeparation": 41.1907,
+        "phaseAgreement10D": 0.7137,
+        "objective": 0.5492,
+        "turningPoints": {
+          "turns": 21,
+          "matched": 21,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.0,
+          "medianSignedLag": -2.0,
+          "lags": [
+            -2.0,
+            -9.0,
+            -6.0,
+            -2.0,
+            -9.0,
+            -10.0,
+            0.0,
+            -8.0,
+            -4.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -11.0,
+            -1.0,
+            -10.0,
+            -2.0,
+            -17.0,
+            -2.0,
+            -1.0
+          ],
+          "dates": [
+            "2018-11-19",
+            "2019-04-18",
+            "2019-07-03",
+            "2019-09-11",
+            "2020-03-06",
+            "2020-09-02",
+            "2021-09-09",
+            "2022-01-14",
+            "2022-08-19",
+            "2022-12-06",
+            "2018-10-17",
+            "2018-12-28",
+            "2019-06-05",
+            "2019-08-08",
+            "2019-11-28",
+            "2020-02-05",
+            "2020-04-01",
+            "2021-02-08",
+            "2021-10-29",
+            "2022-04-27",
+            "2022-10-10"
+          ]
+        },
+        "topMean": 67.6153,
+        "bottomMean": 26.4246
+      },
+      "outOfSample": {
+        "observations": 850,
+        "levelCorrelation": 0.4155,
+        "leadCorrelation5D": 0.4238,
+        "leadCorrelation10D": 0.4128,
+        "topBottomAuc": 0.9867,
+        "topBottomSeparation": 40.4651,
+        "phaseAgreement10D": 0.7559,
+        "objective": 0.5367,
+        "turningPoints": {
+          "turns": 14,
+          "matched": 14,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.5,
+          "medianSignedLag": -1.5,
+          "lags": [
+            -9.0,
+            -7.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -13.0,
+            -1.0,
+            -11.0,
+            -3.0,
+            14.0,
+            -4.0,
+            -1.0,
+            -2.0
+          ],
+          "dates": [
+            "2023-02-13",
+            "2023-11-27",
+            "2024-03-20",
+            "2024-12-12",
+            "2025-03-18",
+            "2026-02-26",
+            "2026-05-12",
+            "2023-10-23",
+            "2024-02-06",
+            "2024-04-18",
+            "2024-09-18",
+            "2025-01-09",
+            "2025-04-09",
+            "2026-03-25"
+          ]
+        },
+        "topMean": 66.4768,
+        "bottomMean": 26.0117
+      },
+      "outOfSampleByYear": {
+        "2023": {
+          "observations": 242,
+          "levelCorrelation": 0.3552,
+          "leadCorrelation5D": 0.3397,
+          "leadCorrelation10D": 0.4663,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 43.6516,
+          "phaseAgreement10D": 0.8255,
+          "objective": 0.5173,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 5.0,
+            "medianSignedLag": -5.0,
+            "lags": [
+              -9.0,
+              -1.0
+            ],
+            "dates": [
+              "2023-02-13",
+              "2023-10-23"
+            ]
+          },
+          "topMean": 59.7773,
+          "bottomMean": 16.1258
+        },
+        "2024": {
+          "observations": 242,
+          "levelCorrelation": 0.5265,
+          "leadCorrelation5D": 0.5532,
+          "leadCorrelation10D": 0.4801,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 42.4582,
+          "phaseAgreement10D": 0.7725,
+          "objective": 0.6195,
+          "turningPoints": {
+            "turns": 5,
+            "matched": 5,
+            "matchRate": 1.0,
+            "medianAbsLag": 3.0,
+            "medianSignedLag": -1.0,
+            "lags": [
+              -1.0,
+              -1.0,
+              -11.0,
+              -3.0,
+              14.0
+            ],
+            "dates": [
+              "2024-03-20",
+              "2024-12-12",
+              "2024-02-06",
+              "2024-04-18",
+              "2024-09-18"
+            ]
+          },
+          "topMean": 72.3619,
+          "bottomMean": 29.9037
+        },
+        "2025": {
+          "observations": 243,
+          "levelCorrelation": 0.4668,
+          "leadCorrelation5D": 0.4715,
+          "leadCorrelation10D": 0.4183,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 51.8139,
+          "phaseAgreement10D": 0.7184,
+          "objective": 0.5634,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 0.5,
+            "medianSignedLag": -0.5,
+            "lags": [
+              0.0,
+              -1.0
+            ],
+            "dates": [
+              "2025-03-18",
+              "2025-04-09"
+            ]
+          },
+          "topMean": 72.795,
+          "bottomMean": 20.981
+        },
+        "2026": {
+          "observations": 123,
+          "levelCorrelation": 0.537,
+          "leadCorrelation5D": 0.5466,
+          "leadCorrelation10D": 0.5907,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 55.8574,
+          "phaseAgreement10D": 0.6538,
+          "objective": 0.6313,
+          "turningPoints": {
+            "turns": 3,
+            "matched": 3,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -2.0,
+            "lags": [
+              0.0,
+              -13.0,
+              -2.0
+            ],
+            "dates": [
+              "2026-02-26",
+              "2026-05-12",
+              "2026-03-25"
+            ]
+          },
+          "topMean": 70.3523,
+          "bottomMean": 14.495
+        }
+      }
+    },
+    "rsi15Only": {
+      "rsiWeight": 0.15000000000000002,
+      "erpWeight": 0.0,
+      "train": {
+        "observations": 1076,
+        "levelCorrelation": 0.497,
+        "leadCorrelation5D": 0.4066,
+        "leadCorrelation10D": 0.3571,
+        "topBottomAuc": 0.9987,
+        "topBottomSeparation": 43.0256,
+        "phaseAgreement10D": 0.7113,
+        "objective": 0.5431,
+        "turningPoints": {
+          "turns": 21,
+          "matched": 21,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.0,
+          "medianSignedLag": -2.0,
+          "lags": [
+            -2.0,
+            -9.0,
+            -6.0,
+            -3.0,
+            -9.0,
+            -10.0,
+            0.0,
+            -8.0,
+            -4.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -11.0,
+            -1.0,
+            -10.0,
+            -2.0,
+            -17.0,
+            -2.0,
+            -1.0
+          ],
+          "dates": [
+            "2018-11-19",
+            "2019-04-18",
+            "2019-07-03",
+            "2019-09-11",
+            "2020-03-06",
+            "2020-09-02",
+            "2021-09-09",
+            "2022-01-14",
+            "2022-08-19",
+            "2022-12-06",
+            "2018-10-17",
+            "2018-12-28",
+            "2019-06-05",
+            "2019-08-08",
+            "2019-11-28",
+            "2020-02-05",
+            "2020-04-01",
+            "2021-02-08",
+            "2021-10-29",
+            "2022-04-27",
+            "2022-10-10"
+          ]
+        },
+        "topMean": 69.5497,
+        "bottomMean": 26.524
+      },
+      "outOfSample": {
+        "observations": 850,
+        "levelCorrelation": 0.4104,
+        "leadCorrelation5D": 0.4216,
+        "leadCorrelation10D": 0.4129,
+        "topBottomAuc": 0.9812,
+        "topBottomSeparation": 41.5564,
+        "phaseAgreement10D": 0.7536,
+        "objective": 0.5337,
+        "turningPoints": {
+          "turns": 14,
+          "matched": 14,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.5,
+          "medianSignedLag": -1.5,
+          "lags": [
+            -9.0,
+            -7.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -13.0,
+            -1.0,
+            -11.0,
+            -3.0,
+            14.0,
+            -4.0,
+            -1.0,
+            -2.0
+          ],
+          "dates": [
+            "2023-02-13",
+            "2023-11-27",
+            "2024-03-20",
+            "2024-12-12",
+            "2025-03-18",
+            "2026-02-26",
+            "2026-05-12",
+            "2023-10-23",
+            "2024-02-06",
+            "2024-04-18",
+            "2024-09-18",
+            "2025-01-09",
+            "2025-04-09",
+            "2026-03-25"
+          ]
+        },
+        "topMean": 67.874,
+        "bottomMean": 26.3176
+      },
+      "outOfSampleByYear": {
+        "2023": {
+          "observations": 242,
+          "levelCorrelation": 0.3602,
+          "leadCorrelation5D": 0.3478,
+          "leadCorrelation10D": 0.4737,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 46.3204,
+          "phaseAgreement10D": 0.8246,
+          "objective": 0.5222,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 5.0,
+            "medianSignedLag": -5.0,
+            "lags": [
+              -9.0,
+              -1.0
+            ],
+            "dates": [
+              "2023-02-13",
+              "2023-10-23"
+            ]
+          },
+          "topMean": 61.5735,
+          "bottomMean": 15.2531
+        },
+        "2024": {
+          "observations": 242,
+          "levelCorrelation": 0.5185,
+          "leadCorrelation5D": 0.5479,
+          "leadCorrelation10D": 0.4767,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 44.0273,
+          "phaseAgreement10D": 0.7725,
+          "objective": 0.6151,
+          "turningPoints": {
+            "turns": 5,
+            "matched": 5,
+            "matchRate": 1.0,
+            "medianAbsLag": 3.0,
+            "medianSignedLag": -1.0,
+            "lags": [
+              -1.0,
+              -1.0,
+              -11.0,
+              -3.0,
+              14.0
+            ],
+            "dates": [
+              "2024-03-20",
+              "2024-12-12",
+              "2024-02-06",
+              "2024-04-18",
+              "2024-09-18"
+            ]
+          },
+          "topMean": 75.1005,
+          "bottomMean": 31.0732
+        },
+        "2025": {
+          "observations": 243,
+          "levelCorrelation": 0.4616,
+          "leadCorrelation5D": 0.4714,
+          "leadCorrelation10D": 0.4213,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 53.8219,
+          "phaseAgreement10D": 0.7115,
+          "objective": 0.5617,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 0.5,
+            "medianSignedLag": -0.5,
+            "lags": [
+              0.0,
+              -1.0
+            ],
+            "dates": [
+              "2025-03-18",
+              "2025-04-09"
+            ]
+          },
+          "topMean": 73.5689,
+          "bottomMean": 19.747
+        },
+        "2026": {
+          "observations": 123,
+          "levelCorrelation": 0.5298,
+          "leadCorrelation5D": 0.5438,
+          "leadCorrelation10D": 0.5915,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 58.8186,
+          "phaseAgreement10D": 0.6538,
+          "objective": 0.6286,
+          "turningPoints": {
+            "turns": 3,
+            "matched": 3,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -2.0,
+            "lags": [
+              0.0,
+              -13.0,
+              -2.0
+            ],
+            "dates": [
+              "2026-02-26",
+              "2026-05-12",
+              "2026-03-25"
+            ]
+          },
+          "topMean": 69.377,
+          "bottomMean": 10.5584
+        }
+      }
+    },
+    "rsi20Erp05": {
+      "rsiWeight": 0.2,
+      "erpWeight": 0.05,
+      "train": {
+        "observations": 1076,
+        "levelCorrelation": 0.5141,
+        "leadCorrelation5D": 0.4177,
+        "leadCorrelation10D": 0.3648,
+        "topBottomAuc": 0.9995,
+        "topBottomSeparation": 40.3015,
+        "phaseAgreement10D": 0.7214,
+        "objective": 0.5537,
+        "turningPoints": {
+          "turns": 21,
+          "matched": 21,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.0,
+          "medianSignedLag": -2.0,
+          "lags": [
+            -2.0,
+            -9.0,
+            -6.0,
+            -2.0,
+            -9.0,
+            -10.0,
+            0.0,
+            -8.0,
+            -4.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -11.0,
+            -1.0,
+            -10.0,
+            -2.0,
+            -17.0,
+            -1.0,
+            -1.0
+          ],
+          "dates": [
+            "2018-11-19",
+            "2019-04-18",
+            "2019-07-03",
+            "2019-09-11",
+            "2020-03-06",
+            "2020-09-02",
+            "2021-09-09",
+            "2022-01-14",
+            "2022-08-19",
+            "2022-12-06",
+            "2018-10-17",
+            "2018-12-28",
+            "2019-06-05",
+            "2019-08-08",
+            "2019-11-28",
+            "2020-02-05",
+            "2020-04-01",
+            "2021-02-08",
+            "2021-10-29",
+            "2022-04-27",
+            "2022-10-10"
+          ]
+        },
+        "topMean": 67.3207,
+        "bottomMean": 27.0192
+      },
+      "outOfSample": {
+        "observations": 850,
+        "levelCorrelation": 0.4229,
+        "leadCorrelation5D": 0.4291,
+        "leadCorrelation10D": 0.4161,
+        "topBottomAuc": 0.9875,
+        "topBottomSeparation": 39.5271,
+        "phaseAgreement10D": 0.7608,
+        "objective": 0.5416,
+        "turningPoints": {
+          "turns": 14,
+          "matched": 14,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.0,
+          "medianSignedLag": -1.5,
+          "lags": [
+            -9.0,
+            -7.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -2.0,
+            -1.0,
+            -2.0,
+            -3.0,
+            14.0,
+            -3.0,
+            -1.0,
+            -2.0
+          ],
+          "dates": [
+            "2023-02-13",
+            "2023-11-27",
+            "2024-03-20",
+            "2024-12-12",
+            "2025-03-18",
+            "2026-02-26",
+            "2026-05-12",
+            "2023-10-23",
+            "2024-02-06",
+            "2024-04-18",
+            "2024-09-18",
+            "2025-01-09",
+            "2025-04-09",
+            "2026-03-25"
+          ]
+        },
+        "topMean": 66.1829,
+        "bottomMean": 26.6558
+      },
+      "outOfSampleByYear": {
+        "2023": {
+          "observations": 242,
+          "levelCorrelation": 0.3679,
+          "leadCorrelation5D": 0.3496,
+          "leadCorrelation10D": 0.472,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 42.639,
+          "phaseAgreement10D": 0.8263,
+          "objective": 0.5248,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 5.0,
+            "medianSignedLag": -5.0,
+            "lags": [
+              -9.0,
+              -1.0
+            ],
+            "dates": [
+              "2023-02-13",
+              "2023-10-23"
+            ]
+          },
+          "topMean": 59.7532,
+          "bottomMean": 17.1142
+        },
+        "2024": {
+          "observations": 242,
+          "levelCorrelation": 0.5317,
+          "leadCorrelation5D": 0.5571,
+          "leadCorrelation10D": 0.4838,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 41.1403,
+          "phaseAgreement10D": 0.7762,
+          "objective": 0.6232,
+          "turningPoints": {
+            "turns": 5,
+            "matched": 5,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -1.0,
+            "lags": [
+              -1.0,
+              -1.0,
+              -2.0,
+              -3.0,
+              14.0
+            ],
+            "dates": [
+              "2024-03-20",
+              "2024-12-12",
+              "2024-02-06",
+              "2024-04-18",
+              "2024-09-18"
+            ]
+          },
+          "topMean": 71.5095,
+          "bottomMean": 30.3692
+        },
+        "2025": {
+          "observations": 243,
+          "levelCorrelation": 0.4733,
+          "leadCorrelation5D": 0.4749,
+          "leadCorrelation10D": 0.4213,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 50.5444,
+          "phaseAgreement10D": 0.7282,
+          "objective": 0.5678,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 0.5,
+            "medianSignedLag": -0.5,
+            "lags": [
+              0.0,
+              -1.0
+            ],
+            "dates": [
+              "2025-03-18",
+              "2025-04-09"
+            ]
+          },
+          "topMean": 72.454,
+          "bottomMean": 21.9096
+        },
+        "2026": {
+          "observations": 123,
+          "levelCorrelation": 0.5457,
+          "leadCorrelation5D": 0.5539,
+          "leadCorrelation10D": 0.5982,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 54.3288,
+          "phaseAgreement10D": 0.6602,
+          "objective": 0.6379,
+          "turningPoints": {
+            "turns": 3,
+            "matched": 3,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -2.0,
+            "lags": [
+              0.0,
+              -2.0,
+              -2.0
+            ],
+            "dates": [
+              "2026-02-26",
+              "2026-05-12",
+              "2026-03-25"
+            ]
+          },
+          "topMean": 70.1132,
+          "bottomMean": 15.7844
+        }
+      }
+    },
+    "rsi20Only": {
+      "rsiWeight": 0.2,
+      "erpWeight": 0.0,
+      "train": {
+        "observations": 1076,
+        "levelCorrelation": 0.5032,
+        "leadCorrelation5D": 0.4102,
+        "leadCorrelation10D": 0.3589,
+        "topBottomAuc": 0.999,
+        "topBottomSeparation": 42.1364,
+        "phaseAgreement10D": 0.7146,
+        "objective": 0.5466,
+        "turningPoints": {
+          "turns": 21,
+          "matched": 21,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.0,
+          "medianSignedLag": -2.0,
+          "lags": [
+            -2.0,
+            -9.0,
+            -6.0,
+            -2.0,
+            -9.0,
+            -10.0,
+            0.0,
+            -8.0,
+            -4.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -11.0,
+            -1.0,
+            -10.0,
+            -2.0,
+            -17.0,
+            -1.0,
+            -1.0
+          ],
+          "dates": [
+            "2018-11-19",
+            "2019-04-18",
+            "2019-07-03",
+            "2019-09-11",
+            "2020-03-06",
+            "2020-09-02",
+            "2021-09-09",
+            "2022-01-14",
+            "2022-08-19",
+            "2022-12-06",
+            "2018-10-17",
+            "2018-12-28",
+            "2019-06-05",
+            "2019-08-08",
+            "2019-11-28",
+            "2020-02-05",
+            "2020-04-01",
+            "2021-02-08",
+            "2021-10-29",
+            "2022-04-27",
+            "2022-10-10"
+          ]
+        },
+        "topMean": 69.2551,
+        "bottomMean": 27.1186
+      },
+      "outOfSample": {
+        "observations": 850,
+        "levelCorrelation": 0.4178,
+        "leadCorrelation5D": 0.4268,
+        "leadCorrelation10D": 0.416,
+        "topBottomAuc": 0.985,
+        "topBottomSeparation": 40.6184,
+        "phaseAgreement10D": 0.7559,
+        "objective": 0.5386,
+        "turningPoints": {
+          "turns": 14,
+          "matched": 14,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.0,
+          "medianSignedLag": -1.5,
+          "lags": [
+            -9.0,
+            -7.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -13.0,
+            -1.0,
+            -2.0,
+            -3.0,
+            14.0,
+            -4.0,
+            -1.0,
+            -2.0
+          ],
+          "dates": [
+            "2023-02-13",
+            "2023-11-27",
+            "2024-03-20",
+            "2024-12-12",
+            "2025-03-18",
+            "2026-02-26",
+            "2026-05-12",
+            "2023-10-23",
+            "2024-02-06",
+            "2024-04-18",
+            "2024-09-18",
+            "2025-01-09",
+            "2025-04-09",
+            "2026-03-25"
+          ]
+        },
+        "topMean": 67.5801,
+        "bottomMean": 26.9617
+      },
+      "outOfSampleByYear": {
+        "2023": {
+          "observations": 242,
+          "levelCorrelation": 0.3697,
+          "leadCorrelation5D": 0.3543,
+          "leadCorrelation10D": 0.4768,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 45.3078,
+          "phaseAgreement10D": 0.8255,
+          "objective": 0.5274,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 5.0,
+            "medianSignedLag": -5.0,
+            "lags": [
+              -9.0,
+              -1.0
+            ],
+            "dates": [
+              "2023-02-13",
+              "2023-10-23"
+            ]
+          },
+          "topMean": 61.5493,
+          "bottomMean": 16.2415
+        },
+        "2024": {
+          "observations": 242,
+          "levelCorrelation": 0.5239,
+          "leadCorrelation5D": 0.5508,
+          "leadCorrelation10D": 0.4783,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 42.7093,
+          "phaseAgreement10D": 0.7725,
+          "objective": 0.6178,
+          "turningPoints": {
+            "turns": 5,
+            "matched": 5,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -1.0,
+            "lags": [
+              -1.0,
+              -1.0,
+              -2.0,
+              -3.0,
+              14.0
+            ],
+            "dates": [
+              "2024-03-20",
+              "2024-12-12",
+              "2024-02-06",
+              "2024-04-18",
+              "2024-09-18"
+            ]
+          },
+          "topMean": 74.2481,
+          "bottomMean": 31.5388
+        },
+        "2025": {
+          "observations": 243,
+          "levelCorrelation": 0.47,
+          "leadCorrelation5D": 0.4748,
+          "leadCorrelation10D": 0.4236,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 52.5524,
+          "phaseAgreement10D": 0.7171,
+          "objective": 0.5661,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 0.5,
+            "medianSignedLag": -0.5,
+            "lags": [
+              0.0,
+              -1.0
+            ],
+            "dates": [
+              "2025-03-18",
+              "2025-04-09"
+            ]
+          },
+          "topMean": 73.2279,
+          "bottomMean": 20.6755
+        },
+        "2026": {
+          "observations": 123,
+          "levelCorrelation": 0.5398,
+          "leadCorrelation5D": 0.5517,
+          "leadCorrelation10D": 0.5972,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 57.2899,
+          "phaseAgreement10D": 0.6571,
+          "objective": 0.635,
+          "turningPoints": {
+            "turns": 3,
+            "matched": 3,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -2.0,
+            "lags": [
+              0.0,
+              -13.0,
+              -2.0
+            ],
+            "dates": [
+              "2026-02-26",
+              "2026-05-12",
+              "2026-03-25"
+            ]
+          },
+          "topMean": 69.1378,
+          "bottomMean": 11.8479
+        }
+      }
+    },
+    "rsiOnly": {
+      "rsiWeight": 0.25,
+      "erpWeight": 0.0,
+      "train": {
+        "observations": 1076,
+        "levelCorrelation": 0.5099,
+        "leadCorrelation5D": 0.4144,
+        "leadCorrelation10D": 0.3609,
+        "topBottomAuc": 0.999,
+        "topBottomSeparation": 41.2472,
+        "phaseAgreement10D": 0.7249,
+        "objective": 0.5511,
+        "turningPoints": {
+          "turns": 21,
+          "matched": 21,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.0,
+          "medianSignedLag": -2.0,
+          "lags": [
+            -2.0,
+            -9.0,
+            -6.0,
+            -2.0,
+            -9.0,
+            -10.0,
+            0.0,
+            -8.0,
+            -4.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -11.0,
+            -1.0,
+            -10.0,
+            -2.0,
+            -17.0,
+            -1.0,
+            -1.0
+          ],
+          "dates": [
+            "2018-11-19",
+            "2019-04-18",
+            "2019-07-03",
+            "2019-09-11",
+            "2020-03-06",
+            "2020-09-02",
+            "2021-09-09",
+            "2022-01-14",
+            "2022-08-19",
+            "2022-12-06",
+            "2018-10-17",
+            "2018-12-28",
+            "2019-06-05",
+            "2019-08-08",
+            "2019-11-28",
+            "2020-02-05",
+            "2020-04-01",
+            "2021-02-08",
+            "2021-10-29",
+            "2022-04-27",
+            "2022-10-10"
+          ]
+        },
+        "topMean": 68.9605,
+        "bottomMean": 27.7133
+      },
+      "outOfSample": {
+        "observations": 850,
+        "levelCorrelation": 0.425,
+        "leadCorrelation5D": 0.4317,
+        "leadCorrelation10D": 0.4189,
+        "topBottomAuc": 0.9858,
+        "topBottomSeparation": 39.6803,
+        "phaseAgreement10D": 0.7595,
+        "objective": 0.543,
+        "turningPoints": {
+          "turns": 14,
+          "matched": 14,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.0,
+          "medianSignedLag": -1.5,
+          "lags": [
+            -9.0,
+            -7.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -2.0,
+            -1.0,
+            -2.0,
+            -3.0,
+            14.0,
+            -3.0,
+            -1.0,
+            -2.0
+          ],
+          "dates": [
+            "2023-02-13",
+            "2023-11-27",
+            "2024-03-20",
+            "2024-12-12",
+            "2025-03-18",
+            "2026-02-26",
+            "2026-05-12",
+            "2023-10-23",
+            "2024-02-06",
+            "2024-04-18",
+            "2024-09-18",
+            "2025-01-09",
+            "2025-04-09",
+            "2026-03-25"
+          ]
+        },
+        "topMean": 67.2861,
+        "bottomMean": 27.6058
+      },
+      "outOfSampleByYear": {
+        "2023": {
+          "observations": 242,
+          "levelCorrelation": 0.3812,
+          "leadCorrelation5D": 0.3622,
+          "leadCorrelation10D": 0.4821,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 44.2953,
+          "phaseAgreement10D": 0.8263,
+          "objective": 0.534,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 5.0,
+            "medianSignedLag": -5.0,
+            "lags": [
+              -9.0,
+              -1.0
+            ],
+            "dates": [
+              "2023-02-13",
+              "2023-10-23"
+            ]
+          },
+          "topMean": 61.5252,
+          "bottomMean": 17.2299
+        },
+        "2024": {
+          "observations": 242,
+          "levelCorrelation": 0.5271,
+          "leadCorrelation5D": 0.5519,
+          "leadCorrelation10D": 0.4792,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 41.3914,
+          "phaseAgreement10D": 0.7762,
+          "objective": 0.6195,
+          "turningPoints": {
+            "turns": 5,
+            "matched": 5,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -1.0,
+            "lags": [
+              -1.0,
+              -1.0,
+              -2.0,
+              -3.0,
+              14.0
+            ],
+            "dates": [
+              "2024-03-20",
+              "2024-12-12",
+              "2024-02-06",
+              "2024-04-18",
+              "2024-09-18"
+            ]
+          },
+          "topMean": 73.3957,
+          "bottomMean": 32.0043
+        },
+        "2025": {
+          "observations": 243,
+          "levelCorrelation": 0.479,
+          "leadCorrelation5D": 0.4799,
+          "leadCorrelation10D": 0.4262,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 51.2829,
+          "phaseAgreement10D": 0.7233,
+          "objective": 0.5713,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 0.5,
+            "medianSignedLag": -0.5,
+            "lags": [
+              0.0,
+              -1.0
+            ],
+            "dates": [
+              "2025-03-18",
+              "2025-04-09"
+            ]
+          },
+          "topMean": 72.887,
+          "bottomMean": 21.6041
+        },
+        "2026": {
+          "observations": 123,
+          "levelCorrelation": 0.5484,
+          "leadCorrelation5D": 0.5587,
+          "leadCorrelation10D": 0.6013,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 55.7613,
+          "phaseAgreement10D": 0.6602,
+          "objective": 0.6405,
+          "turningPoints": {
+            "turns": 3,
+            "matched": 3,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -2.0,
+            "lags": [
+              0.0,
+              -2.0,
+              -2.0
+            ],
+            "dates": [
+              "2026-02-26",
+              "2026-05-12",
+              "2026-03-25"
+            ]
+          },
+          "topMean": 68.8986,
+          "bottomMean": 13.1373
+        }
+      }
+    },
+    "erpOnly": {
+      "rsiWeight": 0.0,
+      "erpWeight": 0.25,
+      "train": {
+        "observations": 1076,
+        "levelCorrelation": 0.5115,
+        "leadCorrelation5D": 0.4189,
+        "leadCorrelation10D": 0.3691,
+        "topBottomAuc": 1.0,
+        "topBottomSeparation": 36.5186,
+        "phaseAgreement10D": 0.715,
+        "objective": 0.5535,
+        "turningPoints": {
+          "turns": 21,
+          "matched": 21,
+          "matchRate": 1.0,
+          "medianAbsLag": 3.0,
+          "medianSignedLag": -3.0,
+          "lags": [
+            -2.0,
+            -9.0,
+            -6.0,
+            -3.0,
+            -9.0,
+            -10.0,
+            0.0,
+            -8.0,
+            -4.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -11.0,
+            -1.0,
+            -10.0,
+            -4.0,
+            -17.0,
+            -2.0,
+            -1.0
+          ],
+          "dates": [
+            "2018-11-19",
+            "2019-04-18",
+            "2019-07-03",
+            "2019-09-11",
+            "2020-03-06",
+            "2020-09-02",
+            "2021-09-09",
+            "2022-01-14",
+            "2022-08-19",
+            "2022-12-06",
+            "2018-10-17",
+            "2018-12-28",
+            "2019-06-05",
+            "2019-08-08",
+            "2019-11-28",
+            "2020-02-05",
+            "2020-04-01",
+            "2021-02-08",
+            "2021-10-29",
+            "2022-04-27",
+            "2022-10-10"
+          ]
+        },
+        "topMean": 60.7616,
+        "bottomMean": 24.2431
+      },
+      "outOfSample": {
+        "observations": 850,
+        "levelCorrelation": 0.3953,
+        "leadCorrelation5D": 0.3967,
+        "leadCorrelation10D": 0.3793,
+        "topBottomAuc": 0.9892,
+        "topBottomSeparation": 38.914,
+        "phaseAgreement10D": 0.7684,
+        "objective": 0.5188,
+        "turningPoints": {
+          "turns": 14,
+          "matched": 14,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.5,
+          "medianSignedLag": -1.5,
+          "lags": [
+            -9.0,
+            -12.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -13.0,
+            -1.0,
+            -11.0,
+            -3.0,
+            14.0,
+            -3.0,
+            -1.0,
+            -2.0
+          ],
+          "dates": [
+            "2023-02-13",
+            "2023-11-27",
+            "2024-03-20",
+            "2024-12-12",
+            "2025-03-18",
+            "2026-02-26",
+            "2026-05-12",
+            "2023-10-23",
+            "2024-02-06",
+            "2024-04-18",
+            "2024-09-18",
+            "2025-01-09",
+            "2025-04-09",
+            "2026-03-25"
+          ]
+        },
+        "topMean": 61.7698,
+        "bottomMean": 22.8559
+      },
+      "outOfSampleByYear": {
+        "2023": {
+          "observations": 242,
+          "levelCorrelation": 0.3054,
+          "leadCorrelation5D": 0.2869,
+          "leadCorrelation10D": 0.4095,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 36.014,
+          "phaseAgreement10D": 0.823,
+          "objective": 0.4775,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 5.0,
+            "medianSignedLag": -5.0,
+            "lags": [
+              -9.0,
+              -1.0
+            ],
+            "dates": [
+              "2023-02-13",
+              "2023-10-23"
+            ]
+          },
+          "topMean": 52.6652,
+          "bottomMean": 16.6512
+        },
+        "2024": {
+          "observations": 242,
+          "levelCorrelation": 0.5473,
+          "leadCorrelation5D": 0.5705,
+          "leadCorrelation10D": 0.4929,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 40.1359,
+          "phaseAgreement10D": 0.7913,
+          "objective": 0.6345,
+          "turningPoints": {
+            "turns": 5,
+            "matched": 5,
+            "matchRate": 1.0,
+            "medianAbsLag": 3.0,
+            "medianSignedLag": -1.0,
+            "lags": [
+              -1.0,
+              -1.0,
+              -11.0,
+              -3.0,
+              14.0
+            ],
+            "dates": [
+              "2024-03-20",
+              "2024-12-12",
+              "2024-02-06",
+              "2024-04-18",
+              "2024-09-18"
+            ]
+          },
+          "topMean": 63.9649,
+          "bottomMean": 23.829
+        },
+        "2025": {
+          "observations": 243,
+          "levelCorrelation": 0.4401,
+          "leadCorrelation5D": 0.4247,
+          "leadCorrelation10D": 0.3507,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 47.5906,
+          "phaseAgreement10D": 0.7353,
+          "objective": 0.5319,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 0.5,
+            "medianSignedLag": -0.5,
+            "lags": [
+              0.0,
+              -1.0
+            ],
+            "dates": [
+              "2025-03-18",
+              "2025-04-09"
+            ]
+          },
+          "topMean": 70.7222,
+          "bottomMean": 23.1316
+        },
+        "2026": {
+          "observations": 123,
+          "levelCorrelation": 0.5228,
+          "leadCorrelation5D": 0.5249,
+          "leadCorrelation10D": 0.5749,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 48.5986,
+          "phaseAgreement10D": 0.6505,
+          "objective": 0.6181,
+          "turningPoints": {
+            "turns": 3,
+            "matched": 3,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -2.0,
+            "lags": [
+              0.0,
+              -13.0,
+              -2.0
+            ],
+            "dates": [
+              "2026-02-26",
+              "2026-05-12",
+              "2026-03-25"
+            ]
+          },
+          "topMean": 74.9714,
+          "bottomMean": 26.3727
+        }
+      }
+    },
+    "bestCombined": {
+      "rsiWeight": 0.05,
+      "erpWeight": 0.25,
+      "train": {
+        "observations": 1076,
+        "levelCorrelation": 0.5187,
+        "leadCorrelation5D": 0.4232,
+        "leadCorrelation10D": 0.3712,
+        "topBottomAuc": 1.0,
+        "topBottomSeparation": 35.6293,
+        "phaseAgreement10D": 0.724,
+        "objective": 0.5581,
+        "turningPoints": {
+          "turns": 21,
+          "matched": 21,
+          "matchRate": 1.0,
+          "medianAbsLag": 3.0,
+          "medianSignedLag": -3.0,
+          "lags": [
+            -2.0,
+            -9.0,
+            -6.0,
+            -3.0,
+            -9.0,
+            -10.0,
+            0.0,
+            -8.0,
+            -4.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -11.0,
+            -1.0,
+            -10.0,
+            -4.0,
+            -17.0,
+            -2.0,
+            -1.0
+          ],
+          "dates": [
+            "2018-11-19",
+            "2019-04-18",
+            "2019-07-03",
+            "2019-09-11",
+            "2020-03-06",
+            "2020-09-02",
+            "2021-09-09",
+            "2022-01-14",
+            "2022-08-19",
+            "2022-12-06",
+            "2018-10-17",
+            "2018-12-28",
+            "2019-06-05",
+            "2019-08-08",
+            "2019-11-28",
+            "2020-02-05",
+            "2020-04-01",
+            "2021-02-08",
+            "2021-10-29",
+            "2022-04-27",
+            "2022-10-10"
+          ]
+        },
+        "topMean": 60.467,
+        "bottomMean": 24.8377
+      },
+      "outOfSample": {
+        "observations": 850,
+        "levelCorrelation": 0.4008,
+        "leadCorrelation5D": 0.3988,
+        "leadCorrelation10D": 0.3795,
+        "topBottomAuc": 0.9896,
+        "topBottomSeparation": 37.9759,
+        "phaseAgreement10D": 0.7745,
+        "objective": 0.5217,
+        "turningPoints": {
+          "turns": 14,
+          "matched": 14,
+          "matchRate": 1.0,
+          "medianAbsLag": 2.0,
+          "medianSignedLag": -1.5,
+          "lags": [
+            -9.0,
+            -12.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -2.0,
+            -1.0,
+            -11.0,
+            -3.0,
+            14.0,
+            -3.0,
+            -1.0,
+            -2.0
+          ],
+          "dates": [
+            "2023-02-13",
+            "2023-11-27",
+            "2024-03-20",
+            "2024-12-12",
+            "2025-03-18",
+            "2026-02-26",
+            "2026-05-12",
+            "2023-10-23",
+            "2024-02-06",
+            "2024-04-18",
+            "2024-09-18",
+            "2025-01-09",
+            "2025-04-09",
+            "2026-03-25"
+          ]
+        },
+        "topMean": 61.4759,
+        "bottomMean": 23.5
+      },
+      "outOfSampleByYear": {
+        "2023": {
+          "observations": 242,
+          "levelCorrelation": 0.3176,
+          "leadCorrelation5D": 0.2948,
+          "leadCorrelation10D": 0.4153,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 35.0014,
+          "phaseAgreement10D": 0.823,
+          "objective": 0.4843,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 5.0,
+            "medianSignedLag": -5.0,
+            "lags": [
+              -9.0,
+              -1.0
+            ],
+            "dates": [
+              "2023-02-13",
+              "2023-10-23"
+            ]
+          },
+          "topMean": 52.6411,
+          "bottomMean": 17.6396
+        },
+        "2024": {
+          "observations": 242,
+          "levelCorrelation": 0.5516,
+          "leadCorrelation5D": 0.5733,
+          "leadCorrelation10D": 0.4953,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 38.818,
+          "phaseAgreement10D": 0.7951,
+          "objective": 0.6374,
+          "turningPoints": {
+            "turns": 5,
+            "matched": 5,
+            "matchRate": 1.0,
+            "medianAbsLag": 3.0,
+            "medianSignedLag": -1.0,
+            "lags": [
+              -1.0,
+              -1.0,
+              -11.0,
+              -3.0,
+              14.0
+            ],
+            "dates": [
+              "2024-03-20",
+              "2024-12-12",
+              "2024-02-06",
+              "2024-04-18",
+              "2024-09-18"
+            ]
+          },
+          "topMean": 63.1125,
+          "bottomMean": 24.2945
+        },
+        "2025": {
+          "observations": 243,
+          "levelCorrelation": 0.4475,
+          "leadCorrelation5D": 0.4262,
+          "leadCorrelation10D": 0.3473,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 46.321,
+          "phaseAgreement10D": 0.7415,
+          "objective": 0.5344,
+          "turningPoints": {
+            "turns": 2,
+            "matched": 2,
+            "matchRate": 1.0,
+            "medianAbsLag": 0.5,
+            "medianSignedLag": -0.5,
+            "lags": [
+              0.0,
+              -1.0
+            ],
+            "dates": [
+              "2025-03-18",
+              "2025-04-09"
+            ]
+          },
+          "topMean": 70.3812,
+          "bottomMean": 24.0602
+        },
+        "2026": {
+          "observations": 123,
+          "levelCorrelation": 0.5375,
+          "leadCorrelation5D": 0.5362,
+          "leadCorrelation10D": 0.5805,
+          "topBottomAuc": 1.0,
+          "topBottomSeparation": 47.07,
+          "phaseAgreement10D": 0.67,
+          "objective": 0.6284,
+          "turningPoints": {
+            "turns": 3,
+            "matched": 3,
+            "matchRate": 1.0,
+            "medianAbsLag": 2.0,
+            "medianSignedLag": -2.0,
+            "lags": [
+              0.0,
+              -2.0,
+              -2.0
+            ],
+            "dates": [
+              "2026-02-26",
+              "2026-05-12",
+              "2026-03-25"
+            ]
+          },
+          "topMean": 74.7322,
+          "bottomMean": 27.6622
+        }
+      }
+    }
+  },
+  "gridTopTrain": [
+    {
+      "rsiWeight": 0.05,
+      "erpWeight": 0.25,
+      "trainObjective": 0.5581,
+      "outOfSampleObjective": 0.5217
+    },
+    {
+      "rsiWeight": 0.25,
+      "erpWeight": 0.05,
+      "trainObjective": 0.5579,
+      "outOfSampleObjective": 0.5463
+    },
+    {
+      "rsiWeight": 0.1,
+      "erpWeight": 0.15000000000000002,
+      "trainObjective": 0.5563,
+      "outOfSampleObjective": 0.5333
+    },
+    {
+      "rsiWeight": 0.15000000000000002,
+      "erpWeight": 0.1,
+      "trainObjective": 0.5555,
+      "outOfSampleObjective": 0.5381
+    },
+    {
+      "rsiWeight": 0.05,
+      "erpWeight": 0.2,
+      "trainObjective": 0.5553,
+      "outOfSampleObjective": 0.5269
+    },
+    {
+      "rsiWeight": 0.2,
+      "erpWeight": 0.05,
+      "trainObjective": 0.5537,
+      "outOfSampleObjective": 0.5416
+    },
+    {
+      "rsiWeight": 0.0,
+      "erpWeight": 0.25,
+      "trainObjective": 0.5535,
+      "outOfSampleObjective": 0.5188
+    },
+    {
+      "rsiWeight": 0.05,
+      "erpWeight": 0.15000000000000002,
+      "trainObjective": 0.5516,
+      "outOfSampleObjective": 0.5287
+    },
+    {
+      "rsiWeight": 0.25,
+      "erpWeight": 0.0,
+      "trainObjective": 0.5511,
+      "outOfSampleObjective": 0.543
+    },
+    {
+      "rsiWeight": 0.0,
+      "erpWeight": 0.2,
+      "trainObjective": 0.5509,
+      "outOfSampleObjective": 0.5228
+    }
+  ]
+}

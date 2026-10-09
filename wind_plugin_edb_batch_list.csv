@@ -1,0 +1,19 @@
+﻿factor_id,wind_code,type,field,freq,target_sheet,description
+M1_YOY,M0001383,EDB,,M,宏观政策,M1 同比（货币增速）
+M2_YOY,M0001384,EDB,,M,宏观政策,M2 同比（货币增速）
+SF_STOCK_YOY,M0001872,EDB,,M,宏观政策,社融存量同比（信用方向/信贷脉冲基础）
+LOAN_MLT_YOY,M0017118,EDB,,M,宏观政策,金融机构中长期贷款同比（中长期信贷脉冲基础）
+CPI_YOY,M0000615,EDB,,M,宏观政策,CPI 同比（通胀剪刀差）
+PPI_YOY,M0000745,EDB,,M,宏观政策,PPI 同比（通胀剪刀差/通胀方向）
+RETAIL_YOY,M0000747,EDB,,M,宏观政策,社会消费品零售总额同比
+EXPORT_YOY,M0000808,EDB,,M,宏观政策,出口金额同比
+IND_PROFIT_YOY,M0002123,EDB,,M,宏观政策,规上工业企业利润同比
+OMO_NET,M0041095,EDB,,D,宏观政策,公开市场操作(OMO)净投放（日，月频取月末）
+SLF_BAL,M0035001,EDB,,M,宏观政策,常备借贷便利(SLF)余额
+MLF_BAL,M0035002,EDB,,M,宏观政策,中期借贷便利(MLF)余额
+PSL_BAL,M0035003,EDB,,M,宏观政策,抵押补充贷款(PSL)余额
+RMB_FX,M0000180,EDB,,D,宏观政策,USD/CNY 人民币中间价（升值=下行=看多，取负向）
+FED_BS,M0038001,EDB,,M,海外,美联储资产负债表规模（海外流动性基础）
+EQUITY_FUND_ISSUE,M0029001,EDB,,M,资金流,股票型/混合型基金发行份额
+IPO_PROCEEDS,M0029002,EDB,,M,资金流,IPO 筹资额（净募资）
+NEW_ACCOUNTS,M0029003,EDB,,M,资金流,中登新增投资者（A股新增开户）数量

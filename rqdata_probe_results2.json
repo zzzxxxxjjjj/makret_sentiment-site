@@ -1,0 +1,86 @@
+{
+  "index_components": {
+    "status": "OK",
+    "detail": "list len=300"
+  },
+  "stock_pe_pb": {
+    "status": "OK",
+    "detail": "DataFrame shape=(12, 3)"
+  },
+  "cn_yield_10y": {
+    "status": "OK",
+    "detail": "DataFrame shape=(13, 1)"
+  },
+  "us_yield_10y": {
+    "status": "FAIL",
+    "detail": "PermissionDenied: no permission to access market us, please concact us at https://www.ricequant.com/"
+  },
+  "sec_margin": {
+    "status": "FAIL",
+    "detail": "ValueError: fields: got invalided value margin_buy_value, choose any in ('margin_balance', 'buy_on_margin_value', 'short_sell_quantity', 'margin_repayment', 'short_balance_"
+  },
+  "capital_flow": {
+    "status": "FAIL",
+    "detail": "TypeError: get_capital_flow() got an unexpected keyword argument 'fields'"
+  },
+  "fx": {
+    "status": "FAIL",
+    "detail": "TypeError: get_exchange_rate() got multiple values for argument 'start_date'"
+  },
+  "fut_basis_under": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "fut_basis_IF": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "fut_basis_IF88": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "fut_member": {
+    "status": "OK",
+    "detail": "DataFrame shape=(240, 5)"
+  },
+  "opt_contracts": {
+    "status": "FAIL",
+    "detail": "TypeError: get_contracts() got an unexpected keyword argument 'date'"
+  },
+  "opt_price": {
+    "status": "FAIL",
+    "detail": "TypeError: get_contracts() got an unexpected keyword argument 'date'"
+  },
+  "opt_greeks": {
+    "status": "FAIL",
+    "detail": "TypeError: get_greeks() got an unexpected keyword argument 'field'"
+  },
+  "opt_indicators": {
+    "status": "FAIL",
+    "detail": "TypeError: get_indicators() missing 1 required positional argument: 'maturity'"
+  },
+  "style_csi_all": {
+    "status": "OK",
+    "detail": "DataFrame shape=(12, 1)"
+  },
+  "style_sz1000": {
+    "status": "OK",
+    "detail": "DataFrame shape=(12, 1)"
+  },
+  "bond_cba1": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "bond_h11001": {
+    "status": "FAIL",
+    "detail": "ValueError: order_book_ids: at least one valid instrument expected, got none"
+  },
+  "leader_shares": {
+    "status": "EMPTY",
+    "detail": "NoneType"
+  },
+  "conv": {
+    "status": "FAIL",
+    "detail": "AttributeError: module 'convertible' has no attribute 'get_convertible_bonds'"
+  }
+}

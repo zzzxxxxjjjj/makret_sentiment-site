@@ -1,0 +1,165 @@
+{
+  "design": {
+    "framework": "四象限双线性仓位：慢线3年滚动分位 L × 快线绝对分 F=S/100",
+    "anchors_pct": {
+      "慢低+快低": 20.0,
+      "慢低+快高": 40.0,
+      "慢高+快低": 65.0,
+      "慢高+快高": 90.0
+    },
+    "rebalance": "周频检查，死区 |Δ|≥5pp 才调仓",
+    "clamp": [
+      20.0,
+      95.0
+    ],
+    "slow_window_days": 1095
+  },
+  "calibration_M_p5_p95_full_sample": [
+    10.5,
+    81.8
+  ],
+  "common_window": {
+    "start": "2022-01-13",
+    "end": "2026-09-21",
+    "n": 1137,
+    "note": "本地缓存中周期自2022起；仅整合验证，非正式样本外"
+  },
+  "RF_1.8%_cash": {
+    "buy_hold": {
+      "years": 4.51,
+      "total_return": 0.0281,
+      "annualized": 0.0062,
+      "max_drawdown": -0.3637,
+      "sharpe": 0.13,
+      "return_drawdown": 0.017,
+      "avg_equity_weight": 100.0,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0003
+    },
+    "v1_dual(base)": {
+      "years": 4.51,
+      "total_return": 0.1012,
+      "annualized": 0.0216,
+      "max_drawdown": -0.1858,
+      "sharpe": 0.25,
+      "return_drawdown": 0.116,
+      "avg_equity_weight": 53.9,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0158
+    },
+    "v2b_hardFloor": {
+      "years": 4.51,
+      "total_return": 0.0074,
+      "annualized": 0.0016,
+      "max_drawdown": -0.1421,
+      "sharpe": 0.07,
+      "return_drawdown": 0.012,
+      "avg_equity_weight": 53.2,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": -0.0042
+    },
+    "medium_only": {
+      "years": 4.51,
+      "total_return": 0.0545,
+      "annualized": 0.0118,
+      "max_drawdown": -0.2019,
+      "sharpe": 0.16,
+      "return_drawdown": 0.059,
+      "avg_equity_weight": 60.1,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.006
+    },
+    "v3_quadrant": {
+      "years": 4.51,
+      "total_return": 0.1348,
+      "annualized": 0.0284,
+      "max_drawdown": -0.1925,
+      "sharpe": 0.3,
+      "return_drawdown": 0.148,
+      "avg_equity_weight": 47.8,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0226
+    },
+    "annualized_turnover": {
+      "v1": 4.94,
+      "v2b": 3.35,
+      "medium_only": 1.38,
+      "v3_quadrant": 2.55
+    },
+    "v3_quadrant_days": {
+      "慢高+快高": 358,
+      "慢高+快低": 255,
+      "慢低+快低": 194,
+      "慢低+快高": 79
+    }
+  },
+  "RF_3.5%_bond_sleeve": {
+    "buy_hold": {
+      "years": 4.51,
+      "total_return": 0.0284,
+      "annualized": 0.0062,
+      "max_drawdown": -0.3636,
+      "sharpe": 0.13,
+      "return_drawdown": 0.017,
+      "avg_equity_weight": 100.0,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0004
+    },
+    "v1_dual(base)": {
+      "years": 4.51,
+      "total_return": 0.1416,
+      "annualized": 0.0298,
+      "max_drawdown": -0.1668,
+      "sharpe": 0.32,
+      "return_drawdown": 0.179,
+      "avg_equity_weight": 53.9,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.024
+    },
+    "v2b_hardFloor": {
+      "years": 4.51,
+      "total_return": 0.0449,
+      "annualized": 0.0098,
+      "max_drawdown": -0.1274,
+      "sharpe": 0.14,
+      "return_drawdown": 0.077,
+      "avg_equity_weight": 53.2,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.004
+    },
+    "medium_only": {
+      "years": 4.51,
+      "total_return": 0.0876,
+      "annualized": 0.0188,
+      "max_drawdown": -0.1847,
+      "sharpe": 0.21,
+      "return_drawdown": 0.102,
+      "avg_equity_weight": 60.1,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.013
+    },
+    "v3_quadrant": {
+      "years": 4.51,
+      "total_return": 0.1814,
+      "annualized": 0.0376,
+      "max_drawdown": -0.1828,
+      "sharpe": 0.38,
+      "return_drawdown": 0.206,
+      "avg_equity_weight": 47.8,
+      "benchmark_annualized": 0.0058,
+      "excess_annualized": 0.0318
+    },
+    "annualized_turnover": {
+      "v1": 4.94,
+      "v2b": 3.35,
+      "medium_only": 1.38,
+      "v3_quadrant": 2.55
+    },
+    "v3_quadrant_days": {
+      "慢高+快高": 358,
+      "慢高+快低": 255,
+      "慢低+快低": 194,
+      "慢低+快高": 79
+    }
+  }
+}

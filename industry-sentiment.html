@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>中信一级行业情绪｜A股市场情绪</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/industry-sentiment.css?v=16">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">MS</span><div><strong>A股市场情绪</strong><small>INDUSTRY CAPITAL FLOW</small></div></div>
+    <nav><a href="/">宽基情绪</a><a class="active" href="/industry-sentiment.html">行业情绪</a><a href="/macro-tracking.html">宏观跟踪</a></nav>
+    <div class="status"><span id="statusDot" class="dot loading"></span><span id="statusText">正在读取数据</span></div>
+  </header>
+
+  <main class="industry-main">
+    <section class="industry-hero">
+      <div>
+        <p class="eyebrow">CITICS LEVEL-1 / DAILY</p>
+        <h1>中信一级行业情绪</h1>
+      </div>
+      <div class="industry-meta">
+        <div><span>数据日期</span><strong id="asOf">—</strong></div>
+        <div><span>行业覆盖</span><strong id="coverage">—</strong></div>
+        <button id="refreshButton">刷新页面</button>
+      </div>
+    </section>
+
+    <section id="industrySummary" class="industry-summary"></section>
+
+    <section class="panel valuation-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">PB / ROE PERCENTILE</p>
+          <h2>行业PB-ROE分位</h2>
+        </div>
+        <span id="valuationAsOf" class="valuation-asof">—</span>
+      </div>
+      <div class="valuation-chart-wrap">
+        <canvas id="valuationChart"></canvas>
+        <div id="valuationTooltip" class="valuation-tooltip"></div>
+        <div id="valuationEmpty" class="empty-state">暂无PB-ROE分位数据</div>
+      </div>
+      <div class="valuation-axis-note">
+        <span>横轴：ROE历史分位</span>
+        <span>纵轴：PB历史分位</span>
+      </div>
+    </section>
+
+    <section id="flowTrendPanel" class="panel flow-trend-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">INDUSTRY FLOW TREND</p>
+          <h2>行业资金流向走势</h2>
+        </div>
+        <div class="flow-metric-tabs" id="flowMetricTabs" role="tablist">
+          <button class="ft-tab active" data-metric="flowRatio" type="button">主力资金</button>
+          <button class="ft-tab" data-metric="marginActivity" type="button">杠杆资金</button>
+          <button class="ft-tab" data-metric="amountShare" type="button">成交额占比</button>
+        </div>
+      </div>
+
+      <div class="flow-trend-controls">
+        <div class="ft-seg" id="flowRangeSeg">
+          <button class="ft-seg-btn" data-range="60" type="button">60日</button>
+          <button class="ft-seg-btn active" data-range="120" type="button">120日</button>
+          <button class="ft-seg-btn" data-range="250" type="button">250日</button>
+        </div>
+        <div class="ft-seg" id="flowFreqSeg">
+          <button class="ft-seg-btn" data-freq="day" type="button">日</button>
+          <button class="ft-seg-btn active" data-freq="week" type="button">周</button>
+        </div>
+      </div>
+
+      <div class="flow-trend-body">
+        <div id="flowHeatWrap" class="flow-heat-wrap">
+          <canvas id="flowHeatChart" aria-label="行业资金流向热力图"></canvas>
+          <div id="flowHeatTooltip" class="flow-trend-tooltip"></div>
+        </div>
+        <div id="flowTrendEmpty" class="empty-state" hidden>暂无资金流向时序数据，请运行 rqdata_industry_refresh.py 更新数据。</div>
+      </div>
+
+      <p class="flow-trend-note">
+        主力资金＝主动资金净额÷行业成交额（净流入率，%）；杠杆资金＝融资买入额÷行业成交额（%）；成交额占比＝行业成交额÷全市场成交额（%）。
+        热力图为全部一级行业×交易日，行按最新值排序：主力资金以 0 为轴红正绿负（P98 分位满格），占比类指标按当日横截面分位着色。
+        点击行业行可联动下方二级行业面板。数据源：RQData，日频，中信2019一级行业。
+      </p>
+    </section>
+
+    <section class="industry-lower">
+      <article class="panel subindustry-panel">
+        <div class="subindustry-inline">
+          <div class="subindustry-inline-head">
+            <div>
+              <p class="eyebrow">CITICS LEVEL-2 FLOW</p>
+              <h2 id="subIndustryPanelTitle">二级行业主动资金净流入热力图</h2>
+            </div>
+            <span id="inlineSubIndustryCount">—</span>
+          </div>
+          <div id="inlineSubIndustryHeatmap" class="subindustry-heatmap"></div>
+          <div id="subIndustryStockPanel" class="subindustry-stock-panel"></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="fundOwPanel" class="panel fund-ow-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">PUBLIC FUND OVERWEIGHT / SW LEVEL-1</p>
+          <h2>公募偏股基金行业超配（Top 超配 · Top 低配）</h2>
+        </div>
+        <span id="fundOwAsOf" class="fund-ow-asof">—</span>
+      </div>
+
+      <div class="fund-ow-lists">
+        <article class="fund-ow-card">
+          <div class="fund-ow-card-head">
+            <div><h3>Top 超配</h3><span id="fundOwTopListNote">over_pp 最高的 10 个行业</span></div>
+          </div>
+          <div id="fundOwTopList" class="fund-ow-rows"></div>
+        </article>
+        <article class="fund-ow-card">
+          <div class="fund-ow-card-head">
+            <div><h3>Top 低配</h3><span id="fundOwUnderListNote">over_pp 最低的 10 个行业</span></div>
+          </div>
+          <div id="fundOwUnderList" class="fund-ow-rows"></div>
+        </article>
+      </div>
+
+      <p id="fundOwEmpty" class="fund-ow-empty" hidden>暂无公募偏股基金超配数据，请运行 rqdata_fund_exposure_refresh.py 生成 rqdata-fund-exposure.json。</p>
+
+      <p class="fund-ow-note">
+        口径：<b>行业权重 wgt_eq</b> 为权益内占比（31 个行业合计 100）；<b>全市场自由流通市值占比 mkt</b> 为超配的比较基准（合计 100）；
+        <b>over_pp</b> = wgt_eq − mkt，单位百分点。幅度带：|over_pp| ≥ 5pp 为大幅，2–5pp 明显，0.5–2pp 温和，&lt; 0.5pp 大致中性。
+        超配 / 低配是相对基准的持仓暴露状态，不构成单独买卖建议。数据源：AIDO Research（东北证券金融工程），周频，申万一级行业口径。
+      </p>
+    </section>
+
+    <p class="industry-note">行业口径：中信2019行业。主动资金净额＝成分股主动买入额－主动卖出额；拥挤度采用近250日滚动分位，数值越高表示交易和价格动量越集中。</p>
+  </main>
+  <script src="/industry-sentiment.js?v=25" defer></script>
+  <script src="/industry-flow-trend.js?v=2" defer></script>
+</body>
+</html>

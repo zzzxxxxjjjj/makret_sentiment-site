@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A股宽基情绪指标</title>
+  <link rel="stylesheet" href="/styles.css?v=25">
+  <link rel="stylesheet" href="/cycle.css?v=24">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">MS</span>
+      <div><strong>A股市场情绪</strong><small>MARKET SENTIMENT MONITOR</small></div>
+    </div>
+    <nav><a class="active" href="/">宽基情绪</a><a href="/industry-sentiment.html">行业情绪</a><a href="/macro-tracking.html">宏观跟踪</a></nav>
+    <div class="status"><span id="statusDot" class="dot loading"></span><span id="statusText">正在读取数据</span></div>
+  </header>
+
+  <main>
+    <section class="hero" id="overview">
+      <div>
+        <p class="eyebrow">BROAD MARKET / DAILY</p>
+        <h1>宽基情绪指标</h1>
+        <p id="summaryText" class="summary">正在汇总市场成交、杠杆资金与跨市场资金流向。</p>
+      </div>
+      <div class="hero-meta">
+        <div><span>数据日期</span><strong id="asOf">—</strong></div>
+        <div><span>指标覆盖</span><strong id="coverage">—</strong></div>
+        <button id="refreshButton" type="button">刷新数据</button>
+      </div>
+    </section>
+
+    <section class="metric-groups" aria-live="polite" hidden>
+      <article class="metric-group">
+        <div class="metric-category-head">
+          <p class="eyebrow">MARKET MOMENTUM</p>
+          <h2>市场动能</h2>
+          <span>交易活跃度、趋势位置与成交拥挤度</span>
+        </div>
+        <div id="momentumMetricGrid" class="metric-grid">
+          <article class="metric-card skeleton"></article><article class="metric-card skeleton"></article>
+          <article class="metric-card skeleton"></article>
+        </div>
+      </article>
+      <article class="metric-group">
+        <div class="metric-category-head">
+          <p class="eyebrow">CAPITAL FLOWS</p>
+          <h2>资金维度</h2>
+          <span>杠杆、公募、ETF及机构交易资金</span>
+        </div>
+        <div id="fundMetricGrid" class="metric-grid">
+          <article class="metric-card skeleton"></article><article class="metric-card skeleton"></article>
+          <article class="metric-card skeleton"></article>
+        </div>
+      </article>
+    </section>
+
+    <section class="cycle-layout" id="cycle">
+      <div class="panel cycle-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">COMPOSITE MARKET SENTIMENT</p>
+            <h2 id="cycleTitle">短期情绪指标</h2>
+            <p id="cycleDescription" class="cycle-description">左轴为0–100市场情绪分；右轴可叠加宽基指数，指数按当前区间起点归一至100。</p>
+          </div>
+          <div class="comparison-controls">
+            <div class="comparison-tabs" role="tablist" aria-label="选择对比指标类别">
+              <button type="button" class="comparison-tab active" data-comparison-group="sentiment" role="tab" aria-selected="true">市场情绪指标</button>
+              <button type="button" class="comparison-tab" data-comparison-group="momentum" role="tab" aria-selected="false">市场动能</button>
+              <button type="button" class="comparison-tab" data-comparison-group="funds" role="tab" aria-selected="false">资金维度</button>
+            </div>
+            <label class="comparison-select-label" for="comparisonMetric">
+              <span>对比指标</span>
+              <select id="comparisonMetric" aria-label="选择需要展示的情绪指标"></select>
+            </label>
+            <div id="benchmarkToggles" class="benchmark-toggles" aria-label="选择显示的宽基指数"></div>
+          </div>
+        </div>
+        <div class="cycle-chart-wrap">
+          <canvas id="cycleChart"></canvas>
+          <div id="cycleHoverLine" class="cycle-hover-line" hidden></div>
+          <div id="cycleTooltip" class="cycle-tooltip" role="status" aria-live="polite" hidden></div>
+          <div id="cycleEmpty" class="empty-state">暂无可用的情绪周期历史</div>
+        </div>
+        <div class="cycle-legend">
+          <span id="cycleMetricLegend"><i class="sentiment-line"></i>短期情绪指标</span>
+          <div id="cyclePriceLegend" class="benchmark-legend"></div>
+          <span id="cycleLatest">—</span>
+        </div>
+        <div class="cycle-timeline">
+          <span id="cycleRangeStart">—</span>
+          <div class="dual-range" aria-label="选择图表时间范围">
+            <div class="range-base"></div>
+            <div id="cycleRangeFill" class="range-fill"></div>
+            <input id="cycleStart" type="range" min="0" max="100" value="0" step="1" aria-label="起始日期">
+            <input id="cycleEnd" type="range" min="0" max="100" value="100" step="1" aria-label="结束日期">
+          </div>
+          <span id="cycleRangeEnd">—</span>
+        </div>
+      </div>
+      <aside id="breadthSummary" class="breadth-summary" aria-live="polite">
+        <div class="breadth-summary-loading">正在读取市场广度</div>
+      </aside>
+    </section>
+
+    <section class="indicator-section derivatives-section combined-sentiment-section" id="derivativesSentiment">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">MARKET MOMENTUM + DERIVATIVES SENTIMENT</p>
+          <h2>市场动能＋衍生品情绪</h2>
+          <p class="section-description">宽基指数换手率、成交额拥挤度与期权PCR指标，按最近已完成交易日每日更新。</p>
+        </div>
+      </div>
+      <div id="momentumChartGrid" class="indicator-chart-grid" aria-live="polite"></div>
+      <div class="derivatives-chart-grid">
+        <article class="derivatives-chart-card">
+          <div class="derivatives-chart-head">
+            <div>
+              <h3>持仓量认沽认购比率</h3>
+              <p>认沽持仓量 ÷ 认购持仓量（3日移动平均）</p>
+            </div>
+            <span id="derivativesOiAsOf" class="derivatives-asof">—</span>
+          </div>
+          <div class="derivatives-chart-wrap">
+            <canvas id="derivativesOiChart"></canvas>
+            <div id="derivativesOiEmpty" class="mini-chart-empty">暂无可用历史序列</div>
+          </div>
+          <div id="derivativesOiLegend" class="derivatives-legend"></div>
+        </article>
+        <article class="derivatives-chart-card">
+          <div class="derivatives-chart-head">
+            <div>
+              <h3>成交额PCR / 成交量PCR</h3>
+          <p>成交额PCR ÷ 成交量PCR的倒数</p>
+            </div>
+            <span id="derivativesTradeAsOf" class="derivatives-asof">—</span>
+          </div>
+          <div class="derivatives-chart-wrap">
+            <canvas id="derivativesTradeChart"></canvas>
+            <div id="derivativesTradeEmpty" class="mini-chart-empty">暂无可用历史序列</div>
+          </div>
+          <div id="derivativesTradeLegend" class="derivatives-legend"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="indicator-section" id="fundDimensionCharts">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">CAPITAL FLOWS</p>
+          <h2>资金维度图谱</h2>
+          <p class="section-description">杠杆资金、公募基金、宽基ETF、陆股通与龙虎榜资金集中展示。</p>
+        </div>
+      </div>
+      <div id="fundChartGrid" class="indicator-chart-grid" aria-live="polite"></div>
+    </section>
+
+  </main>
+
+  <footer><span>数据用于市场观察，不构成投资建议</span><span id="generatedAt">—</span></footer>
+  <script src="/app.js?v=66" defer></script>
+</body>
+</html>
