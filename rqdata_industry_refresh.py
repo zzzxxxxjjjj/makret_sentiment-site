@@ -10,6 +10,7 @@ import pandas as pd
 import rqdatac as rq
 
 from rqdata_connection import initialize_rqdata
+from rqdata_trading_day import completed_trading_date
 
 PB_FACTOR_CANDIDATES = ("pb_ratio_lf", "pb_ratio", "PB_RATIO_LF", "PB_RATIO")
 # Keep the valuation chart on the ordinary parent-company TTM ROE definition.
@@ -31,15 +32,7 @@ def batches(items, size=500):
 
 
 def completed_date():
-    latest = rq.get_latest_trading_date()
-    latest = latest.date() if hasattr(latest, "date") else latest
-    if latest >= date.today():
-        calendar = rq.get_trading_dates(date.today() - timedelta(days=14), latest)
-        completed = [(item.date() if hasattr(item, "date") else item) for item in calendar]
-        completed = [item for item in completed if item < date.today()]
-        if completed:
-            return max(completed)
-    return latest
+    return completed_trading_date(rq)
 
 
 def percentile_last(values):

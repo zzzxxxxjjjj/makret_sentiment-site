@@ -11,6 +11,7 @@ import pandas as pd
 import rqdatac as rq
 
 from rqdata_connection import initialize_rqdata
+from rqdata_trading_day import completed_trading_date as shared_completed_trading_date
 
 
 BROAD_KEYWORDS = (
@@ -115,21 +116,7 @@ def a_share_ids(as_of):
 
 
 def completed_trading_date():
-    latest = rq.get_latest_trading_date()
-    if hasattr(latest, "date"):
-        latest = latest.date()
-    # Never use today's daily bar: during trading hours it is incomplete and
-    # immediately after the close it may not have finished loading.
-    if latest >= date.today():
-        recent = rq.get_trading_dates(date.today() - timedelta(days=14), latest)
-        completed = [
-            item.date() if hasattr(item, "date") else item
-            for item in recent
-            if (item.date() if hasattr(item, "date") else item) < date.today()
-        ]
-        if completed:
-            return max(completed)
-    return latest
+    return shared_completed_trading_date(rq)
 
 
 def recent_trading_dates(as_of, count=TOP5_LOOKBACK_DAYS):

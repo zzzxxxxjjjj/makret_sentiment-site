@@ -12,6 +12,7 @@ import pandas as pd
 import rqdatac as rq
 
 from rqdata_connection import initialize_rqdata
+from rqdata_trading_day import completed_trading_date
 
 from breadth_phase import apply_optimized_phases
 
@@ -224,9 +225,7 @@ def main():
     args = parser.parse_args()
 
     initialize_rqdata()
-    end = rq.get_latest_trading_date()
-    if hasattr(end, "date"):
-        end = end.date()
+    end = completed_trading_date(rq)
     start = datetime.strptime(args.start, "%Y-%m-%d").date()
     fetch_start = start - timedelta(days=120)
 

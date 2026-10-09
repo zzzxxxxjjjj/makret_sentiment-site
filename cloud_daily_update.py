@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 from rqdata_connection import initialize_rqdata, safe_error
+from rqdata_trading_day import completed_trading_date
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -69,7 +70,10 @@ def verify_core_dates(trade_date):
     for _, filename, _ in CORE_UPDATES:
         value = read_cache(filename)
         if value.get("asOf") != trade_date:
-            raise ValueError(f"{filename} did not reach the expected trading date")
+            raise ValueError(
+                f"{filename} trading date mismatch: expected {trade_date}, "
+                f"actual {value.get('asOf', 'missing')}"
+            )
     if not read_cache("rqdata-breadth-sentiment.json").get("points"):
         raise ValueError("Market breadth snapshot is empty")
     if not read_cache("rqdata-industry-sentiment.json").get("industries"):
@@ -83,11 +87,11 @@ def main():
 
     print("Stage: initialize RQData connection", flush=True)
     initialize_rqdata()
-    print("Stage: read latest trading date", flush=True)
-    latest = rq.get_latest_trading_date()
-    if hasattr(latest, "date"):
-        latest = latest.date()
-    trade_date = latest.isoformat()
+    print("Stage: read completed trading date", flush=True)
+    trade_date = completed_trading_date(rq).isoformat()
+    # Freeze the target for every subprocess, even if the run crosses midnight.
+    os.environ["RQDATA_AS_OF"] = trade_date
+    print(f"Target completed trading date: {trade_date} (Asia/Shanghai)", flush=True)
     if caches_current(trade_date):
         print("No new trading day: existing published data retained")
         return
