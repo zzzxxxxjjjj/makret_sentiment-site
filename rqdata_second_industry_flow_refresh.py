@@ -8,6 +8,8 @@ from pathlib import Path
 import pandas as pd
 import rqdatac as rq
 
+from rqdata_connection import initialize_rqdata
+
 DEFAULT_OUTPUT = Path(__file__).with_name("rqdata-industry-sentiment.json")
 
 
@@ -194,7 +196,7 @@ def main():
     as_of = datetime.strptime(str(args.as_of or payload.get("asOf"))[:10], "%Y-%m-%d").date()
     start = as_of - timedelta(days=args.lookback_days)
 
-    rq.init()
+    initialize_rqdata()
     parent = collect_parent_stocks(industries, as_of)
     stocks = sorted(parent["order_book_id"].unique())
     print(f"拉取二级行业主动资金：{start} ~ {as_of}，股票 {len(stocks)} 只")

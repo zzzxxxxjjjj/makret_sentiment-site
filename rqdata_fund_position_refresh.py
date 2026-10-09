@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pandas as pd
 import rqdatac as rq
+
+from rqdata_connection import initialize_rqdata
 from openpyxl import load_workbook
 from rqdatac_fund import fund
 
@@ -121,7 +123,7 @@ def run():
     if not stock_codes:
         raise RuntimeError("Excel 中没有普通股票型基金代码")
 
-    rq.init()
+    initialize_rqdata()
     primary_codes = main_codes(stock_codes)
     points = load_history(primary_codes, args.start)
     if not points:

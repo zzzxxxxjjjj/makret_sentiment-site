@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import rqdatac as rq
 
+from rqdata_connection import initialize_rqdata
+
 from breadth_phase import apply_optimized_phases
 
 
@@ -221,7 +223,7 @@ def main():
     parser.add_argument("--percentile-min-periods", type=int, default=120)
     args = parser.parse_args()
 
-    rq.init()
+    initialize_rqdata()
     end = rq.get_latest_trading_date()
     if hasattr(end, "date"):
         end = end.date()

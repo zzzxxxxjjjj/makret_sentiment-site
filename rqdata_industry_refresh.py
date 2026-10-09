@@ -9,6 +9,8 @@ from pathlib import Path
 import pandas as pd
 import rqdatac as rq
 
+from rqdata_connection import initialize_rqdata
+
 PB_FACTOR_CANDIDATES = ("pb_ratio_lf", "pb_ratio", "PB_RATIO_LF", "PB_RATIO")
 # Keep the valuation chart on the ordinary parent-company TTM ROE definition.
 # Do not fall back to adjusted/non-recurring-item ROE factors, otherwise a
@@ -924,7 +926,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
-    rq.init()
+    initialize_rqdata()
     as_of = completed_date()
     payload = build_payload(as_of)
     Path(args.output).write_text(

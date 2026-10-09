@@ -10,6 +10,8 @@ from pathlib import Path
 import pandas as pd
 import rqdatac as rq
 
+from rqdata_connection import initialize_rqdata
+
 
 BROAD_KEYWORDS = (
     "上证50", "上证180", "上证380", "沪深300", "中证500", "中证800", "中证1000", "中证2000",
@@ -1017,7 +1019,7 @@ def main():
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
-    rq.init()
+    initialize_rqdata()
     as_of = completed_trading_date()
 
     output = Path(args.output)

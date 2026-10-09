@@ -12,6 +12,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from rqdata_connection import initialize_rqdata, safe_error
+
 
 BASE_DIR = Path(__file__).resolve().parent
 CORE_UPDATES = (
@@ -52,6 +54,9 @@ def run_stage(script, arguments, *, required=True):
         print(f"Optional update skipped: {script} (timeout)", flush=True)
         return False
     if completed.returncode:
+        detail = (completed.stderr or completed.stdout).strip()[-700:]
+        if detail:
+            print(safe_error(RuntimeError(detail)), file=sys.stderr, flush=True)
         message = f"{script} failed (exit {completed.returncode}); previous published version retained"
         if required:
             raise RuntimeError(message)
@@ -76,7 +81,9 @@ def main():
         raise ValueError("Set the GitHub Actions secret RQDATAC_CONF before running this workflow")
     import rqdatac as rq
 
-    rq.init()
+    print("Stage: initialize RQData connection", flush=True)
+    initialize_rqdata()
+    print("Stage: read latest trading date", flush=True)
     latest = rq.get_latest_trading_date()
     if hasattr(latest, "date"):
         latest = latest.date()
@@ -116,6 +123,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as exc:
-        # Do not print SDK exception text: it can contain connection credentials.
-        print(f"Cloud refresh failed: {type(exc).__name__}. Check credentials, data entitlement, runtime and cached source files.", file=sys.stderr)
+        print(f"Cloud refresh failed: {safe_error(exc)}", file=sys.stderr)
         sys.exit(1)
