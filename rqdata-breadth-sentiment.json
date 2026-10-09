@@ -9,35 +9,35 @@
     "smoothing": "3日指数平滑",
     "phase": "顶部沿用高位回落规则；底部要求近10日曾低于25分、5日回升至少5分，并由净新高广度、均线上方广度或新低收缩至少一项确认"
   },
-  "generatedAt": "2026-10-09T08:33:54",
-  "asOf": "2026-10-08",
-  "score": 24.41,
+  "generatedAt": "2026-10-10T01:02:27",
+  "asOf": "2026-10-09",
+  "score": 31.7,
   "phase": "rising",
   "phaseLabel": "上行",
   "components": {
-    "nhnlBreadth": 15.0,
-    "aboveMaBreadth": 30.6,
-    "nhnlChange": 15.1,
-    "aboveMaChange": 17.5,
-    "nhnlBreadth60": 25.3,
-    "aboveMaBreadth60": 52.1,
-    "breadth60Confirmation": 38.7
+    "nhnlBreadth": 24.9,
+    "aboveMaBreadth": 41.9,
+    "nhnlChange": 54.6,
+    "aboveMaChange": 49.4,
+    "nhnlBreadth60": 36.1,
+    "aboveMaBreadth60": 55.9,
+    "breadth60Confirmation": 46.0
   },
   "metrics": {
-    "eligible": 5200,
-    "newHigh": 254,
-    "newLow": 1245,
-    "aboveMa20": 1634,
-    "nhnlBreadth": -19.058,
-    "newHighBreadth": 4.885,
-    "newLowBreadth": 23.942,
-    "aboveMaBreadth": 31.423,
-    "eligible60": 5184,
-    "newHigh60": 153,
-    "newLow60": 352,
-    "aboveMa60": 2377,
-    "nhnlBreadth60": -3.839,
-    "aboveMaBreadth60": 45.853
+    "eligible": 5201,
+    "newHigh": 353,
+    "newLow": 849,
+    "aboveMa20": 2090,
+    "nhnlBreadth": -9.537,
+    "newHighBreadth": 6.787,
+    "newLowBreadth": 16.324,
+    "aboveMaBreadth": 40.185,
+    "eligible60": 5185,
+    "newHigh60": 189,
+    "newLow60": 213,
+    "aboveMa60": 2529,
+    "nhnlBreadth60": -0.463,
+    "aboveMaBreadth60": 48.775
   },
   "weights": {
     "nhnlBreadth": 35,
@@ -62046,6 +62046,37 @@
       },
       "phase": "rising",
       "phaseLabel": "上行"
+    },
+    {
+      "date": "2026-10-09",
+      "sentiment": 31.7,
+      "metrics": {
+        "eligible": 5201,
+        "newHigh": 353,
+        "newLow": 849,
+        "aboveMa20": 2090,
+        "nhnlBreadth": -9.537,
+        "newHighBreadth": 6.787,
+        "newLowBreadth": 16.324,
+        "aboveMaBreadth": 40.185,
+        "eligible60": 5185,
+        "newHigh60": 189,
+        "newLow60": 213,
+        "aboveMa60": 2529,
+        "nhnlBreadth60": -0.463,
+        "aboveMaBreadth60": 48.775
+      },
+      "components": {
+        "nhnlBreadth": 24.9,
+        "aboveMaBreadth": 41.9,
+        "nhnlChange": 54.6,
+        "aboveMaChange": 49.4,
+        "nhnlBreadth60": 36.1,
+        "aboveMaBreadth60": 55.9,
+        "breadth60Confirmation": 46.0
+      },
+      "phase": "rising",
+      "phaseLabel": "上行"
     }
   ],
   "series": [
@@ -70053,6 +70084,10 @@
         {
           "date": "2026-10-08",
           "value": -19.058
+        },
+        {
+          "date": "2026-10-09",
+          "value": -9.537
         }
       ]
     },
@@ -78060,6 +78095,10 @@
         {
           "date": "2026-10-08",
           "value": 31.423
+        },
+        {
+          "date": "2026-10-09",
+          "value": 40.185
         }
       ]
     },
@@ -86067,6 +86106,10 @@
         {
           "date": "2026-10-08",
           "value": -3.839
+        },
+        {
+          "date": "2026-10-09",
+          "value": -0.463
         }
       ]
     },
@@ -94074,6 +94117,10 @@
         {
           "date": "2026-10-08",
           "value": 45.853
+        },
+        {
+          "date": "2026-10-09",
+          "value": 48.775
         }
       ]
     },
@@ -102081,6 +102128,10 @@
         {
           "date": "2026-10-08",
           "value": 38.7
+        },
+        {
+          "date": "2026-10-09",
+          "value": 46.0
         }
       ]
     },
@@ -110088,6 +110139,10 @@
         {
           "date": "2026-10-08",
           "value": 24.41
+        },
+        {
+          "date": "2026-10-09",
+          "value": 31.7
         }
       ]
     }
