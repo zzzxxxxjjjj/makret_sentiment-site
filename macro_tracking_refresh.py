@@ -14,15 +14,7 @@ from openpyxl import load_workbook
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data_sources"
-DEFAULT_CREDIT = (
-    Path.home()
-    / "xwechat_files"
-    / "wxid_agqd0ci1gwk322_405d"
-    / "msg"
-    / "file"
-    / "2026-06"
-    / "副本信贷脉冲-更新版.xlsm"
-)
+DEFAULT_CREDIT = DATA_DIR / "信贷脉冲-更新版.xlsm"
 DEFAULT_FX = DATA_DIR / "外汇脉冲.xlsx"
 DEFAULT_MARKET = Path.home() / "OneDrive" / "文档" / "市场宽基情绪指标.xlsx"
 MIN_DISPLAY_DATE = "2016-01-01"
@@ -371,3 +363,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
