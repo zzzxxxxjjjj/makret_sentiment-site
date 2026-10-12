@@ -79,12 +79,30 @@ def build():
     # Use the complete saved page payload, not the raw RQData cache's different schema.
     payload = read_json("broad-sentiment-page-cache.json").get("payload")
     validate_dashboard(payload)
+    # Permit a focused publication without replacing unrelated source snapshots.
+    institutional_path = BASE_DIR / "institutional-buy-snapshot.json"
+    if institutional_path.is_file():
+        institutional = read_json(institutional_path.name)
+        for incoming in institutional.get("series", []):
+            if incoming.get("id") not in {"institutional-buy", "institutional-buy-ma5"}:
+                raise ValueError("Unexpected series in institutional buying snapshot")
+            points = incoming.get("points", [])
+            if not points:
+                raise ValueError("Institutional buying snapshot has no points")
+            current = next((s for s in payload["series"] if s.get("id") == incoming["id"]), {})
+            current_date = max((p["date"] for p in current.get("points", [])), default="")
+            if max(p["date"] for p in points) >= current_date:
+                payload["series"] = [s for s in payload["series"] if s.get("id") != incoming["id"]]
+                payload["series"].append(incoming)
     exported_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     payload = public_data(payload)
     payload["publication"] = {"mode": "snapshot", "exportedAt": exported_at}
     output = {"broad-sentiment.json": json.dumps(payload, ensure_ascii=False, allow_nan=False)}
     missing = []
     dates = {"broad-sentiment.json": payload["asOf"]}
+    institutional_series = next((s for s in payload["series"] if s.get("id") == "institutional-buy"), {})
+    if institutional_series.get("points"):
+        dates["institutional-buy"] = max(p["date"] for p in institutional_series["points"])
 
     for name in REQUIRED_DATA:
         data = read_json(name)
@@ -179,3 +197,4 @@ if __name__ == "__main__":
     print(f"Dashboard data date: {manifest['dataDates']['broad-sentiment.json']}")
     if manifest["missingOptionalData"]:
         print("Missing optional snapshots: " + ", ".join(manifest["missingOptionalData"]))
+

@@ -11,6 +11,7 @@ import pandas as pd
 import rqdatac as rq
 
 from rqdata_connection import initialize_rqdata
+from rqdata_institutional_flow import fetch_institutional_buy, SERIES_IDS as INSTITUTIONAL_SERIES_IDS
 from rqdata_trading_day import completed_trading_date as shared_completed_trading_date
 
 
@@ -1004,6 +1005,7 @@ def fetch_etf_flows(as_of):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True)
+    parser.add_argument("--only-institutional", action="store_true")
     args = parser.parse_args()
 
     initialize_rqdata()
@@ -1016,6 +1018,15 @@ def main():
             previous = json.loads(output.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             previous = {}
+
+    if args.only_institutional:
+        metrics, new_series = fetch_institutional_buy(rq, as_of, previous)
+        previous.update(metrics)
+        previous['series'] = [s for s in previous.get('series', [])
+                              if s.get('id') not in INSTITUTIONAL_SERIES_IDS] + new_series
+        output.write_text(json.dumps(previous, ensure_ascii=False, indent=2), encoding='utf-8')
+        print(json.dumps({'ok': True, **metrics}, ensure_ascii=False))
+        return
 
     old_top5 = next(
         (item.get("points", []) for item in previous.get("series", []) if item.get("id") == "top5-concentration"),
@@ -1177,6 +1188,13 @@ def main():
             ),
             [],
         )
+    try:
+        institutional, institutional_series = fetch_institutional_buy(rq, as_of, previous)
+    except Exception as exc:
+        from rqdata_connection import safe_error
+        print(f"Institutional buying refresh failed; keeping prior history: {safe_error(exc)}")
+        institutional = {k: v for k, v in previous.items() if k.startswith('institutionalBuy')}
+        institutional_series = [s for s in previous.get('series', []) if s.get('id') in INSTITUTIONAL_SERIES_IDS]
     new_accounts, new_account_series = fetch_new_a_share_accounts(as_of)
     new_equity_funds, new_equity_fund_series = fetch_new_equity_fund_issuance(as_of)
     partial_fund_index, partial_fund_index_series = fetch_partial_equity_fund_index_returns(as_of)
@@ -1195,6 +1213,7 @@ def main():
     if dragon_tiger_points:
         series.append({"id": "dragon-tiger-net-inflow", "name": "龙虎榜资金净流入（20日滚动）", "unit": "亿元", "points": dragon_tiger_points})
     series.extend(new_account_series)
+    series.extend(institutional_series)
     if new_equity_fund_series:
         series.append(
             {
@@ -1235,6 +1254,7 @@ def main():
         "dragonTigerNetInflow20D": dragon_tiger_net,
         "dragonTigerStockCount": dragon_tiger_count,
         **new_accounts,
+        **institutional,
         **new_equity_funds,
         **partial_fund_index,
         "etfDetails": etf_details,
