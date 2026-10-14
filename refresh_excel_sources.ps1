@@ -5,7 +5,7 @@ param(
   [string[]]$WorkbookPaths,
   [string]$WindAddIn = 'C:\Wind\Wind.NET.Client\WindNET\DataBrowse\XLA\WindFunc.xla',
   [int]$MinimumWaitSeconds = 20,
-  [int]$MaximumWaitSeconds = 120
+  [int]$MaximumWaitSeconds = 600
 )
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8

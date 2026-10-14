@@ -35,13 +35,24 @@ def main():
         report['stages'].append({'name': name, 'ok': result.returncode == 0, 'required': required})
         if result.returncode:
             print(safe_error(RuntimeError(result.stderr or result.stdout)), flush=True)
+            if required:
+                raise RuntimeError(f'{name} failed; publication stopped')
         return result.returncode == 0
     try:
         if args.refresh_excel:
             import broad_sentiment as broad
-            source = broad.resolve_broad_market_excel()
+            source = Path(os.environ.get('BROAD_MARKET_SENTIMENT_EXCEL') or broad.BROAD_MARKET_ONEDRIVE_EXCEL)
             stage('Wind Excel refresh', ['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
                   str(BASE_DIR/'refresh_excel_sources.ps1'), '-MarketWorkbook', str(source)])
+            broad.resolve_broad_market_excel()
+            for label, snapshot, series_id in (
+                ('WindAll close', broad.broad_market_excel_index_snapshot(), 'windall-close-excel'),
+                ('WindAll turnover', broad.broad_market_excel_turnover_snapshot(), 'windall-turnover'),
+            ):
+                series = next((item for item in snapshot['series'] if item['id'] == series_id), None)
+                actual = series['points'][-1]['date'] if series and series.get('points') else None
+                if actual != target:
+                    raise RuntimeError(f'{label} remains at {actual}; expected {target}; publication stopped')
         refresh_core_snapshots(target)
         for script, output in [('rqdata_late_market_refresh.py', 'rqdata-broad-sentiment.json'),
                                ('rqdata_options_refresh.py', 'rqdata-options-pcr.json'),

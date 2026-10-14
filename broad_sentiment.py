@@ -1168,7 +1168,7 @@ def broad_market_excel_index_snapshot():
             }
             for item in rows[-3000:]
             if numeric(item.get("value")) is not None
-            and item["date"] < date.today()
+            and item["date"] <= date.today()
         ]
         if points:
             latest_dates.append(points[-1]["date"])
@@ -1266,7 +1266,7 @@ def broad_market_excel_turnover_snapshot():
             }
             for item in rows[-3000:]
             if numeric(item.get("value")) is not None
-            and item["date"] < date.today()
+            and item["date"] <= date.today()
         ]
         if points:
             latest_dates.append(points[-1]["date"])
@@ -1330,7 +1330,7 @@ def broad_market_excel_land_connect_turnover_snapshot():
         sh_value = numeric(item.get("sh"))
         sz_value = numeric(item.get("sz"))
         total = (sh_value or 0) + (sz_value or 0)
-        if item["date"] >= date.today() or total <= 0:
+        if item["date"] > date.today() or total <= 0:
             continue
         daily.append({"date": item["date"].isoformat(), "value": total})
     ma5_points = []
