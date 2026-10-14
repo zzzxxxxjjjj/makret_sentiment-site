@@ -9,6 +9,20 @@ import pandas as pd
 
 
 class OptionSyncTests(unittest.TestCase):
+    def test_damaged_cached_labels_are_repaired_without_changing_observations(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parents[1]) as tmp:
+            payload = {'asOf': '2026-10-13', 'series': [
+                {'id': 'land-connect-turnover-ma20', 'name': '\ufffd', 'unit': '\ufffd',
+                 'points': [{'date': '2026-10-13', 'value': 2583.48}]},
+                {'id': 'new-equity-fund-shares', 'name': '\ufffd', 'unit': '\ufffd',
+                 'points': [{'date': '2026-10-12', 'value': 5.27}]}]}
+            result = apply_market_data_sync(payload, Path(tmp))
+            items = {s['id']: s for s in result['series']}
+            self.assertEqual(items['land-connect-turnover-ma20']['unit'], '\u4ebf\u5143')
+            self.assertEqual(items['new-equity-fund-shares']['unit'], '\u4ebf\u4efd')
+            self.assertEqual(items['land-connect-turnover-ma20']['points'][0]['value'], 2583.48)
+            self.assertNotIn('\ufffd', json.dumps(result, ensure_ascii=False))
+
     def test_saved_wind_values_update_shares_card_without_changing_20d_definition(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parents[1]) as tmp:
             directory = Path(tmp)
@@ -46,7 +60,7 @@ class OptionSyncTests(unittest.TestCase):
             (directory/'rqdata-options-pcr.json').write_text(json.dumps({'asOf': dates[-1], 'series': incoming}))
             payload = {'asOf': dates[-1], 'series': [
                 {'id': 'pcr-oi-sz50', 'points': [{'date': '2026-10-08', 'value': .5}]},
-                {'id': 'new-equity-fund-shares', 'unit': '�ڷ�', 'points': [{'date': '2026-09-30', 'value': 8}]},
+                {'id': 'new-equity-fund-shares', 'unit': '亿份', 'points': [{'date': '2026-09-30', 'value': 8}]},
             ]}
             result = apply_market_data_sync(payload, directory)
             series = {item['id']: item for item in result['series']}
@@ -55,7 +69,7 @@ class OptionSyncTests(unittest.TestCase):
             # Existing definition is inverse AFTER taking the mean, not mean of inverses.
             self.assertEqual(series['pcr-amount-volume-ma3-sz50']['points'][-1]['value'], .25)
             shares = series['new-equity-fund-shares']
-            self.assertEqual(shares['unit'], '�ڷ�')
+            self.assertEqual(shares['unit'], '亿份')
             self.assertEqual(shares['updateInfo']['asOf'], '2026-09-30')
             self.assertEqual(shares['updateInfo']['status'], 'manual')
             missing = next(item for item in result['freshness']['items'] if item['id'] == 'sse50-financing-activity')

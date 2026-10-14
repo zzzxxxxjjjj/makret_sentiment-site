@@ -678,9 +678,9 @@ function renderFreshness(data){
   if(!target)return;
   const items=(data.freshness?.items||[]).filter(item=>!item.id.startsWith('pcr-')||item.id.startsWith('pcr-oi-')&&!item.id.includes('ma3'));
   target.hidden=!items.length;
-  const labels={current:'��ͬ��',delayed:'�ȴ���Դ����',manual:'�ȴ�Wind���ո���',missing:'��������'};
+  const labels={current:'已同步',delayed:'等待来源更新',manual:'等待Wind快照更新',missing:'暂无数据'};
   const delayed=items.filter(item=>item.status!=='current').length;
-  target.innerHTML=`<summary>���ݸ������ �� ${delayed?`${delayed}����ʹ�ý�������`:'��Ƶָ����ͬ��'} �� Ŀ������ ${escapeHtml(data.freshness?.targetDate||'��')}</summary><table><thead><tr><th>ָ��</th><th>ʵ������</th><th>���·�ʽ / ״̬</th></tr></thead><tbody>${items.map(item=>`<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.asOf||'��')}</td><td>${escapeHtml(item.mode)} �� ${labels[item.status]||'��'}</td></tr>`).join('')}</tbody></table><p>ˢ��ҳ�����¶�ȡ�ѷ������ݡ�Wind������ҪԴ�ļ����º󷢲����³�������ݶ����ڷݼƣ����Ի������������</p>`;
+  target.innerHTML=`<summary>数据更新情况 · ${delayed?`${delayed}项仍使用较早数据`:'日频指标已同步'} · 目标日期 ${escapeHtml(data.freshness?.targetDate||'—')}</summary><table><thead><tr><th>指标</th><th>实际日期</th><th>更新方式 / 状态</th></tr></thead><tbody>${items.map(item=>`<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.asOf||'—')}</td><td>${escapeHtml(item.mode)} · ${labels[item.status]||'—'}</td></tr>`).join('')}</tbody></table><p>刷新页面重新读取已发布数据。Wind快照需要源文件更新后发布；新成立基金份额以亿份计，不以基金数量替代。</p>`;
 }
 
 async function loadData(){

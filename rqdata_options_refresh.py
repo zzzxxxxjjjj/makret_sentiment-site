@@ -14,13 +14,13 @@ from rqdata_trading_day import CHINA_TIME, completed_trading_date
 
 BASE_DIR = Path(__file__).resolve().parent
 DEFINITIONS = (
-    ("sz50", "��֤50", "510050.XSHG"),
-    ("hs300", "����300", "510300.XSHG"),
-    ("csi1000", "��֤1000", "000852.XSHG"),
-    ("star50", "�ƴ�50", "588000.XSHG"),
+    ("sz50", "上证50", "510050.XSHG"),
+    ("hs300", "沪深300", "510300.XSHG"),
+    ("csi1000", "中证1000", "000852.XSHG"),
+    ("star50", "科创50", "588000.XSHG"),
 )
 FIELDS = {"oi": "open_interest", "amount": "total_turnover", "volume": "volume"}
-METRIC_NAMES = {"oi": "�ֲ����Ϲ��Ϲ�����", "amount": "�ɽ����Ϲ��Ϲ�����", "volume": "�ɽ����Ϲ��Ϲ�����"}
+METRIC_NAMES = {"oi": "持仓量认沽认购比率", "amount": "成交额认沽认购比率", "volume": "成交量认沽认购比率"}
 
 
 def calculate_ratios(raw, contracts):
@@ -95,14 +95,14 @@ def main():
             points = {p["date"]: p for p in stored.get(f"pcr-{metric}-{key}", {}).get("points", [])}
             points.update({p["date"]: p for p in incoming})
             series.append({"id": f"pcr-{metric}-{key}", "name": f"{name}{METRIC_NAMES[metric]}",
-                           "source": "RQData��Ȩ���ߣ���ʷ���ֱ���Wind��", "unit": "��",
+                           "source": "RQData期权日线（历史部分保留Wind）", "unit": "倍",
                            "points": [points[dt] for dt in sorted(points)][-1900:]})
         print(f"PCR refreshed: {key} through {end}", flush=True)
     payload = {"asOf": end.isoformat(), "generatedAt": datetime.now(CHINA_TIME).isoformat(timespec="seconds"),
-               "source": "RQData��Ȩ����", "series": series,
-               "methodology": "ͬԭWindƷ�֣�50ETF����̩����300ETF����֤1000��ָ���ƴ�50ETF��ȫ�����������·ݵ��Ϲ�����/�Ϲ�����"}
+               "source": "RQData期权日线", "series": series,
+               "methodology": "同原Wind品种：50ETF、华泰柏瑞300ETF、中证1000股指、科创50ETF；全部存续到期月份的认沽总量/认购总量"}
     temporary = output.with_suffix(".json.tmp")
-    temporary.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    temporary.write_text(json.dumps(payload, ensure_ascii=True), encoding="utf-8")
     temporary.replace(output)
 
 

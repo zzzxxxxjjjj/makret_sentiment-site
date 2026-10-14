@@ -24,15 +24,15 @@ def main():
             raise ValueError("Wind workbook has no valid saved observations; existing export retained")
         cutoff = (datetime.fromisoformat(snapshot["asOf"]).date() - timedelta(days=120)).isoformat()
         for item in snapshot["series"]:
-            series.append({**item, "source": "Wind��� �� �г���������ָ��.xlsx",
+            series.append({**item, "source": "Wind插件 · 市场宽基情绪指标.xlsx",
                            "points": [p for p in item["points"] if p["date"] >= cutoff]})
-    payload = {"source": "Wind��� �� �г���������ָ��.xlsx",
+    payload = {"source": "Wind插件 · 市场宽基情绪指标.xlsx",
                "exportedAt": datetime.now(CHINA_TIME).isoformat(timespec="seconds"),
                "series": series,
                "fundShares": {k: v for k, v in shares.items() if k not in {"path", "series"}}}
     path = Path(args.output)
     temporary = path.with_suffix(".json.tmp")
-    temporary.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    temporary.write_text(json.dumps(payload, ensure_ascii=True), encoding="utf-8")
     temporary.replace(path)
     print(f"Saved Wind values exported: fund shares {shares['asOf']}; stock connect {connect['asOf']}")
 

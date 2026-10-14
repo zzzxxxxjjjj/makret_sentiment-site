@@ -175,6 +175,8 @@ def build():
 
 def validate_output(output):
     for name, content in output.items():
+        if "\ufffd" in content:
+            raise ValueError(f"{name} contains damaged Unicode text; publication stopped")
         if len(content.encode("utf-8")) > 25 * 1024 * 1024:
             raise ValueError(f"{name} exceeds the Cloudflare Pages 25 MiB file limit")
         if name.endswith(".js") and "/api/" in content:
