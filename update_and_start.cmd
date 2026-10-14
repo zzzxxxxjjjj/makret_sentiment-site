@@ -46,6 +46,8 @@ if errorlevel 1 (
   echo Macro tracking update failed. The page will continue with the last local cache.
 )
 echo.
+echo Exporting saved Wind workbook observations...
+"C:\Users\DELL\anaconda3\envs\rqsdk\python.exe" wind_market_refresh.py --output wind-market-supplement.json
 echo [7/7] Starting the dashboard at http://127.0.0.1:8876/
 netstat -ano | findstr /R /C:":8876 .*LISTENING" >nul
 if not errorlevel 1 (

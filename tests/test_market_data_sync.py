@@ -9,6 +9,21 @@ import pandas as pd
 
 
 class OptionSyncTests(unittest.TestCase):
+    def test_saved_wind_values_update_shares_card_without_changing_20d_definition(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parents[1]) as tmp:
+            directory = Path(tmp)
+            data = {'series': [{'id': 'new-equity-fund-shares', 'unit': '\u4ebf\u4efd',
+                               'points': [{'date': '2026-10-12', 'value': 3}]}],
+                    'fundShares': {'asOf': '2026-10-12', 'shares': 3, 'shares5D': 7, 'shares20D': 12}}
+            (directory/'wind-market-supplement.json').write_text(json.dumps(data))
+            payload = {'asOf': '2026-10-13', 'series': [], 'cards': [
+                {'id': 'new-equity-fund-shares', 'asOf': '2026-09-30', 'value': 5,
+                 'submetrics': [{'label': '\u5f53\u65e5', 'value': 0}]}]}
+            result = apply_market_data_sync(payload, directory)
+            self.assertEqual(result['cards'][0]['value'], 12)
+            self.assertEqual(result['cards'][0]['asOf'], '2026-10-12')
+            self.assertEqual(result['cards'][0]['submetrics'][0]['value'], 3)
+
     def test_pcr_is_ratio_of_sums_and_missing_side_is_not_zero(self):
         contracts = pd.DataFrame({'order_book_id': ['p1', 'p2', 'c1'], 'option_type': ['P', 'P', 'C']})
         raw = pd.DataFrame({'order_book_id': ['p1', 'p2', 'c1'], 'date': ['2026-10-13'] * 3,

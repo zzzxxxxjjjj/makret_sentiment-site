@@ -9,6 +9,9 @@ on:
       - rqdata_options_refresh.py
       - rqdata_late_market_refresh.py
       - market_data_sync.py
+      - wind_market_refresh.py
+      - wind-market-supplement.json
+      - broad-market-excel-source.xlsx
       - .github/workflows/daily-data-update.yml
   schedule:
     # Asia/Shanghai 18:37, 20:37, 22:37: retry late provider data.

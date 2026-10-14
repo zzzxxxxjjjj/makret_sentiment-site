@@ -58,6 +58,7 @@ def source_signature():
         RQDATA_CACHE,
         RQDATA_BREADTH_CACHE,
         BASE_DIR / "rqdata-options-pcr.json",
+        BASE_DIR / "wind-market-supplement.json",
     ]
     signature = [["pageCacheVersion", 55, "perSeriesFreshnessAndDailyPCR"]]
     for path in paths:

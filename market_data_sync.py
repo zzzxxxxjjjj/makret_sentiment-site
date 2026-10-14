@@ -21,6 +21,28 @@ def moving_average(points, window=3):
 def apply_market_data_sync(payload, directory):
     series = {item["id"]: item for item in payload.get("series", [])}
     try:
+        wind = json.loads((Path(directory) / "wind-market-supplement.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        wind = {}
+    for incoming in wind.get("series", []):
+        sid = incoming.get("id")
+        if sid not in {"new-equity-fund-shares", "land-connect-turnover-ma20"}:
+            continue
+        current = series.get(sid, {})
+        # Shares must retain their original unit; counts are a separate measure.
+        if sid == "new-equity-fund-shares" and incoming.get("unit") != "�ڷ�":
+            continue
+        merged = merge_points(current.get("points", []), incoming.get("points", []))
+        series[sid] = {**current, **incoming, "points": merged}
+    fund = wind.get("fundShares", {})
+    for card in payload.get("cards", []):
+        if card.get("id") == "new-equity-fund-shares" and fund.get("asOf", "") >= (card.get("asOf") or ""):
+            card.update(asOf=fund["asOf"], value=fund.get("shares20D"), percentile=fund.get("shares20DPercentile"))
+            values = {"����": fund.get("shares"), "��5���ۼ�": fund.get("shares5D"), "��20���ۼ�": fund.get("shares20D")}
+            for metric in card.get("submetrics", []):
+                if metric.get("label") in values:
+                    metric["value"] = values[metric["label"]]
+    try:
         options = json.loads((Path(directory) / "rqdata-options-pcr.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         options = {}
@@ -36,22 +58,22 @@ def apply_market_data_sync(payload, directory):
         oi = series.get(f"pcr-oi-{key}", {})
         if oi.get("points"):
             sid = f"pcr-oi-ma3-{key}"
-            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "倍",
-                           "name": series.get(sid, {}).get("name", f"{key}持仓量PCR MA3"),
-                           "source": oi.get("source", "Wind快照"), "points": moving_average(oi["points"])}
+            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "��",
+                           "name": series.get(sid, {}).get("name", f"{key}�ֲ���PCR MA3"),
+                           "source": oi.get("source", "Wind����"), "points": moving_average(oi["points"])}
         amount = {p["date"]: p["value"] for p in series.get(f"pcr-amount-{key}", {}).get("points", [])}
         volume = {p["date"]: p["value"] for p in series.get(f"pcr-volume-{key}", {}).get("points", [])}
         ratio = [{"date": dt, "value": round(amount[dt] / volume[dt], 4)}
                  for dt in sorted(amount.keys() & volume.keys()) if volume[dt] > 0]
         if ratio:
             sid = f"pcr-amount-volume-{key}"
-            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "倍", "name": f"{key}成交额PCR/成交量PCR",
-                           "source": oi.get("source", "Wind快照"), "points": ratio}
+            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "��", "name": f"{key}�ɽ���PCR/�ɽ���PCR",
+                           "source": oi.get("source", "Wind����"), "points": ratio}
             sid = f"pcr-amount-volume-ma3-{key}"
             positive = [{"date": p["date"], "value": round(1 / p["value"], 4)}
                         for p in moving_average(ratio) if p["value"] > 0]
-            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "倍", "name": f"{key}PCR价量比 MA3（倒数正向化）",
-                           "source": oi.get("source", "Wind快照"), "points": positive}
+            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "��", "name": f"{key}PCR������ MA3���������򻯣�",
+                           "source": oi.get("source", "Wind����"), "points": positive}
     payload["series"] = list(series.values())
     target = max(filter(None, (payload.get("asOf"), options.get("asOf"))), default=None)
     watched = []
@@ -65,18 +87,17 @@ def apply_market_data_sync(payload, directory):
         manual = sid == "new-equity-fund-shares" or (sid.startswith("pcr-") and not options)
         status = "missing" if not actual else "current" if actual == target else "manual" if manual else "delayed"
         item["updateInfo"] = {"asOf": actual, "targetDate": target, "status": status,
-                              "mode": "Wind快照" if manual else "每日自动更新",
-                              "source": item.get("source") or ("Wind/RQData择新" if sid.startswith("land-connect") else "RQData")}
+                              "mode": "Wind����" if manual or "Wind���" in item.get("source", "") else "ÿ���Զ�����",
+                              "source": item.get("source") or ("Wind/RQData����" if sid.startswith("land-connect") else "RQData")}
         watched.append({"id": sid, "name": item.get("name", sid), **item["updateInfo"]})
-    expected = {"financing-activity": "全A融资买入额占比", "hs300-financing-activity": "沪深300融资买入额占比",
-                "sse50-financing-activity": "上证50融资买入额占比", "star50-financing-activity": "科创50融资买入额占比",
-                "csi1000-financing-activity": "中证1000融资买入额占比",
-                "land-connect-turnover-ma20": "陆股通成交总额 MA5", "new-equity-fund-shares": "新成立偏股型基金份额"}
+    expected = {"financing-activity": "ȫA���������ռ��", "hs300-financing-activity": "����300���������ռ��",
+                "sse50-financing-activity": "��֤50���������ռ��", "star50-financing-activity": "�ƴ�50���������ռ��",
+                "csi1000-financing-activity": "��֤1000���������ռ��",
+                "land-connect-turnover-ma20": "½��ͨ�ɽ��ܶ� MA5", "new-equity-fund-shares": "�³���ƫ���ͻ���ݶ�"}
     for sid, name in expected.items():
         if sid not in series:
             watched.append({"id": sid, "name": name, "asOf": None, "targetDate": target, "status": "missing",
-                            "mode": "Wind快照" if sid == "new-equity-fund-shares" else "每日自动更新"})
+                            "mode": "Wind����" if sid == "new-equity-fund-shares" else "ÿ���Զ�����"})
     payload["freshness"] = {"targetDate": target, "items": watched,
                             "delayedCount": sum(item["status"] != "current" for item in watched)}
     return payload
-
