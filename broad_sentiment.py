@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import threading
 import time
+from functools import lru_cache
 from collections import deque
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -59,8 +60,9 @@ def source_signature():
         RQDATA_BREADTH_CACHE,
         BASE_DIR / "rqdata-options-pcr.json",
         BASE_DIR / "wind-market-supplement.json",
+        BASE_DIR / "wind-synthesis-inputs.json",
     ]
-    signature = [["pageCacheVersion", 55, "perSeriesFreshnessAndDailyPCR"]]
+    signature = [["pageCacheVersion", 56, "completedDateAndVerifiedSynthesis"]]
     for path in paths:
         try:
             stat = path.stat()
@@ -773,6 +775,25 @@ def broad_market_medium_term_sentiment_snapshot():
         digits=3,
     )
 
+    try:
+        saved_wind = json.loads((BASE_DIR / "wind-synthesis-inputs.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        saved_wind = {}
+    saved_by_id = {s["id"]: s.get("points", []) for s in saved_wind.get("series", [])}
+    def extend_wind(points, sid):
+        last = max((p["date"] for p in points), default="")
+        limit = os.environ.get("RQDATA_AS_OF", "")
+        incoming = [p for p in saved_by_id.get(sid, []) if p["date"] > last and (not limit or p["date"] <= limit)]
+        return sorted([*points, *incoming], key=lambda p: p["date"])[-1900:]
+    erp_points = extend_wind(erp_points, "medium-erp")
+    spread_points = extend_wind(spread_points, "medium-equity-bond-yield-spread")
+    position_points = extend_wind(position_points, "medium-equity-bond-position")
+    pe_points = extend_wind(pe_points, "medium-pe-ttm")
+    dividend_points = extend_wind(dividend_points, "medium-dividend-yield-ttm")
+    bond_points = extend_wind(bond_points, "medium-cdb-10y-yield")
+    dividend_by_date = {p["date"]: p["value"] for p in dividend_points}
+    bond_by_date = {p["date"]: p["value"] for p in bond_points}
+
     def rolling_average_points(raw_points, window=750, min_periods=120):
         ordered = [
             point for point in sorted(raw_points, key=lambda item: item["date"])
@@ -964,6 +985,7 @@ def broad_market_medium_term_sentiment_snapshot():
     spread_band_points = rolling_band_percent_points(spread_points, inverse=True)
     financing_band_points = rolling_band_percent_points(financing_points)
     relative_strength_points = relative_return_points(wind_all_by_date, bond_fund_by_date)
+    relative_strength_points = extend_wind(relative_strength_points, "medium-equity-bond-relative-return-120d")
     financing_balance_change_points = change_percent_points(financing_points, window=60)
     financing_net_20d_points = trailing_sum_points(financing_net_points, window=20)
     component_scores = {
@@ -1485,8 +1507,22 @@ def open_fund_position_snapshot():
     }
 
 
+@lru_cache(maxsize=4)
+def _snapshot_limit(modified):
+    try:
+        target = json.loads(RQDATA_CACHE.read_text(encoding="utf-8")).get("asOf")
+        return date.fromisoformat(target) if target else None
+    except (OSError, ValueError):
+        return None
+
+
 def read_series(ws, date_col, value_cols, start_row=7, end_row=6407):
     rows = []
+    pinned = os.environ.get("RQDATA_AS_OF", "").strip()
+    try:
+        limit = date.fromisoformat(pinned) if pinned else _snapshot_limit(RQDATA_CACHE.stat().st_mtime_ns)
+    except OSError:
+        limit = None
     min_col = min([date_col, *value_cols.values()])
     max_col = max([date_col, *value_cols.values()])
     values_iter = ws.iter_rows(
@@ -1498,7 +1534,7 @@ def read_series(ws, date_col, value_cols, start_row=7, end_row=6407):
     )
     for values in values_iter:
         dt = as_date(values[date_col - min_col])
-        if dt is None:
+        if dt is None or (limit is not None and dt > limit):
             continue
         item = {"date": dt}
         valid = False
@@ -2437,8 +2473,8 @@ def metric_card(identifier, title, source, as_of, value=None, unit=None, percent
     }
 
 
-def _build_payload():
-    if not ENABLE_RQDATA_REFRESH:
+def _build_payload(*, force=False):
+    if not force and not ENABLE_RQDATA_REFRESH:
         cached_payload = load_page_cache(source_signature())
         if cached_payload is not None:
             return cached_payload

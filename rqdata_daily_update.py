@@ -43,7 +43,7 @@ def verify_snapshots(directory, trade_date):
 
 def refresh_core_snapshots(trade_date, *, directory=BASE_DIR):
     directory = Path(directory)
-    env = {**os.environ, "RQDATA_AS_OF": trade_date}
+    env = {**os.environ, "RQDATA_AS_OF": trade_date, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
     # Stage all outputs, preserving previous files until every date is verified.
     with tempfile.TemporaryDirectory(prefix=".rqdata-refresh-", dir=directory) as temporary:
         staging = Path(temporary)
@@ -57,7 +57,7 @@ def refresh_core_snapshots(trade_date, *, directory=BASE_DIR):
             print(f"Refreshing {filename} for {trade_date}", flush=True)
             completed = subprocess.run(
                 [sys.executable, str(BASE_DIR / script), "--output", str(target), *extra],
-                cwd=directory, env=env, capture_output=True, text=True, timeout=1800,
+                cwd=directory, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800,
             )
             if completed.returncode:
                 detail = (completed.stderr or completed.stdout).strip()[-700:]

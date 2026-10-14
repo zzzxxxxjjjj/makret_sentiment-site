@@ -15,6 +15,7 @@ from pathlib import Path
 from rqdata_connection import initialize_rqdata, safe_error
 from rqdata_trading_day import completed_trading_date
 from rqdata_daily_update import CORE_UPDATES, refresh_core_snapshots
+from sentiment_update import rebuild
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -44,7 +45,8 @@ def run_stage(script, arguments, *, required=True):
     try:
         completed = subprocess.run(
             [sys.executable, str(BASE_DIR / script), *arguments],
-            cwd=BASE_DIR, capture_output=True, text=True, timeout=1800,
+            cwd=BASE_DIR, capture_output=True, text=True, encoding="utf-8", errors="replace",
+            env={**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}, timeout=1800,
         )
     except subprocess.TimeoutExpired:
         if required:
@@ -116,10 +118,16 @@ def main():
     # Synchronous generation avoids publishing an old payload while background
     # calculation is still in progress. The changed source signatures invalidate
     # the previous page cache without deleting it.
-    payload = broad_sentiment._build_payload()
+    payload = broad_sentiment._build_payload(force=True)
     if payload.get("asOf") != trade_date or not payload.get("cards") or not payload.get("series"):
         raise ValueError("Dashboard rebuild failed to include the new trading date")
+    from sentiment_update import synthesis_status
+    status = synthesis_status(payload, trade_date)
+    if not status['shortTerm']['current']:
+        raise ValueError('Short-term synthesis did not reach the completed trading date')
+    payload['synthesisStatus'] = status
     broad_sentiment.save_page_cache(payload)
+    print(json.dumps(status, ensure_ascii=True), flush=True)
     print(f"RQData snapshots and dashboard ready for {trade_date}", flush=True)
 
 

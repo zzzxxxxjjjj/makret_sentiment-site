@@ -1,83 +1,74 @@
 param(
-  [Parameter(Mandatory = $true)][string]$MarketWorkbook,
-  [Parameter(Mandatory = $true)][string]$CreditWorkbook,
-  [Parameter(Mandatory = $true)][string]$FxWorkbook,
+  [string]$MarketWorkbook,
+  [string]$CreditWorkbook,
+  [string]$FxWorkbook,
+  [string[]]$WorkbookPaths,
+  [string]$WindAddIn = 'C:\Wind\Wind.NET.Client\WindNET\DataBrowse\XLA\WindFunc.xla',
   [int]$MinimumWaitSeconds = 20,
   [int]$MaximumWaitSeconds = 120
 )
-
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-
-function Refresh-Workbook {
-  param(
-    [Parameter(Mandatory = $true)]$Excel,
-    [Parameter(Mandatory = $true)][string]$Path
-  )
-
-  if (-not (Test-Path -LiteralPath $Path)) {
-    throw "未找到Excel文件：$Path"
-  }
-
-  Write-Host "正在自动刷新：$Path"
-  $book = $null
-  try {
-    $book = $Excel.Workbooks.Open($Path, 3, $false)
-    if ($book.ReadOnly) {
-      throw "文件以只读方式打开，无法保存更新：$Path"
-    }
-    $book.RefreshAll()
-    try { $Excel.CalculateFullRebuild() } catch {}
-    try { $Excel.CalculateUntilAsyncQueriesDone() } catch {}
-
-    $started = Get-Date
-    do {
-      Start-Sleep -Seconds 2
-      try { $Excel.Calculate() } catch {}
-      $elapsed = ((Get-Date) - $started).TotalSeconds
-      $calculationDone = $Excel.CalculationState -eq 0
-    } while ($elapsed -lt $MinimumWaitSeconds -or (-not $calculationDone -and $elapsed -lt $MaximumWaitSeconds))
-
-    $book.Save()
-    Write-Host "刷新并保存完成：$Path"
-  }
-  finally {
-    if ($null -ne $book) {
-      try { $book.Close($true) } catch {}
-      [void][Runtime.InteropServices.Marshal]::ReleaseComObject($book)
-    }
-  }
-}
-
+$paths = @($WorkbookPaths) + @($MarketWorkbook, $CreditWorkbook, $FxWorkbook)
+$paths = @($paths | Where-Object { $_ } | Select-Object -Unique)
+if (-not $paths.Count) { throw 'No Excel workbooks specified' }
 $excel = $null
+$ownsExcel = $false
 $failures = @()
 try {
-  $excel = New-Object -ComObject Excel.Application
-  $excel.Visible = $true
-  $excel.WindowState = 2
-  $excel.DisplayAlerts = $false
-  $excel.AskToUpdateLinks = $false
+  try { $excel = [Runtime.InteropServices.Marshal]::GetActiveObject('Excel.Application') } catch {}
+  if ($null -eq $excel) {
+    $excel = New-Object -ComObject Excel.Application
+    $ownsExcel = $true
+    $excel.Visible = $false
+    $excel.DisplayAlerts = $false
+    $excel.AskToUpdateLinks = $false
+  }
+  if (-not (Test-Path -LiteralPath $WindAddIn)) { throw 'Installed Wind Excel add-in not found' }
+  $windBook = @($excel.Workbooks | Where-Object { $_.FullName -eq $WindAddIn })
+  if (-not $windBook.Count) { $null = $excel.Workbooks.Open($WindAddIn, 0, $true) }
   try { $excel.RTD.ThrottleInterval = 1000 } catch {}
-
-  foreach ($path in @($MarketWorkbook, $CreditWorkbook, $FxWorkbook)) {
+  foreach ($path in $paths) {
+    $book = $null
+    $openedHere = $false
     try {
-      Refresh-Workbook -Excel $excel -Path $path
-    }
-    catch {
+      if (-not (Test-Path -LiteralPath $path)) { throw 'Source workbook not found' }
+      $resolved = (Resolve-Path -LiteralPath $path).Path
+      $book = @($excel.Workbooks | Where-Object { $_.FullName -eq $resolved }) | Select-Object -First 1
+      if ($null -eq $book) { $book = $excel.Workbooks.Open($resolved, 3, $false); $openedHere = $true }
+      if ($book.ReadOnly) { throw 'Source workbook is read-only' }
+      $book.RefreshAll()
+      $excel.CalculateFullRebuild()
+      $started = Get-Date
+      do {
+        Start-Sleep -Seconds 2
+        $excel.Calculate()
+        $elapsed = ((Get-Date) - $started).TotalSeconds
+        $done = $excel.CalculationState -eq 0
+      } while ($elapsed -lt $MinimumWaitSeconds -or (-not $done -and $elapsed -lt $MaximumWaitSeconds))
+      if (-not $done) { throw 'Excel refresh timed out; previous saved workbook retained' }
+      foreach ($sheet in $book.Worksheets) {
+        $formulaErrors = $null
+        try { $formulaErrors = $sheet.UsedRange.SpecialCells(-4123, 16) } catch {}
+        if ($null -ne $formulaErrors) { throw 'Wind/Excel formulas returned errors; previous saved workbook retained' }
+      }
+      $book.Save()
+      Write-Output ('Refreshed and saved: ' + [IO.Path]::GetFileName($resolved))
+    } catch {
       $failures += $_.Exception.Message
       Write-Warning $_.Exception.Message
+    } finally {
+      if ($null -ne $book -and $openedHere) { $book.Close($false) }
+      if ($null -ne $book) { [void][Runtime.InteropServices.Marshal]::ReleaseComObject($book) }
     }
   }
-}
-finally {
+} finally {
   if ($null -ne $excel) {
-    try { $excel.Quit() } catch {}
+    $windBook = $null
+    if ($ownsExcel) { $excel.Quit() }
     [void][Runtime.InteropServices.Marshal]::ReleaseComObject($excel)
   }
   [GC]::Collect()
   [GC]::WaitForPendingFinalizers()
 }
-
-if ($failures.Count -gt 0) {
-  exit 1
-}
+if ($failures.Count) { exit 1 }

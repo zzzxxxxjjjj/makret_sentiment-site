@@ -143,34 +143,44 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def run_daily_data_update():
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] 开始每日收盘数据更新")
-    for label, script_name, arguments in DAILY_UPDATE_SCRIPTS:
-        try:
-            completed = subprocess.run(
-                [str(RQDATA_PYTHON), str(BASE_DIR / script_name), *arguments],
-                cwd=str(BASE_DIR), capture_output=True, text=True,
-                timeout=1800, check=False,
-            )
-            status = "完成" if completed.returncode == 0 else f"失败（代码 {completed.returncode}）"
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] {label}更新{status}")
-            if completed.returncode and completed.stderr:
-                print(completed.stderr[-800:])
-        except Exception as exc:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] {label}更新失败：{exc}")
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] 每日收盘数据更新结束")
+    try:
+        completed = subprocess.run(
+            [str(RQDATA_PYTHON), "-X", "utf8", str(BASE_DIR / "daily_site_update.py"), "--refresh-excel"],
+            cwd=str(BASE_DIR), capture_output=True, text=True, encoding="utf-8", errors="replace",
+            env={**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}, timeout=7200,
+        )
+        if completed.returncode:
+            print(f"Daily refresh failed: {safe_error(RuntimeError(completed.stderr or completed.stdout))}")
+            return False
+        print("Excel, RQData and sentiment synthesis verified")
+        return True
+    except Exception as exc:
+        print(safe_error(exc))
+        return False
 
 
 def daily_update_scheduler():
+    if os.name == "nt":
+        try:
+            task = subprocess.run(["schtasks.exe", "/Query", "/TN", "MarketSentiment-Wind-RQData-Daily"],
+                                  capture_output=True, timeout=10)
+            if task.returncode == 0:
+                print("Daily updates are handled by the registered Windows task")
+                return
+        except (OSError, subprocess.TimeoutExpired):
+            pass
     last_run_date = None
+    last_attempt = 0
     while True:
-        now = datetime.now()
+        now = datetime.now(CHINA_TIME)
         scheduled = now.replace(
             hour=DAILY_UPDATE_HOUR, minute=DAILY_UPDATE_MINUTE,
             second=0, microsecond=0,
         )
-        if now.weekday() < 5 and now >= scheduled and last_run_date != now.date():
-            last_run_date = now.date()
-            run_daily_data_update()
+        if now.weekday() < 5 and now >= scheduled and last_run_date != now.date() and time.time()-last_attempt >= 1800:
+            last_attempt = time.time()
+            if run_daily_data_update():
+                last_run_date = now.date()
         time.sleep(30)
 
 

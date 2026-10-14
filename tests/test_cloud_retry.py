@@ -11,7 +11,8 @@ import cloud_daily_update as cloud
 class CloudRetryTests(unittest.TestCase):
     def test_current_core_still_retries_optional_data_and_rebuilds(self):
         dashboard = types.SimpleNamespace(ENABLE_RQDATA_REFRESH=True,
-            _build_payload=lambda: {'asOf': '2026-10-13', 'cards': [1], 'series': [1]},
+            _build_payload=lambda **kwargs: {'asOf': '2026-10-13', 'cards': [1], 'series': [{'id':'sample','points':[]}],
+                                            'cycleComparison': {'points': [{'date':'2026-10-13','sentiment':50}]}},
             save_page_cache=lambda payload: None)
         with patch.dict(os.environ, {'RQDATAC_CONF': 'test', 'AIDO_API_KEY': '', 'RQDATA_AS_OF': ''}), \
                 patch.dict(sys.modules, {'rqdatac': types.SimpleNamespace(), 'broad_sentiment': dashboard}), \
@@ -31,4 +32,3 @@ class CloudRetryTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

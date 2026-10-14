@@ -10,14 +10,14 @@ Write-Host "Open: http://127.0.0.1:8876"
 Write-Host "Keep this PowerShell window open."
 
 Set-Location $SiteDir
-Write-Host "Refreshing CITICS level-2 industry stock-flow leaders..."
+Write-Host "Refreshing Excel, RQData and short/medium-term sentiment..."
 try {
-  & $RqPython ".\rqdata_second_industry_flow_refresh.py" --output ".\rqdata-industry-sentiment.json"
+  & $RqPython -X utf8 ".\daily_site_update.py" --refresh-excel
   if ($LASTEXITCODE -ne 0) {
-    Write-Host "Level-2 industry refresh failed. The site will continue with the last local cache."
+    Write-Host "Daily refresh failed. Check daily-update-status.json for the actual source and synthesis dates."
   }
 } catch {
-  Write-Host "Level-2 industry refresh failed. The site will continue with the last local cache."
+  Write-Host "Daily refresh failed. The site retains saved values and their actual dates."
 }
 Write-Host "RQData is read from the local cache after startup."
 & $Python ".\server.py"
