@@ -1,3 +1,4 @@
+param([switch]$UseSavedExcel)
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 if ((Get-Date).DayOfWeek -in @('Saturday','Sunday')) { exit 0 }
@@ -13,7 +14,9 @@ finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer) }
 try {
   & $python -X utf8 "$PSScriptRoot/publish_daily_snapshot.py" --check-auth *> "$PSScriptRoot/daily-site-update.log"
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-  & $python -X utf8 "$PSScriptRoot/daily_site_update.py" --refresh-excel *>> "$PSScriptRoot/daily-site-update.log"
+  $updateArgs = @('-X', 'utf8', "$PSScriptRoot/daily_site_update.py")
+  if (-not $UseSavedExcel) { $updateArgs += '--refresh-excel' }
+  & $python @updateArgs *>> "$PSScriptRoot/daily-site-update.log"
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   & $python -X utf8 "$PSScriptRoot/publish_daily_snapshot.py" *>> "$PSScriptRoot/daily-site-update.log"
   exit $LASTEXITCODE

@@ -18,12 +18,6 @@ FILES = (
     "broad-market-excel-source.xlsx",
     "wind-market-supplement.json",
     "wind-synthesis-inputs.json",
-    "rqdata-broad-sentiment.json",
-    "rqdata-breadth-sentiment.json",
-    "rqdata-industry-sentiment.json",
-    "rqdata-fund-stock-position-history.json",
-    "rqdata-fund-exposure.json",
-    "rqdata-options-pcr.json",
     "broad-sentiment-page-cache.json",
 )
 
