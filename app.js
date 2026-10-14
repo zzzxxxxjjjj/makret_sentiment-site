@@ -71,7 +71,7 @@ function renderSources(sources,notes){
 }
 
 const amountBandLines=[
-  {key:'market-amount-ma120',label:'120日均线',color:'#46d6b2'},
+  {key:'market-amount-ma120',label:'120日均线',color:'#8ea3b7'},
   {key:'market-amount-upper1',label:'+1σ',color:'#f5bd5c',dashed:true},
   {key:'market-amount-lower1',label:'−1σ',color:'#f5bd5c',dashed:true},
   {key:'market-amount-upper2',label:'+2σ',color:'#9d8cff',dashed:true},
@@ -93,7 +93,7 @@ function withAmountBands(series){
 }
 
 const chartDefinitions=[
-  {group:'momentum',key:'marketAmount',title:'两市成交额',description:'中证全指口径全A成交额；120个交易日均线及滚动标准差（总体）',series:['alla-turnover-amount',...amountBandLines.map(line=>line.key)],colors:['#5aa7ff',...amountBandLines.map(line=>line.color)],dashes:[false,...amountBandLines.map(line=>line.dashed)],unit:'万亿元',type:'line',valueDivisor:10000,currentMetrics:[{series:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000}]},
+  {group:'momentum',key:'marketAmount',title:'两市成交额',description:'中证全指口径全A成交额；120个交易日均线及滚动标准差（总体）',series:['alla-turnover-amount',...amountBandLines.map(line=>line.key)],colors:['#46d6b2',...amountBandLines.map(line=>line.color)],dashes:[false,...amountBandLines.map(line=>line.dashed)],unit:'万亿元',type:'line',valueDivisor:10000,currentMetrics:[{series:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000}]},
   {group:'momentum',key:'concentration',title:'成交额拥挤度',description:'成交额前5%个股占全市场成交额比例',series:['top5-concentration'],card:'top5-concentration',colors:['#f5bd5c'],unit:'%',type:'line',snapshotDomain:[0,100]},
   {group:'funds',key:'margin',title:'融资活跃度',description:'融资活跃度与全A融资买入额（亿元）',series:['financing-activity','alla-financing-buy'],card:'margin-financing',colors:['#46d6b2','#f5bd5c'],unit:'%',type:'line',dualAxis:true,href:'/financing-activity.html?v=20260806',linkLabel:'查看各指数融资明细 →',clickableCard:true,currentMetrics:[{series:'financing-activity',label:'融资活跃度',unit:'%'},{series:'alla-financing-buy',label:'融资买入额',unit:'亿元'}]},
   {group:'funds',key:'etf',title:'宽基ETF流入 / 流出',description:'ETF份额变化 × 收盘价，红色流入、绿色流出',series:['broad-etf-flow'],card:'broad-etf-flow',colors:['#ff6b78'],unit:'亿元',type:'bar',zeroLine:true,href:'/etf-flows.html',linkLabel:'查看9只ETF明细 →'},
@@ -112,7 +112,7 @@ const comparisonGroups={
     {key:'star50-turnover',label:'科创50换手率',unit:'%'}
   ],
   momentum:[
-    {key:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000,type:'line',exactDates:true,lineColor:'#5aa7ff',overlays:amountBandLines,description:'中证全指口径全A成交额；120个交易日均线，上下1倍标准差为黄色虚线，上下2倍为紫色虚线。标准差按同一120日窗口计算（总体），满120个有效交易日后显示。'},
+    {key:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000,type:'line',exactDates:true,lineColor:'#46d6b2',overlays:amountBandLines,description:'中证全指口径全A成交额；120个交易日均线，上下1倍标准差为黄色虚线，上下2倍为紫色虚线。标准差按同一120日窗口计算（总体），满120个有效交易日后显示。'},
     {key:'top5-concentration',label:'成交额前5%占比',unit:'%'},
     {key:'pcr-oi-ma3-sz50',label:'上证50持仓量PCR MA3',unit:'倍'},
     {key:'pcr-amount-volume-ma3-sz50',label:'上证50 PCR价量比 MA3（正向）',unit:'倍',description:'成交额PCR ÷ 成交量PCR的倒数'},
