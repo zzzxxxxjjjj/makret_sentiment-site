@@ -14,18 +14,15 @@ from pathlib import Path
 
 from rqdata_connection import initialize_rqdata, safe_error
 from rqdata_trading_day import completed_trading_date
+from rqdata_daily_update import CORE_UPDATES, refresh_core_snapshots
 
 
 BASE_DIR = Path(__file__).resolve().parent
-CORE_UPDATES = (
-    ("rqdata_refresh.py", "rqdata-broad-sentiment.json", ()),
-    ("rqdata_breadth_refresh.py", "rqdata-breadth-sentiment.json", ("--start", "2018-01-01")),
-    ("rqdata_industry_refresh.py", "rqdata-industry-sentiment.json", ()),
-)
 UPDATED_FILES = (
     "rqdata-broad-sentiment.json", "rqdata-breadth-sentiment.json",
     "rqdata-industry-sentiment.json", "rqdata-fund-stock-position-history.json",
     "rqdata-fund-exposure.json", "broad-sentiment-page-cache.json",
+    "rqdata-options-pcr.json",
 )
 
 
@@ -93,13 +90,14 @@ def main():
     os.environ["RQDATA_AS_OF"] = trade_date
     print(f"Target completed trading date: {trade_date} (Asia/Shanghai)", flush=True)
     if caches_current(trade_date):
-        print("No new trading day: existing published data retained")
-        return
-    for script, filename, extra in CORE_UPDATES:
-        run_stage(script, ("--output", filename, *extra))
+        print("Core snapshots current; retry supplementary data and rebuild dashboard")
+    else:
+        refresh_core_snapshots(trade_date)
     verify_core_dates(trade_date)
 
     # These supplementary services may not be included in every RQData license.
+    run_stage("rqdata_late_market_refresh.py", ("--output", "rqdata-broad-sentiment.json"), required=False)
+    run_stage("rqdata_options_refresh.py", ("--output", "rqdata-options-pcr.json"), required=False)
     run_stage("rqdata_second_industry_flow_refresh.py",
               ("--output", "rqdata-industry-sentiment.json"), required=False)
     if (BASE_DIR / "open-fund-stock-position.xlsx").is_file():
@@ -110,6 +108,8 @@ def main():
     if os.environ.get("AIDO_API_KEY", "").strip():
         run_stage("rqdata_fund_exposure_refresh.py",
                   ("--output", "rqdata-fund-exposure.json"), required=False)
+    else:
+        print("AIDO_API_KEY not configured; fund exposure retains its actual prior date", flush=True)
 
     import broad_sentiment
     broad_sentiment.ENABLE_RQDATA_REFRESH = False

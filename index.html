@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>A股宽基情绪指标</title>
-  <link rel="stylesheet" href="/styles.css?v=25">
+  <link rel="stylesheet" href="/styles.css?v=26">
   <link rel="stylesheet" href="/cycle.css?v=24">
 </head>
 <body>
@@ -30,6 +30,8 @@
         <button id="refreshButton" type="button">刷新数据</button>
       </div>
     </section>
+
+    <details id="dataFreshness" class="data-freshness" hidden></details>
 
     <section class="metric-groups" aria-live="polite" hidden>
       <article class="metric-group">
@@ -159,7 +161,7 @@
   </main>
 
   <footer><span>数据用于市场观察，不构成投资建议</span><span id="generatedAt">—</span></footer>
-  <script src="/app.js?v=70" defer></script>
+  <script src="/app.js?v=71" defer></script>
 </body>
 </html>
 

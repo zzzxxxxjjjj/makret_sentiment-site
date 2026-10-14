@@ -317,7 +317,8 @@ function drawDerivativesChart(canvasId,emptyId,asOfId,lines,forceZero=false){
   const firstDate=new Date(timeMin).toISOString().slice(0,10);
   const lastDate=new Date(timeMax).toISOString().slice(0,10);
   ctx.fillStyle=P.axisDim;ctx.fillText(firstDate,pad.l,h-7);ctx.fillText(lastDate,w-pad.r-62,h-7);
-  el(asOfId).textContent=`更新至 ${lastDate}`;
+  const lineDates=active.map(line=>line.points.at(-1).date).sort();
+  el(asOfId).textContent=lineDates[0]===lineDates.at(-1)?`更新至 ${lastDate}`:`各曲线截至 ${lineDates[0]} ～ ${lineDates.at(-1)}`;
 }
 
 function findComparisonDefinition(key){
@@ -467,6 +468,8 @@ function activateComparison(key){
     ?`${description}；虚线为历史P5/P95极值；时间轴固定显示最近五年。`
     :`${description}；时间轴固定显示最近五年。`;
   el('cycleMetricLegend').innerHTML=`<i class="${definition.type==='bar'?'indicator-bar':'sentiment-line'}"></i>${escapeHtml(definition.label)}`;
+  const updateInfo=state.series.find(item=>item.id===definition.key)?.updateInfo;
+  if(updateInfo&&updateInfo.status!=='current')el('cycleDescription').textContent+=` 当前数据截至 ${updateInfo.asOf||'—'}，${updateInfo.mode==='Wind快照'?'等待Wind快照更新':'等待来源更新'}。`;
   renderBenchmarkLegend();
   if(state.cyclePoints.length<2){
     el('cycleEmpty').textContent='暂无可用的指标对比历史';
@@ -670,6 +673,16 @@ function showCycleTooltip(event){
   tooltip.style.top='12px';
 }
 
+function renderFreshness(data){
+  const target=el('dataFreshness');
+  if(!target)return;
+  const items=(data.freshness?.items||[]).filter(item=>!item.id.startsWith('pcr-')||item.id.startsWith('pcr-oi-')&&!item.id.includes('ma3'));
+  target.hidden=!items.length;
+  const labels={current:'��ͬ��',delayed:'�ȴ���Դ����',manual:'�ȴ�Wind���ո���',missing:'��������'};
+  const delayed=items.filter(item=>item.status!=='current').length;
+  target.innerHTML=`<summary>���ݸ������ �� ${delayed?`${delayed}����ʹ�ý�������`:'��Ƶָ����ͬ��'} �� Ŀ������ ${escapeHtml(data.freshness?.targetDate||'��')}</summary><table><thead><tr><th>ָ��</th><th>ʵ������</th><th>���·�ʽ / ״̬</th></tr></thead><tbody>${items.map(item=>`<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.asOf||'��')}</td><td>${escapeHtml(item.mode)} �� ${labels[item.status]||'��'}</td></tr>`).join('')}</tbody></table><p>ˢ��ҳ�����¶�ȡ�ѷ������ݡ�Wind������ҪԴ�ļ����º󷢲����³�������ݶ����ڷݼƣ����Ի������������</p>`;
+}
+
 async function loadData(){
   el('statusText').textContent='正在读取数据';el('statusDot').className='dot loading';el('refreshButton').disabled=true;
   try{
@@ -677,8 +690,8 @@ async function loadData(){
     const data=await response.json();state.payload=data;state.series=data.series||[];
     el('asOf').textContent=fmtDate(data.asOf);el('coverage').textContent=`${data.availableCount}/${data.cards.length}`;
     el('summaryText').textContent=data.summary?.headline||'暂无足够数据形成市场判断';el('generatedAt').textContent=`生成于 ${String(data.generatedAt||'').replace('T',' ')}`;
-    renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(data.series);renderIndicatorCharts(data.series,data.cards);
-    el('statusText').textContent=data.missingCount?`已更新 · ${data.missingCount}项待接入`:'数据已更新';el('statusDot').className='dot';
+    renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(data.series);renderIndicatorCharts(data.series,data.cards);renderFreshness(data);
+    el('statusText').textContent=data.freshness?.delayedCount?'已读取 · 部分指标待更新':data.missingCount?`已更新 · ${data.missingCount}项待接入`:'数据已更新';el('statusDot').className='dot';
   }catch(error){el('statusText').textContent='数据读取失败';el('statusDot').className='dot error';el('momentumMetricGrid').innerHTML=`<article class="metric-card"><h3>暂时无法读取数据</h3><p class="summary">${escapeHtml(error.message)}</p></article>`;el('fundMetricGrid').innerHTML=''}
   finally{el('refreshButton').disabled=false}
 }

@@ -12,6 +12,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from breadth_phase import apply_optimized_phases
+from market_data_sync import apply_market_data_sync
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -56,8 +57,9 @@ def source_signature():
         OPEN_FUND_HISTORY_CACHE,
         RQDATA_CACHE,
         RQDATA_BREADTH_CACHE,
+        BASE_DIR / "rqdata-options-pcr.json",
     ]
-    signature = [["pageCacheVersion", 54, "mediumTermSentimentRollingPercentile"]]
+    signature = [["pageCacheVersion", 55, "perSeriesFreshnessAndDailyPCR"]]
     for path in paths:
         try:
             stat = path.stat()
@@ -3027,9 +3029,6 @@ def _build_payload():
             for item in rqdata.get("series", [])
             if item.get("id") not in {
                 "sse50-close",
-                "sse50-financing-activity",
-                "sse50-financing-buy",
-                "sse50-turnover-amount",
                 "star50-close",
                 "new-equity-fund-shares",
                 "medium-term-sentiment",
@@ -3179,6 +3178,7 @@ def _build_payload():
         "sources": sources,
         "notes": notes,
     }
+    payload = apply_market_data_sync(payload, BASE_DIR)
     save_page_cache(payload)
     return payload
 

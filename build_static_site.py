@@ -10,6 +10,7 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from market_data_sync import apply_market_data_sync
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -95,7 +96,7 @@ def build():
                 payload["series"] = [s for s in payload["series"] if s.get("id") != incoming["id"]]
                 payload["series"].append(incoming)
     exported_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    payload = public_data(payload)
+    payload = apply_market_data_sync(public_data(payload), BASE_DIR)
     payload["publication"] = {"mode": "snapshot", "exportedAt": exported_at}
     output = {"broad-sentiment.json": json.dumps(payload, ensure_ascii=False, allow_nan=False)}
     missing = []

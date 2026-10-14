@@ -52,6 +52,7 @@ INDEX_TURNOVER_DEFINITIONS = (
     ("000688.XSHG", "star50-turnover", "科创50换手率"),
 )
 INDEX_FINANCING_ACTIVITY_DEFINITIONS = (
+    ("000016.XSHG", "sse50-financing-activity", "上证50融资买入额占比"),
     ("000300.XSHG", "hs300-financing-activity", "沪深300融资买入额占比"),
     ("000852.XSHG", "csi1000-financing-activity", "中证1000融资买入额占比"),
     ("000688.XSHG", "star50-financing-activity", "科创50融资买入额占比"),
@@ -1157,6 +1158,8 @@ def main():
     financing, financing_series = fetch_financing(as_of, all_share_turnover)
     try:
         land_connect, land_connect_series = fetch_land_connect_flow(as_of)
+        if not land_connect_series:
+            raise ValueError("陆股通接口暂无有效数据")
     except Exception as exc:
         print(f"陆股通数据更新失败，继续使用旧缓存：{exc}")
         land_connect = {
