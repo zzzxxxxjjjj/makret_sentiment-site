@@ -36,6 +36,7 @@ DEFAULT_INDEX = "885001"
 DEFAULT_OUTPUT = "rqdata-fund-exposure.json"
 
 SKILL_KEY_FILES = (
+    Path(os.environ.get("CODEX_HOME") or (Path.home() / ".codex")) / "skills" / "aido-research" / "references" / "customer-api-key.md",
     Path.home() / ".workbuddy" / "skills" / "aido-research" / "references" / "customer-api-key.md",
     Path.home() / ".workbuddy" / "skills" / "aido-research" / "references" / "crowding-api.md",
 )
