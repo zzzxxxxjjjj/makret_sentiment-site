@@ -9,6 +9,30 @@ import pandas as pd
 
 
 class OptionSyncTests(unittest.TestCase):
+    def test_newer_rqdata_turnover_replaces_stale_wind_history(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parents[1]) as tmp:
+            directory = Path(tmp)
+            (directory/'rqdata-broad-sentiment.json').write_text(json.dumps({'series': [
+                {'id': 'hs300-turnover', 'name': '沪深300换手率', 'unit': '%', 'points': [
+                    {'date': '2026-10-12', 'value': 1.1},
+                    {'date': '2026-10-13', 'value': 1.2},
+                ]},
+            ]}))
+            payload = {'asOf': '2026-10-13', 'series': [
+                {'id': 'hs300-turnover', 'source': 'Wind插件', 'points': [
+                    {'date': '2026-09-30', 'value': 9.9},
+                ]},
+                {'id': 'windall-turnover', 'source': 'Wind插件', 'points': [
+                    {'date': '2026-09-30', 'value': 2.5},
+                ]},
+            ]}
+            result = apply_market_data_sync(payload, directory)
+            by_id = {item['id']: item for item in result['series']}
+            self.assertEqual([p['value'] for p in by_id['hs300-turnover']['points']], [1.1, 1.2])
+            self.assertEqual(by_id['hs300-turnover']['source'], 'RQData')
+            self.assertEqual(by_id['hs300-turnover']['updateInfo']['status'], 'current')
+            self.assertEqual(by_id['windall-turnover']['updateInfo']['status'], 'manual')
+
     def test_damaged_cached_labels_are_repaired_without_changing_observations(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parents[1]) as tmp:
             payload = {'asOf': '2026-10-13', 'series': [

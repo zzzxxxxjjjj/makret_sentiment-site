@@ -70,6 +70,17 @@ function renderSources(sources,notes){
   el('notes').innerHTML=(notes||[]).map(note=>`<div>• ${escapeHtml(note)}</div>`).join('');
 }
 
+function renderFreshness(data){
+  const notice=el('freshnessNotice');
+  const target=data.freshness?.targetDate||data.asOf;
+  const delayed=(data.freshness?.items||[]).filter(item=>item.status!=='current');
+  const published=data.publication?.exportedAt;
+  const publishedText=published?new Date(published).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false}):'';
+  const details=delayed.slice(0,6).map(item=>`${escapeHtml(item.name)}：${escapeHtml(item.asOf||'暂无数据')}`).join('；');
+  notice.innerHTML=`<strong>数据截至 ${escapeHtml(fmtDate(target))}（已完成交易日）</strong><span>本页展示已发布的日频数据${publishedText?`，北京时间 ${escapeHtml(publishedText)} 发布`:''}，盘中不实时更新。</span>${details?`<span class="freshness-delayed">以下指标仍为历史快照：${details}${delayed.length>6?`；另有 ${delayed.length-6} 项`:''}。</span>`:''}`;
+  notice.hidden=false;
+}
+
 const amountBandLines=[
   {key:'market-amount-ma120',label:'120日均线',color:'#8ea3b7'},
   {key:'market-amount-upper1',label:'+1σ',color:'#f5bd5c',dashed:true},
@@ -106,7 +117,8 @@ const comparisonGroups={
   sentiment:[
     {key:'sentiment',label:'短期情绪指标',unit:'分',description:'左轴为0–100短期情绪指标；右轴可叠加宽基指数，指数按当前区间起点归一至100。',sentiment:true},
     {key:'medium-term-sentiment',label:'中期情绪指标',unit:'分',description:'ERP、股债收益差、股债位置差、融资活跃度、20日融资净流入、60日融资余额变化、60日市场广度确认七项子指标等权平均',score:true,plainDescription:true},
-    {key:'windall-turnover',label:'万得全A换手率',unit:'%'},
+    {key:'market-turnover',label:'全A等权换手率（RQData）',unit:'%'},
+    {key:'windall-turnover',label:'万得全A换手率（Wind快照）',unit:'%'},
     {key:'hs300-turnover',label:'沪深300换手率',unit:'%'},
     {key:'csi1000-turnover',label:'中证1000换手率',unit:'%'},
     {key:'star50-turnover',label:'科创50换手率',unit:'%'}
@@ -137,7 +149,8 @@ const comparisonGroups={
 };
 
 const benchmarkDefinitions=[
-  {key:'windall-close-excel',label:'万得全A',color:'#5aa7ff'},
+  {key:'allshare-close',label:'中证全指',color:'#5aa7ff'},
+  {key:'windall-close-excel',label:'万得全A（Wind快照）',color:'#6fd3ff'},
   {key:'hs300-close',label:'沪深300',color:'#ff6b78'},
   {key:'csi1000-close',label:'中证1000',color:'#9d8cff'},
   {key:'star50-close',label:'科创50',color:'#f5bd5c'}
@@ -392,7 +405,7 @@ function comparisonPoints(definition){
     :(state.series.find(item=>item.id===definition.key)?.points||[])
       .filter(point=>point.date&&hasNumber(point.value))
       .map(point=>({date:point.date,indicator:Number(point.value)/(definition.valueDivisor||1)}));
-  const canonicalBenchmark=state.series.find(series=>series.id==='windall-close-excel')
+  const canonicalBenchmark=state.series.find(series=>series.id==='allshare-close')
     ||benchmarkDefinitions.map(item=>state.series.find(series=>series.id===item.key)).find(Boolean);
   const allTargetDates=[...new Set((canonicalBenchmark?.points||[])
     .filter(point=>point.date&&hasNumber(point.value))
@@ -724,7 +737,7 @@ async function loadData(){
     const data=await response.json();state.payload=data;state.series=withAmountBands(data.series||[]);
     el('asOf').textContent=fmtDate(data.asOf);el('coverage').textContent=`${data.availableCount}/${data.cards.length}`;
     el('generatedAt').textContent=`生成于 ${String(data.generatedAt||'').replace('T',' ')}`;
-    renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(state.series);renderIndicatorCharts(state.series,data.cards);
+    renderFreshness(data);renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(state.series);renderIndicatorCharts(state.series,data.cards);
     el('statusText').textContent=data.freshness?.delayedCount?'已读取 · 部分指标待更新':data.missingCount?`已更新 · ${data.missingCount}项待接入`:'数据已更新';el('statusDot').className='dot';
   }catch(error){el('statusText').textContent='数据读取失败';el('statusDot').className='dot error';el('momentumMetricGrid').innerHTML=`<article class="metric-card"><h3>暂时无法读取数据</h3><p class="summary">${escapeHtml(error.message)}</p></article>`;el('fundMetricGrid').innerHTML=''}
   finally{el('refreshButton').disabled=false}

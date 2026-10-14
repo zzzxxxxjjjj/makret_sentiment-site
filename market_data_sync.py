@@ -21,6 +21,23 @@ def moving_average(points, window=3):
 def apply_market_data_sync(payload, directory):
     series = {item["id"]: item for item in payload.get("series", [])}
     try:
+        rqdata = json.loads((Path(directory) / "rqdata-broad-sentiment.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        rqdata = {}
+    # These three RQData series measure the same index turnover rates as the
+    # saved Wind columns. Use the complete RQData history when it is newer;
+    # mixing observations from two calculation methods would create a seam.
+    daily_turnover_ids = {"hs300-turnover", "csi1000-turnover", "star50-turnover"}
+    for incoming in rqdata.get("series", []):
+        sid = incoming.get("id")
+        if sid not in daily_turnover_ids or not incoming.get("points"):
+            continue
+        current = series.get(sid, {})
+        incoming_date = max((p.get("date", "") for p in incoming["points"]), default="")
+        current_date = max((p.get("date", "") for p in current.get("points", [])), default="")
+        if incoming_date >= current_date:
+            series[sid] = {**current, **incoming, "source": "RQData"}
+    try:
         wind = json.loads((Path(directory) / "wind-market-supplement.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         wind = {}
@@ -92,11 +109,13 @@ def apply_market_data_sync(payload, directory):
     for sid, item in series.items():
         if not (sid.startswith("pcr-") or sid in {"financing-activity", "hs300-financing-activity",
                 "sse50-financing-activity", "star50-financing-activity", "csi1000-financing-activity"}
-                or sid in {"land-connect-turnover-ma20", "new-equity-fund-shares"}):
+                or sid in {"land-connect-turnover-ma20", "new-equity-fund-shares",
+                           "hs300-turnover", "csi1000-turnover", "star50-turnover",
+                           "windall-turnover", "windall-close-excel", "stock-fund-position"}):
             continue
         dates = [p["date"] for p in item.get("points", []) if p.get("value") is not None]
         actual = max(dates, default=None)
-        manual = sid == "new-equity-fund-shares" or (sid.startswith("pcr-") and not options)
+        manual = sid in {"new-equity-fund-shares", "windall-turnover", "windall-close-excel", "stock-fund-position"} or (sid.startswith("pcr-") and not options)
         status = "missing" if not actual else "current" if actual == target else "manual" if manual else "delayed"
         item["updateInfo"] = {"asOf": actual, "targetDate": target, "status": status,
                               "mode": "Wind快照" if manual or "Wind插件" in item.get("source", "") else "每日自动更新",
@@ -105,11 +124,23 @@ def apply_market_data_sync(payload, directory):
     expected = {"financing-activity": "全A融资买入额占比", "hs300-financing-activity": "沪深300融资买入额占比",
                 "sse50-financing-activity": "上证50融资买入额占比", "star50-financing-activity": "科创50融资买入额占比",
                 "csi1000-financing-activity": "中证1000融资买入额占比",
-                "land-connect-turnover-ma20": "陆股通成交总额 MA5", "new-equity-fund-shares": "新成立偏股型基金份额"}
+                "land-connect-turnover-ma20": "陆股通成交总额 MA5", "new-equity-fund-shares": "新成立偏股型基金份额",
+                "windall-turnover": "万得全A换手率", "windall-close-excel": "万得全A指数",
+                "stock-fund-position": "股票型基金估算仓位",
+                "hs300-turnover": "沪深300换手率", "csi1000-turnover": "中证1000换手率",
+                "star50-turnover": "科创50换手率"}
     for sid, name in expected.items():
         if sid not in series:
             watched.append({"id": sid, "name": name, "asOf": None, "targetDate": target, "status": "missing",
-                            "mode": "Wind快照" if sid == "new-equity-fund-shares" else "每日自动更新"})
+                            "mode": "Wind快照" if sid in {"new-equity-fund-shares", "windall-turnover", "windall-close-excel", "stock-fund-position"} else "每日自动更新"})
+    for card in payload.get("cards", []):
+        if card.get("id") not in {"sentiment-cycle", "institutional-net-buy", "medium-term-sentiment"}:
+            continue
+        actual = card.get("asOf")
+        watched.append({"id": card["id"], "name": card.get("title", card["id"]),
+                        "asOf": actual, "targetDate": target,
+                        "status": "missing" if not actual else "current" if actual == target else "manual",
+                        "mode": "Wind/Excel快照", "source": card.get("source")})
     payload["freshness"] = {"targetDate": target, "items": watched,
                             "delayedCount": sum(item["status"] != "current" for item in watched)}
     return payload
