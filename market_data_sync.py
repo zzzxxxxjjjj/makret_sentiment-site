@@ -36,27 +36,28 @@ def apply_market_data_sync(payload, directory):
         oi = series.get(f"pcr-oi-{key}", {})
         if oi.get("points"):
             sid = f"pcr-oi-ma3-{key}"
-            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "��",
-                           "name": series.get(sid, {}).get("name", f"{key}�ֲ���PCR MA3"),
-                           "source": oi.get("source", "Wind����"), "points": moving_average(oi["points"])}
+            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "倍",
+                           "name": series.get(sid, {}).get("name", f"{key}持仓量PCR MA3"),
+                           "source": oi.get("source", "Wind快照"), "points": moving_average(oi["points"])}
         amount = {p["date"]: p["value"] for p in series.get(f"pcr-amount-{key}", {}).get("points", [])}
         volume = {p["date"]: p["value"] for p in series.get(f"pcr-volume-{key}", {}).get("points", [])}
         ratio = [{"date": dt, "value": round(amount[dt] / volume[dt], 4)}
                  for dt in sorted(amount.keys() & volume.keys()) if volume[dt] > 0]
         if ratio:
             sid = f"pcr-amount-volume-{key}"
-            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "��", "name": f"{key}�ɽ���PCR/�ɽ���PCR",
-                           "source": oi.get("source", "Wind����"), "points": ratio}
+            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "倍", "name": f"{key}成交额PCR/成交量PCR",
+                           "source": oi.get("source", "Wind快照"), "points": ratio}
             sid = f"pcr-amount-volume-ma3-{key}"
             positive = [{"date": p["date"], "value": round(1 / p["value"], 4)}
                         for p in moving_average(ratio) if p["value"] > 0]
-            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "��", "name": f"{key}PCR������ MA3���������򻯣�",
-                           "source": oi.get("source", "Wind����"), "points": positive}
+            series[sid] = {**series.get(sid, {}), "id": sid, "unit": "倍", "name": f"{key}PCR价量比 MA3（倒数正向化）",
+                           "source": oi.get("source", "Wind快照"), "points": positive}
     payload["series"] = list(series.values())
     target = max(filter(None, (payload.get("asOf"), options.get("asOf"))), default=None)
     watched = []
     for sid, item in series.items():
-        if not (sid.startswith("pcr-") or sid.endswith("financing-activity")
+        if not (sid.startswith("pcr-") or sid in {"financing-activity", "hs300-financing-activity",
+                "sse50-financing-activity", "star50-financing-activity", "csi1000-financing-activity"}
                 or sid in {"land-connect-turnover-ma20", "new-equity-fund-shares"}):
             continue
         dates = [p["date"] for p in item.get("points", []) if p.get("value") is not None]
@@ -64,17 +65,18 @@ def apply_market_data_sync(payload, directory):
         manual = sid == "new-equity-fund-shares" or (sid.startswith("pcr-") and not options)
         status = "missing" if not actual else "current" if actual == target else "manual" if manual else "delayed"
         item["updateInfo"] = {"asOf": actual, "targetDate": target, "status": status,
-                              "mode": "Wind����" if manual else "ÿ���Զ�����",
-                              "source": item.get("source") or ("Wind/RQData����" if sid.startswith("land-connect") else "RQData")}
+                              "mode": "Wind快照" if manual else "每日自动更新",
+                              "source": item.get("source") or ("Wind/RQData择新" if sid.startswith("land-connect") else "RQData")}
         watched.append({"id": sid, "name": item.get("name", sid), **item["updateInfo"]})
-    expected = {"financing-activity": "ȫA���������ռ��", "hs300-financing-activity": "����300���������ռ��",
-                "sse50-financing-activity": "��֤50���������ռ��", "star50-financing-activity": "�ƴ�50���������ռ��",
-                "csi1000-financing-activity": "��֤1000���������ռ��",
-                "land-connect-turnover-ma20": "½��ͨ�ɽ��ܶ� MA5", "new-equity-fund-shares": "�³���ƫ���ͻ���ݶ�"}
+    expected = {"financing-activity": "全A融资买入额占比", "hs300-financing-activity": "沪深300融资买入额占比",
+                "sse50-financing-activity": "上证50融资买入额占比", "star50-financing-activity": "科创50融资买入额占比",
+                "csi1000-financing-activity": "中证1000融资买入额占比",
+                "land-connect-turnover-ma20": "陆股通成交总额 MA5", "new-equity-fund-shares": "新成立偏股型基金份额"}
     for sid, name in expected.items():
         if sid not in series:
             watched.append({"id": sid, "name": name, "asOf": None, "targetDate": target, "status": "missing",
-                            "mode": "Wind����" if sid == "new-equity-fund-shares" else "ÿ���Զ�����"})
+                            "mode": "Wind快照" if sid == "new-equity-fund-shares" else "每日自动更新"})
     payload["freshness"] = {"targetDate": target, "items": watched,
                             "delayedCount": sum(item["status"] != "current" for item in watched)}
     return payload
+
