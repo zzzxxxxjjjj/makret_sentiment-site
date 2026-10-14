@@ -679,7 +679,7 @@ async function loadData(){
     const response=await fetch(`/api/broad-sentiment?_=${Date.now()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache'}});if(!response.ok)throw new Error(`HTTP ${response.status}`);
     const data=await response.json();state.payload=data;state.series=data.series||[];
     el('asOf').textContent=fmtDate(data.asOf);el('coverage').textContent=`${data.availableCount}/${data.cards.length}`;
-    el('summaryText').textContent=data.summary?.headline||'暂无足够数据形成市场判断';el('generatedAt').textContent=`生成于 ${String(data.generatedAt||'').replace('T',' ')}`;
+    el('generatedAt').textContent=`生成于 ${String(data.generatedAt||'').replace('T',' ')}`;
     renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(data.series);renderIndicatorCharts(data.series,data.cards);
     el('statusText').textContent=data.freshness?.delayedCount?'已读取 · 部分指标待更新':data.missingCount?`已更新 · ${data.missingCount}项待接入`:'数据已更新';el('statusDot').className='dot';
   }catch(error){el('statusText').textContent='数据读取失败';el('statusDot').className='dot error';el('momentumMetricGrid').innerHTML=`<article class="metric-card"><h3>暂时无法读取数据</h3><p class="summary">${escapeHtml(error.message)}</p></article>`;el('fundMetricGrid').innerHTML=''}
