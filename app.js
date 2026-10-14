@@ -70,8 +70,30 @@ function renderSources(sources,notes){
   el('notes').innerHTML=(notes||[]).map(note=>`<div>• ${escapeHtml(note)}</div>`).join('');
 }
 
+const amountBandLines=[
+  {key:'market-amount-ma120',label:'120日均线',color:'#46d6b2'},
+  {key:'market-amount-upper1',label:'+1σ',color:'#f5bd5c',dashed:true},
+  {key:'market-amount-lower1',label:'−1σ',color:'#f5bd5c',dashed:true},
+  {key:'market-amount-upper2',label:'+2σ',color:'#9d8cff',dashed:true},
+  {key:'market-amount-lower2',label:'−2σ',color:'#9d8cff',dashed:true}
+];
+
+// Calculate on the full daily history before any display range is selected.
+function withAmountBands(series){
+  const source=series.find(item=>item.id==='alla-turnover-amount');
+  const points=(source?.points||[]).filter(point=>point.date&&hasNumber(point.value)).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const bands=amountBandLines.map(line=>({id:line.key,name:line.label,unit:'亿元',points:[]}));
+  for(let index=119;index<points.length;index++){
+    const values=points.slice(index-119,index+1).map(point=>Number(point.value));
+    const mean=values.reduce((sum,value)=>sum+value,0)/120;
+    const sigma=Math.sqrt(values.reduce((sum,value)=>sum+(value-mean)**2,0)/120);
+    [mean,mean+sigma,mean-sigma,mean+2*sigma,mean-2*sigma].forEach((value,i)=>bands[i].points.push({date:points[index].date,value}));
+  }
+  return [...series.filter(item=>!amountBandLines.some(line=>line.key===item.id)),...bands];
+}
+
 const chartDefinitions=[
-  {group:'momentum',key:'marketAmount',title:'两市成交额',description:'中证全指口径全A成交额',series:['alla-turnover-amount'],colors:['#5aa7ff'],unit:'万亿元',type:'bar',zeroLine:true,valueDivisor:10000,currentMetrics:[{series:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000}]},
+  {group:'momentum',key:'marketAmount',title:'两市成交额',description:'中证全指口径全A成交额；120个交易日均线及滚动标准差（总体）',series:['alla-turnover-amount',...amountBandLines.map(line=>line.key)],colors:['#5aa7ff',...amountBandLines.map(line=>line.color)],dashes:[false,...amountBandLines.map(line=>line.dashed)],unit:'万亿元',type:'bar',zeroLine:true,valueDivisor:10000,currentMetrics:[{series:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000}]},
   {group:'momentum',key:'concentration',title:'成交额拥挤度',description:'成交额前5%个股占全市场成交额比例',series:['top5-concentration'],card:'top5-concentration',colors:['#f5bd5c'],unit:'%',type:'line',snapshotDomain:[0,100]},
   {group:'funds',key:'margin',title:'融资活跃度',description:'融资活跃度与全A融资买入额（亿元）',series:['financing-activity','alla-financing-buy'],card:'margin-financing',colors:['#46d6b2','#f5bd5c'],unit:'%',type:'line',dualAxis:true,href:'/financing-activity.html?v=20260806',linkLabel:'查看各指数融资明细 →',clickableCard:true,currentMetrics:[{series:'financing-activity',label:'融资活跃度',unit:'%'},{series:'alla-financing-buy',label:'融资买入额',unit:'亿元'}]},
   {group:'funds',key:'etf',title:'宽基ETF流入 / 流出',description:'ETF份额变化 × 收盘价，红色流入、绿色流出',series:['broad-etf-flow'],card:'broad-etf-flow',colors:['#ff6b78'],unit:'亿元',type:'bar',zeroLine:true,href:'/etf-flows.html',linkLabel:'查看9只ETF明细 →'},
@@ -90,6 +112,7 @@ const comparisonGroups={
     {key:'star50-turnover',label:'科创50换手率',unit:'%'}
   ],
   momentum:[
+    {key:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000,type:'bar',zeroLine:true,overlays:amountBandLines,description:'中证全指口径全A成交额；120个交易日均线，上下1倍标准差为黄色虚线，上下2倍为紫色虚线。标准差按同一120日窗口计算（总体），满120个有效交易日后显示。'},
     {key:'top5-concentration',label:'成交额前5%占比',unit:'%'},
     {key:'pcr-oi-ma3-sz50',label:'上证50持仓量PCR MA3',unit:'倍'},
     {key:'pcr-amount-volume-ma3-sz50',label:'上证50 PCR价量比 MA3（正向）',unit:'倍',description:'成交额PCR ÷ 成交量PCR的倒数'},
@@ -146,7 +169,7 @@ function renderIndicatorCharts(series,cards){
     const current=latestPoint?Number(latestPoint.value)/(definition.valueDivisor||1):cardValue(card);
     const unit=latestSeries?.unit||definition.unit||card?.unit||'';
     const asOf=latestPoint?.date||card?.asOf||'';
-    const legend=selected.map((item,seriesIndex)=>`<span><i style="--legend-color:${MC(definition.colors[seriesIndex]||'#46d6b2')}"></i>${escapeHtml(item.name)}</span>`).join('');
+    const legend=selected.map((item,seriesIndex)=>`<span><i class="${definition.dashes?.[seriesIndex]?'dashed':''}" style="--legend-color:${MC(definition.colors[seriesIndex]||'#46d6b2')}"></i>${escapeHtml(item.name)}</span>`).join('');
     const detailsLink=definition.href?`<a class="chart-detail-link" href="${definition.href}">${escapeHtml(definition.linkLabel||'查看明细 →')}</a>`:'';
     const cardLink=definition.clickableCard?` is-clickable" data-chart-href="${definition.href}" role="link" tabindex="0"`:'"';
     const currentMarkup=definition.currentMetrics
@@ -228,6 +251,9 @@ function drawIndicatorChart(definition,index,seriesMap,cardMap){
   const secondaryScale=definition.dualAxis&&active[1]?chartScale(active[1].points.map(point=>Number(point.value)),false):primaryScale;
   const plotH=h-pad.t-pad.b,plotW=w-pad.l-pad.r;
   const y=(value,scale)=>pad.t+(scale.max-value)/scale.range*plotH;
+  const baseDates=active[0].points.map(point=>point.date);
+  const datePositions=new Map(baseDates.map((date,i)=>[date,i]));
+  const xDate=date=>pad.l+plotW*(datePositions.get(date)||0)/Math.max(baseDates.length-1,1);
   ctx.font='10px Segoe UI';ctx.lineWidth=1;
   const P=PAL();
   for(let grid=0;grid<5;grid++){
@@ -240,13 +266,13 @@ function drawIndicatorChart(definition,index,seriesMap,cardMap){
   }
   active.forEach((item,seriesIndex)=>{
     const points=item.points,scale=definition.dualAxis&&seriesIndex===1?secondaryScale:primaryScale;
-    const x=pointIndex=>pad.l+plotW*pointIndex/Math.max(points.length-1,1);
+    const x=pointIndex=>xDate(points[pointIndex].date);
     if(definition.type==='bar'&&seriesIndex===0){
       const zeroY=y(0,scale),barWidth=Math.max(1,Math.min(8,plotW/points.length*.7));
       points.forEach((point,pointIndex)=>{const py=y(Number(point.value),scale);const PP=PAL();ctx.fillStyle=Number(point.value)>=0?MA(PP.red,.82):MA(PP.green,.82);ctx.fillRect(x(pointIndex)-barWidth/2,Math.min(py,zeroY),barWidth,Math.max(1,Math.abs(zeroY-py)))});
     }else{
-      ctx.beginPath();points.forEach((point,pointIndex)=>pointIndex?ctx.lineTo(x(pointIndex),y(Number(point.value),scale)):ctx.moveTo(x(pointIndex),y(Number(point.value),scale)));
-      ctx.strokeStyle=MC(definition.colors[seriesIndex]||'#46d6b2');ctx.lineWidth=1.8;ctx.stroke();
+      let started=false;ctx.beginPath();points.forEach((point,pointIndex)=>{if(!datePositions.has(point.date)){started=false;return}if(started)ctx.lineTo(x(pointIndex),y(Number(point.value),scale));else{ctx.moveTo(x(pointIndex),y(Number(point.value),scale));started=true}});
+      ctx.strokeStyle=MC(definition.colors[seriesIndex]||'#46d6b2');ctx.lineWidth=1.8;ctx.setLineDash(definition.dashes?.[seriesIndex]?[5,4]:[]);ctx.stroke();ctx.setLineDash([]);
     }
   });
   const longest=active.reduce((best,item)=>item.points.length>best.points.length?item:best,active[0]);
@@ -365,7 +391,7 @@ function comparisonPoints(definition){
       .map(point=>({date:point.date,indicator:Number(point.sentiment),phaseLabel:point.displayPhaseLabel||point.phaseLabel||''}))
     :(state.series.find(item=>item.id===definition.key)?.points||[])
       .filter(point=>point.date&&hasNumber(point.value))
-      .map(point=>({date:point.date,indicator:Number(point.value)}));
+      .map(point=>({date:point.date,indicator:Number(point.value)/(definition.valueDivisor||1)}));
   const canonicalBenchmark=state.series.find(series=>series.id==='windall-close-excel')
     ||benchmarkDefinitions.map(item=>state.series.find(series=>series.id===item.key)).find(Boolean);
   const allTargetDates=[...new Set((canonicalBenchmark?.points||[])
@@ -467,7 +493,7 @@ function activateComparison(key){
     :definition.sentiment||definition.score
     ?`${description}；虚线为历史P5/P95极值；时间轴固定显示最近五年。`
     :`${description}；时间轴固定显示最近五年。`;
-  el('cycleMetricLegend').innerHTML=`<i class="${definition.type==='bar'?'indicator-bar':'sentiment-line'}"></i>${escapeHtml(definition.label)}`;
+  el('cycleMetricLegend').innerHTML=`<i class="${definition.type==='bar'?'indicator-bar':'sentiment-line'}"></i>${escapeHtml(definition.label)}${definition.overlays?.map(line=>`<span class="cycle-band-label"><i class="${line.dashed?'dashed':''}" style="--legend-color:${MC(line.color)}"></i>${escapeHtml(line.label)}</span>`).join('')||''}`;
   const updateInfo=state.series.find(item=>item.id===definition.key)?.updateInfo;
   if(updateInfo&&updateInfo.status!=='current')el('cycleDescription').textContent+=` 当前数据截至 ${updateInfo.asOf||'—'}，${updateInfo.mode==='Wind快照'?'等待Wind快照更新':'等待来源更新'}。`;
   renderBenchmarkLegend();
@@ -538,7 +564,12 @@ function drawCycleChart(points){
   });
   const benchmarkValues=benchmarkLines.flatMap(series=>series.values.filter(Number.isFinite));
   const hasBenchmark=benchmarkValues.length>1;
-  const indicatorScale=definition.sentiment||definition.score?{min:0,max:100,range:100}:chartScale(indicatorValues,definition.zeroLine);
+  const overlayMaps=(definition.overlays||[]).map(line=>({
+    ...line,
+    values:new Map((state.series.find(item=>item.id===line.key)?.points||[]).filter(point=>point.date&&hasNumber(point.value)).map(point=>[point.date,Number(point.value)/(definition.valueDivisor||1)]))
+  }));
+  const overlayValues=overlayMaps.flatMap(line=>points.map(point=>line.values.get(point.date)).filter(Number.isFinite));
+  const indicatorScale=definition.sentiment||definition.score?{min:0,max:100,range:100}:chartScale([...indicatorValues,...overlayValues],definition.zeroLine);
   const benchmarkScale=hasBenchmark?chartScale(benchmarkValues,false):{min:0,max:1,range:1};
   const plotTop=pad.t,plotBottom=h-pad.b,plotHeight=plotBottom-plotTop;
   const x=index=>pad.l+(w-pad.l-pad.r)*index/Math.max(points.length-1,1);
@@ -604,6 +635,15 @@ function drawCycleChart(points){
       ctx.fillRect(x(index)-barWidth/2,Math.min(pointY,zeroY),barWidth,Math.max(1,Math.abs(zeroY-pointY)));
     });
   }
+  overlayMaps.forEach(line=>{
+    let started=false;ctx.beginPath();
+    points.forEach((point,index)=>{
+      const value=line.values.get(point.date);
+      if(!Number.isFinite(value)){started=false;return}
+      if(started)ctx.lineTo(x(index),y(value,indicatorScale));else{ctx.moveTo(x(index),y(value,indicatorScale));started=true}
+    });
+    ctx.strokeStyle=MC(line.color);ctx.lineWidth=1.8;ctx.setLineDash(line.dashed?[6,4]:[]);ctx.stroke();ctx.setLineDash([]);
+  });
   if(hasBenchmark)benchmarkLines.forEach(series=>{
     let started=false;
     ctx.beginPath();
@@ -630,8 +670,8 @@ function drawCycleChart(points){
     });
     return point?`${series.label} ${fmt(point.benchmarks[series.key],0)}`:'';
   }).filter(Boolean);
-  el('cycleLatest').textContent=`${latest.date}${phase} · ${definition.label} ${fmt(latest.indicator,definition.sentiment||definition.score?1:2)} ${definition.unit}${latestBenchmarks.length?` · ${latestBenchmarks.join(' · ')}`:''}`;
-  state.cycleHover={points,benchmarkSeries,definition,pad,w};
+    el('cycleLatest').textContent=`${latest.date}${phase} · ${definition.label} ${fmt(latest.indicator,definition.sentiment||definition.score?1:2)} ${definition.unit}${latestBenchmarks.length?` · ${latestBenchmarks.join(' · ')}`:''}`;
+  state.cycleHover={points,benchmarkSeries,definition,pad,w,overlayMaps};
 }
 
 function hideCycleTooltip(){
@@ -654,6 +694,10 @@ function showCycleTooltip(event){
   const indicator=hasNumber(point.indicator)?Number(point.indicator):null;
   const rows=[
     hasNumber(indicator)?`<span>${escapeHtml(hover.definition.label)}<em>${fmt(indicator,hover.definition.sentiment||hover.definition.score?1:2)} ${escapeHtml(hover.definition.unit||'')}</em></span>`:'',
+    ...(hover.overlayMaps||[]).map(line=>{
+      const value=line.values.get(point.date);
+      return Number.isFinite(value)?`<span>${escapeHtml(line.label)}<em>${fmt(value,2)} ${escapeHtml(hover.definition.unit||'')}</em></span>`:'';
+    }),
     ...hover.benchmarkSeries.map(series=>{
       const value=point.benchmarks?.[series.key];
       return value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value))
@@ -677,10 +721,10 @@ async function loadData(){
   el('statusText').textContent='正在读取数据';el('statusDot').className='dot loading';el('refreshButton').disabled=true;
   try{
     const response=await fetch(`/api/broad-sentiment?_=${Date.now()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache'}});if(!response.ok)throw new Error(`HTTP ${response.status}`);
-    const data=await response.json();state.payload=data;state.series=data.series||[];
+    const data=await response.json();state.payload=data;state.series=withAmountBands(data.series||[]);
     el('asOf').textContent=fmtDate(data.asOf);el('coverage').textContent=`${data.availableCount}/${data.cards.length}`;
     el('generatedAt').textContent=`生成于 ${String(data.generatedAt||'').replace('T',' ')}`;
-    renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(data.series);renderIndicatorCharts(data.series,data.cards);
+    renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(state.series);renderIndicatorCharts(state.series,data.cards);
     el('statusText').textContent=data.freshness?.delayedCount?'已读取 · 部分指标待更新':data.missingCount?`已更新 · ${data.missingCount}项待接入`:'数据已更新';el('statusDot').className='dot';
   }catch(error){el('statusText').textContent='数据读取失败';el('statusDot').className='dot error';el('momentumMetricGrid').innerHTML=`<article class="metric-card"><h3>暂时无法读取数据</h3><p class="summary">${escapeHtml(error.message)}</p></article>`;el('fundMetricGrid').innerHTML=''}
   finally{el('refreshButton').disabled=false}
@@ -702,8 +746,7 @@ el('cycleStart').addEventListener('input',()=>updateCycleRange('start'));
 el('cycleEnd').addEventListener('input',()=>updateCycleRange('end'));
 el('cycleChart').addEventListener('pointermove',showCycleTooltip);
 el('cycleChart').addEventListener('pointerleave',hideCycleTooltip);
-window.addEventListener('resize',()=>{if(state.payload){renderDerivatives(state.payload.series);renderIndicatorCharts(state.payload.series,state.payload.cards)}if(state.cyclePoints.length)updateCycleRange()});
+window.addEventListener('resize',()=>{if(state.payload){renderDerivatives(state.series);renderIndicatorCharts(state.series,state.payload.cards)}if(state.cyclePoints.length)updateCycleRange()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadData()});
 window.setInterval(loadData,5*60*1000);
 loadData();
-
