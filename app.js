@@ -673,16 +673,6 @@ function showCycleTooltip(event){
   tooltip.style.top='12px';
 }
 
-function renderFreshness(data){
-  const target=el('dataFreshness');
-  if(!target)return;
-  const items=(data.freshness?.items||[]).filter(item=>!item.id.startsWith('pcr-')||item.id.startsWith('pcr-oi-')&&!item.id.includes('ma3'));
-  target.hidden=!items.length;
-  const labels={current:'已同步',delayed:'等待来源更新',manual:'等待Wind快照更新',missing:'暂无数据'};
-  const delayed=items.filter(item=>item.status!=='current').length;
-  target.innerHTML=`<summary>数据更新情况 · ${delayed?`${delayed}项仍使用较早数据`:'日频指标已同步'} · 目标日期 ${escapeHtml(data.freshness?.targetDate||'—')}</summary><table><thead><tr><th>指标</th><th>实际日期</th><th>更新方式 / 状态</th></tr></thead><tbody>${items.map(item=>`<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.asOf||'—')}</td><td>${escapeHtml(item.mode)} · ${labels[item.status]||'—'}</td></tr>`).join('')}</tbody></table><p>刷新页面重新读取已发布数据。Wind快照需要源文件更新后发布；新成立基金份额以亿份计，不以基金数量替代。</p>`;
-}
-
 async function loadData(){
   el('statusText').textContent='正在读取数据';el('statusDot').className='dot loading';el('refreshButton').disabled=true;
   try{
@@ -690,7 +680,7 @@ async function loadData(){
     const data=await response.json();state.payload=data;state.series=data.series||[];
     el('asOf').textContent=fmtDate(data.asOf);el('coverage').textContent=`${data.availableCount}/${data.cards.length}`;
     el('summaryText').textContent=data.summary?.headline||'暂无足够数据形成市场判断';el('generatedAt').textContent=`生成于 ${String(data.generatedAt||'').replace('T',' ')}`;
-    renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(data.series);renderIndicatorCharts(data.series,data.cards);renderFreshness(data);
+    renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(data.series);renderIndicatorCharts(data.series,data.cards);
     el('statusText').textContent=data.freshness?.delayedCount?'已读取 · 部分指标待更新':data.missingCount?`已更新 · ${data.missingCount}项待接入`:'数据已更新';el('statusDot').className='dot';
   }catch(error){el('statusText').textContent='数据读取失败';el('statusDot').className='dot error';el('momentumMetricGrid').innerHTML=`<article class="metric-card"><h3>暂时无法读取数据</h3><p class="summary">${escapeHtml(error.message)}</p></article>`;el('fundMetricGrid').innerHTML=''}
   finally{el('refreshButton').disabled=false}
