@@ -139,7 +139,6 @@ const comparisonGroups={
 
 const benchmarkDefinitions=[
   {key:'allshare-close',label:'中证全指',color:'#5aa7ff'},
-  {key:'windall-close-excel',label:'万得全A（Wind快照）',color:'#6fd3ff'},
   {key:'hs300-close',label:'沪深300',color:'#ff6b78'},
   {key:'csi1000-close',label:'中证1000',color:'#9d8cff'},
   {key:'star50-close',label:'科创50',color:'#f5bd5c'}
