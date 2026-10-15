@@ -9,6 +9,7 @@ on:
       - rqdata_options_refresh.py
       - rqdata_late_market_refresh.py
       - market_data_sync.py
+      - akshare_medium_inputs.py
       - sentiment_update.py
       - wind_synthesis_refresh.py
       - wind-synthesis-inputs.json
@@ -50,6 +51,9 @@ jobs:
       - name: Install data dependencies
         run: python -m pip install -r requirements-cloud.txt
 
+      - name: Install AKShare from Tsinghua mirror
+        run: python -m pip install akshare==1.19.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
       - name: Test update and synthesis logic
         run: python -m unittest discover -s tests
 
@@ -68,6 +72,10 @@ jobs:
           AIDO_API_KEY: ${{ secrets.AIDO_API_KEY }}
         run: python cloud_daily_update.py
 
+      - name: Collect public CSI and CDB inputs
+        continue-on-error: true
+        run: python akshare_medium_inputs.py --as-of "$(python -c 'import json; print(json.load(open("rqdata-broad-sentiment.json", encoding="utf-8"))["asOf"])')"
+
       - name: Validate static build
         run: python build_static_site.py
 
@@ -75,7 +83,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in rqdata-broad-sentiment.json rqdata-breadth-sentiment.json rqdata-industry-sentiment.json rqdata-fund-stock-position-history.json rqdata-fund-exposure.json rqdata-options-pcr.json broad-sentiment-page-cache.json; do
+          for file in rqdata-broad-sentiment.json rqdata-breadth-sentiment.json rqdata-industry-sentiment.json rqdata-fund-stock-position-history.json rqdata-fund-exposure.json rqdata-options-pcr.json broad-sentiment-page-cache.json akshare-medium-inputs.json; do
             if [ -f "$file" ]; then git add -- "$file"; fi
           done
           if git diff --cached --quiet; then
