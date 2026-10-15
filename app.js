@@ -70,17 +70,6 @@ function renderSources(sources,notes){
   el('notes').innerHTML=(notes||[]).map(note=>`<div>• ${escapeHtml(note)}</div>`).join('');
 }
 
-function renderFreshness(data){
-  const notice=el('freshnessNotice');
-  const target=data.freshness?.targetDate||data.asOf;
-  const delayed=(data.freshness?.items||[]).filter(item=>item.status!=='current');
-  const published=data.publication?.exportedAt;
-  const publishedText=published?new Date(published).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false}):'';
-  const details=delayed.slice(0,6).map(item=>`${escapeHtml(item.name)}：${escapeHtml(item.asOf||'暂无数据')}`).join('；');
-  notice.innerHTML=`<strong>数据截至 ${escapeHtml(fmtDate(target))}（已完成交易日）</strong><span>本页展示已发布的日频数据${publishedText?`，北京时间 ${escapeHtml(publishedText)} 发布`:''}，盘中不实时更新。</span>${details?`<span class="freshness-delayed">以下指标仍为历史快照：${details}${delayed.length>6?`；另有 ${delayed.length-6} 项`:''}。</span>`:''}`;
-  notice.hidden=false;
-}
-
 const amountBandLines=[
   {key:'market-amount-ma120',label:'120日均线',color:'#8ea3b7'},
   {key:'market-amount-upper1',label:'+1σ',color:'#f5bd5c',dashed:true},
@@ -737,7 +726,7 @@ async function loadData(){
     const data=await response.json();state.payload=data;state.series=withAmountBands(data.series||[]);
     el('asOf').textContent=fmtDate(data.asOf);el('coverage').textContent=`${data.availableCount}/${data.cards.length}`;
     el('generatedAt').textContent=`生成于 ${String(data.generatedAt||'').replace('T',' ')}`;
-    renderFreshness(data);renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(state.series);renderIndicatorCharts(state.series,data.cards);
+    renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(state.series);renderIndicatorCharts(state.series,data.cards);
     el('statusText').textContent=data.freshness?.delayedCount?'已读取 · 部分指标待更新':data.missingCount?`已更新 · ${data.missingCount}项待接入`:'数据已更新';el('statusDot').className='dot';
   }catch(error){el('statusText').textContent='数据读取失败';el('statusDot').className='dot error';el('momentumMetricGrid').innerHTML=`<article class="metric-card"><h3>暂时无法读取数据</h3><p class="summary">${escapeHtml(error.message)}</p></article>`;el('fundMetricGrid').innerHTML=''}
   finally{el('refreshButton').disabled=false}
