@@ -1,0 +1,57 @@
+name: Collect AKShare medium-term inputs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - akshare_medium_inputs.py
+      - tests/test_akshare_medium_inputs.py
+      - .github/workflows/akshare-medium-inputs.yml
+  schedule:
+    # Asia/Shanghai 10:45, Monday-Saturday; collect the previous calendar day.
+    - cron: '45 2 * * 1-6'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: akshare-medium-inputs
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install AKShare from Tsinghua mirror
+        run: python -m pip install akshare==1.19.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+      - name: Test source mapping and date handling
+        run: python -m unittest discover -s tests -p test_akshare_medium_inputs.py
+
+      - name: Collect public index, valuation and bond series
+        shell: bash
+        run: |
+          target=$(python -c "from datetime import datetime,timedelta; from zoneinfo import ZoneInfo; print((datetime.now(ZoneInfo('Asia/Shanghai'))-timedelta(days=1)).date())")
+          python akshare_medium_inputs.py --as-of "$target"
+
+      - name: Publish source snapshot to main
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- akshare-medium-inputs.json
+          if git diff --cached --quiet; then
+            echo 'Public source data unchanged.'
+            exit 0
+          fi
+          git commit -m 'Update AKShare public source data'
+          git pull --rebase origin main
+          git push origin HEAD:main
