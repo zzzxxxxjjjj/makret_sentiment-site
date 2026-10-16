@@ -11,6 +11,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from market_data_sync import apply_market_data_sync
+from publication_filters import without_northbound
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -27,7 +28,7 @@ REQUIRED_DATA = ("rqdata-broad-sentiment.json", "rqdata-industry-sentiment.json"
 OPTIONAL_DATA = {
     "position-advice.json": {
         "available": False, "asOf": None,
-        "note": "当前发布版本尚未包含已核验的仓位建议快照。",
+        "note": "当前发布版本尚未包含已核验的择时观点数据。",
     },
     "akshare-margin-risk.json": {"asOf": None, "series": [], "source": "AKShare / 东方财富"},
     "rqdata-industry-rotation.json": {"points": []},
@@ -163,6 +164,9 @@ def build():
         "files": sorted([*output, "deployment-info.json"]),
     }
     output["deployment-info.json"] = json.dumps(manifest, ensure_ascii=False, indent=2)
+    for name, content in list(output.items()):
+        if name.endswith(".json"):
+            output[name] = json.dumps(without_northbound(json.loads(content)), ensure_ascii=False, allow_nan=False)
     validate_output(output)
 
     destination = BASE_DIR / "dist"
