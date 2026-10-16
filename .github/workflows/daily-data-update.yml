@@ -14,6 +14,7 @@ on:
       - rqdata_industry_refresh.py
       - rotation_history_refresh.py
       - data_freshness.py
+      - verify_publication.py
       - rqdata_options_refresh.py
       - rqdata_late_market_refresh.py
       - market_data_sync.py
