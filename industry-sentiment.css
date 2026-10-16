@@ -174,7 +174,7 @@
 .rotation-history-chart-wrap .empty-state[hidden]{display:none}
 .rotation-history-tooltip{position:absolute;z-index:30;white-space:pre-line;background:var(--tooltip-bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text);pointer-events:none;line-height:1.9}
 .rotation-history-range{text-align:right;font-size:10px;color:var(--muted);margin-top:5px}
-@media(max-width:760px){.rotation-history-stats{gap:18px}.rotation-history-stats strong{font-size:18px}.rotation-history-stats small{margin-left:0;width:100%}.rotation-history-chart-wrap{height:290px}.rotation-history-ranges .ft-tab{padding:7px 9px}}
+@media(max-width:760px){.rotation-history-stats{gap:18px}.rotation-history-stats strong{font-size:18px}.rotation-history-stats small{margin-left:0;width:100%}.rotation-history-chart-wrap{height:290px}}
 
 /* Shared time selection for both rotation comparison lines. */
 .rotation-time-slider{margin:16px 0 8px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;min-width:0}

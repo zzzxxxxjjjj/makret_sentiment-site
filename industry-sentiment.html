@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>中信一级行业情绪｜A股市场情绪</title>
   <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/industry-sentiment.css?v=20261016-5">
+  <link rel="stylesheet" href="/industry-sentiment.css?v=20261016-6">
 </head>
 <body>
   <header class="topbar">
@@ -31,20 +31,15 @@
 
     <section class="panel rotation-history-panel" id="rotationHistoryPanel">
       <div class="panel-head">
-        <div><p class="eyebrow">INDUSTRY ROTATION / CSI ALL SHARE</p><h2>行业轮动强度与中证全指</h2></div>
-        <div class="flow-metric-tabs rotation-history-ranges" aria-label="轮动历史区间">
-          <button class="ft-tab" data-rotation-years="1" type="button" aria-pressed="false">近1年</button>
-          <button class="ft-tab" data-rotation-years="3" type="button" aria-pressed="false">近3年</button>
-          <button class="ft-tab" data-rotation-years="5" type="button" aria-pressed="false">近5年</button>
-          <button class="ft-tab active" data-rotation-years="10" type="button" aria-pressed="true">近10年</button>
-        </div>
+        <div><p class="eyebrow">INDUSTRY ROTATION / CSI ALL SHARE</p><h2>行业轮动强度与中证全指（周度）</h2></div>
+
       </div>
-      <div class="rotation-history-stats"><div><span>最新轮动强度</span><strong id="rotationHistoryValue">—</strong></div><div><span>近250日分位</span><strong id="rotationHistoryPercentile">—</strong></div><div><span>中证全指</span><strong id="rotationHistoryIndex">—</strong></div><small id="rotationHistoryDate">等待数据</small></div>
+      <div class="rotation-history-stats"><div><span>最新周度轮动强度</span><strong id="rotationHistoryValue">—</strong></div><div><span>近52周分位</span><strong id="rotationHistoryPercentile">—</strong></div><div><span>中证全指</span><strong id="rotationHistoryIndex">—</strong></div><small id="rotationHistoryDate">等待数据</small></div>
       <div class="rotation-history-legend"><span>轮动强度（左轴）</span><span>中证全指点位（右轴）</span></div>
-      <div class="rotation-history-chart-wrap"><canvas id="rotationHistoryChart" role="img" aria-label="近十年行业轮动强度与中证全指双轴日线图"></canvas><div id="rotationHistoryTooltip" class="rotation-history-tooltip" hidden></div><div id="rotationHistoryEmpty" class="empty-state">正在读取行业轮动数据</div></div>
+      <div class="rotation-history-chart-wrap"><canvas id="rotationHistoryChart" role="img" aria-label="近十年行业轮动强度与中证全指双轴周度图"></canvas><div id="rotationHistoryTooltip" class="rotation-history-tooltip" hidden></div><div id="rotationHistoryEmpty" class="empty-state">正在读取行业轮动数据</div></div>
       <div id="rotationHistoryRange" class="rotation-history-range"></div>
       <div class="rotation-time-slider" role="group" aria-label="轮动图时间区间">
-        <div class="rotation-slider-caption"><span>拖动两端选择时间区间</span><output id="rotationHistorySliderDates">正在读取时间区间</output></div>
+        <div class="rotation-slider-caption"><span>拖动两端选择周度区间</span><output id="rotationHistorySliderDates">正在读取时间区间</output></div>
         <div class="rotation-slider-track" id="rotationHistorySliderTrack">
           <div class="rotation-slider-selection"></div>
           <input id="rotationHistoryStart" type="range" min="0" max="1" value="0" step="1" aria-label="开始日期" disabled>
@@ -52,7 +47,7 @@
         </div>
         <div class="rotation-slider-bounds"><span id="rotationHistoryFirstDate">—</span><span id="rotationHistoryLastDate">—</span></div>
       </div>
-      <p class="flow-trend-note">轮动强度＝Σ｜各一级行业今日近5日涨跌幅排名－上一交易日近5日涨跌幅排名｜，数值越大表示行业轮动越强。采用中信一级行业指数（剔除综合，当前29个行业），并列涨跌幅取平均名次；历史按当时可用行业，连续两日使用同一行业集合重排。中证全指为000985.XSHG，双轴单位不同。数据源：RQData，日频。</p>
+      <p class="flow-trend-note">轮动强度＝Σ｜各一级行业今日近5日涨跌幅排名－上一交易日近5日涨跌幅排名｜，数值越大表示行业轮动越强。采用中信一级行业指数（剔除综合，当前29个行业），并列涨跌幅取平均名次；历史按当时可用行业，连续两日使用同一行业集合重排。中证全指为000985.XSHG，双轴单位不同。图表按周展示：每周取最后一个可用交易日的轮动强度及同日中证全指收盘点位，不按周加总。最新一周使用当前已取得的最后交易日，周内随数据补齐更新；分位使用最近52个周度观测。原始数据源：RQData，日频。</p>
     </section>
 
     <section class="panel valuation-panel">
@@ -163,7 +158,7 @@
   </main>
   <script src="/industry-sentiment.js?v=25" defer></script>
   <script src="/industry-flow-trend.js?v=20261016-3" defer></script>
-  <script src="/industry-rotation-history.js?v=20261016-2" defer></script>
+  <script src="/industry-rotation-history.js?v=20261016-3" defer></script>
   <script src="/data-health.js?v=20261016-1" defer></script>
 </body>
 </html>
