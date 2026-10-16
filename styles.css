@@ -56,3 +56,6 @@ tbody tr:hover{background-color:var(--row-bg)}
 .ft-seg-btn:active,.ft-tab:active,.comparison-tab:active,.range-buttons button:active,.benchmark-toggle:active{transform:scale(.96)}
 html.theme-anim *{transition:background-color .42s var(--ease),color .42s var(--ease),border-color .42s var(--ease),box-shadow .42s var(--ease)!important}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}html{scroll-behavior:auto}}
+
+/* Keep the primary pages reachable on mobile as well as desktop. */
+@media(max-width:1000px){.topbar{height:auto;min-height:68px;flex-wrap:wrap;gap:14px 18px;padding-top:14px;padding-bottom:12px}.topbar .brand{min-width:0;flex:1}.topbar nav{display:flex;order:4;flex:0 0 100%;gap:24px;overflow-x:auto;white-space:nowrap;padding-bottom:3px}.topbar nav a{flex:none}.topbar .status{margin-left:auto}.topbar .theme-toggle{flex:none}}

@@ -1,0 +1,224 @@
+{
+  "available": true,
+  "asOf": "2026-10-14",
+  "generatedAt": "2026-10-16T06:53:10+00:00",
+  "mode": "research-snapshot",
+  "lastDecisionDate": "2026-10-09",
+  "signalScope": "����֤ȫָΪ�о���׼��ȫ�г�Ȩ������ź�",
+  "source": "��ʵRQData������������ݣ������Ѻ���Ķ�ά����ʱ�о�����",
+  "styles": [
+    {
+      "id": "value",
+      "name": "��ֵ����",
+      "proxy": "��֤����",
+      "rank": 1,
+      "score": 59.8015873015873,
+      "momentum": 91.66666666666666,
+      "valuation": 4.894179894179896,
+      "flow": 62.5,
+      "momentum120": 0.02294500026548052,
+      "vol60": 0.14352896104448756
+    },
+    {
+      "id": "growth",
+      "name": "�ɳ�",
+      "proxy": "�ƴ�50����ҵ��",
+      "rank": 2,
+      "score": 57.767857142857146,
+      "momentum": 66.66666666666666,
+      "valuation": 31.448412698412696,
+      "flow": 75.0,
+      "momentum120": -0.09535667351215826,
+      "vol60": 0.4425333825331767
+    },
+    {
+      "id": "small",
+      "name": "��С��",
+      "proxy": "��֤1000",
+      "rank": 3,
+      "score": 49.1468253968254,
+      "momentum": 41.66666666666667,
+      "valuation": 36.044973544973544,
+      "flow": 87.5,
+      "momentum120": -0.13431916204559435,
+      "vol60": 0.3124110845695373
+    },
+    {
+      "id": "large",
+      "name": "����",
+      "proxy": "����300",
+      "rank": 4,
+      "score": 49.107142857142854,
+      "momentum": 50.0,
+      "valuation": 38.69047619047619,
+      "flow": 62.5,
+      "momentum120": -0.08521516829995612,
+      "vol60": 0.17743154505160114
+    }
+  ],
+  "models": [
+    {
+      "id": "multidimensional",
+      "name": "��ά�ȷ���ƽ��",
+      "posture": "���о�����",
+      "signal": -1.0,
+      "equity": 0.0,
+      "credit": 0.8,
+      "cash": 0.19999999999999996,
+      "assets": [
+        {
+          "name": "����300",
+          "etf": "510300",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "��֤1000",
+          "etf": "512100",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "�ƴ�50",
+          "etf": "588000",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "��ҵ��",
+          "etf": "159915",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "��֤����",
+          "etf": "515080",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "��������ծ",
+          "etf": "511360",
+          "kind": "credit",
+          "weight": 0.8,
+          "riskShare": 1.0
+        },
+        {
+          "name": "�ֽ�",
+          "etf": null,
+          "kind": "cash",
+          "weight": 0.19999999999999996,
+          "riskShare": null
+        }
+      ],
+      "selectedStyles": [],
+      "riskRule": "��ֻȨ��ETF������ծͬ�صȷ��շ��䣻���źŷǶ�ͷʱ��Ȩ�治���롣"
+    },
+    {
+      "id": "rotation",
+      "name": "��ά�ȣ�����ֶ�",
+      "posture": "�ֶ��۲췽��",
+      "signal": -1.0,
+      "equity": 0.0,
+      "credit": 0.8,
+      "cash": 0.19999999999999996,
+      "assets": [
+        {
+          "name": "����300",
+          "etf": "510300",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "��֤1000",
+          "etf": "512100",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "�ƴ�50",
+          "etf": "588000",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "��ҵ��",
+          "etf": "159915",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "��֤����",
+          "etf": "515080",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "��������ծ",
+          "etf": "511360",
+          "kind": "credit",
+          "weight": 0.8,
+          "riskShare": 1.0
+        },
+        {
+          "name": "�ֽ�",
+          "etf": null,
+          "kind": "cash",
+          "weight": 0.19999999999999996,
+          "riskShare": null
+        }
+      ],
+      "selectedStyles": [],
+      "riskRule": "ѡ������ǰ������������ծ����ȷ��շ��䣻�ɳ����ڹ����������Ԥ�㡣"
+    }
+  ],
+  "moduleVotes": [
+    {
+      "name": "����",
+      "vote": -1.0
+    },
+    {
+      "name": "�ʽ���",
+      "vote": -1.0
+    },
+    {
+      "name": "���",
+      "vote": -1.0
+    },
+    {
+      "name": "��Ȩ������",
+      "vote": 1.0
+    },
+    {
+      "name": "�ڻ���Ȩ�ֲ�",
+      "vote": -1.0
+    }
+  ],
+  "compositeMean": -0.6,
+  "limits": {
+    "equity": 0.2,
+    "credit": 0.8
+  },
+  "scoringWeights": {
+    "momentum": 0.5,
+    "valuation": 0.3,
+    "flow": 0.2
+  },
+  "notes": [
+    "������ֱ�ʾ���ǿ�����������Ǹ��ʣ����ȷ�������ȴ�����ʱ���С�",
+    "��ֵ��������֤������������֤1000ƫС�̣��ĸ�������ϲ��ǻ���Ĵ�������ӡ�",
+    "����ծ����80%��Ȩ������20%���������ֽ��ֽ𲻲������ƽ�ۡ�",
+    "ÿ��������վ��ߣ���һ����������ִ�У�����Լ������Ŀ�꣬�۸�仯������ɱ���ƫ�롣",
+    "�ֶ���δ��߶�ά�Ȱ���ʷ���棬����ֶ����������۲죬���Զ�������о�������"
+  ]
+}

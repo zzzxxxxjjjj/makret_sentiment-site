@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>��λ�����A���г�����</title>
+  <script src="/theme.js?v=1"></script>
+  <link rel="stylesheet" href="/styles.css?v=20261016-position">
+  <link rel="stylesheet" href="/position-advice.css?v=2">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">MS</span><div><strong>A���г�����</strong><small>POSITION &amp; RISK BUDGET</small></div></div>
+    <nav aria-label="������"><a href="/">��������</a><a href="/industry-sentiment.html">��ҵ����</a><a href="/macro-tracking.html">��۸���</a><a class="active" aria-current="page" href="/position-advice.html">��λ����</a></nav>
+    <div class="status"><span id="statusDot" class="dot loading"></span><span id="statusText">���ڶ�ȡ����</span></div>
+  </header>
+  <main class="position-main">
+    <section class="hero">
+      <div><p class="eyebrow">STYLE ROTATION / MARKET TIMING</p><h1>��λ����</h1><p class="summary">�鿴���ǿ�������ά�ȵ���ʱ�۵㡣</p></div>
+      <div class="hero-meta"><div><span>�źź�����</span><strong id="asOf">��</strong></div><div><span>����ܶȾ���</span><strong id="decisionDate">��</strong></div><button id="refreshButton" type="button">���¶�ȡ</button></div>
+    </section>
+    <div id="loadError" class="position-error" role="alert" hidden></div>
+    <div id="positionContent" hidden>
+      <div class="position-grid">
+        <section class="panel wheel-panel" aria-labelledby="wheelTitle">
+          <div class="panel-head"><div><p class="eyebrow">RELATIVE STYLE STRENGTH</p><h2 id="wheelTitle">�������</h2><p class="section-description">����50%����ֵ30%���ʽ���20%��0�C100�֡�</p></div><span class="position-tag">�������</span></div>
+          <svg id="styleWheel" class="style-wheel" role="img" aria-label="���������ǿ��"></svg>
+          <div class="wheel-legend"><span><i></i>������ȵ�����</span><span>�����������Ǹ���</span></div>
+          <div id="styleButtons" class="style-buttons" aria-label="�鿴������ֹ���"></div>
+          <div id="styleDetail" class="style-detail" aria-live="polite"></div>
+        </section>
+
+        <section class="panel vote-panel" aria-labelledby="voteTitle">
+          <div class="panel-head"><div><p class="eyebrow">FIVE MODULE VOTES</p><h2 id="voteTitle">��ά����ʱ�ź�</h2><p class="section-description">��ά�����γɹ۵㣬�ٵ�Ȩ�ϳ����źš�</p></div></div>
+          <div id="moduleVotes" class="module-votes"></div>
+          <div class="composite-readout"><span>��άƽ���۵�</span><strong id="compositeMean">��</strong><small id="compositeLabel">��</small></div>
+          <p id="signalScope" class="position-caption">��</p>
+          <p class="position-caption">ƽ���۵����0ʱ����Ȩ����룻С�ڻ����0ʱ������Ȩ�棬��������ͷ��λ��</p>
+        </section>
+      </div>
+
+      <details class="panel position-method"><summary>�鿴�����붨�ֿھ�</summary><ul id="methodNotes"></ul><p class="position-caption">���ֺͲ�λ�����Ѻ����о����գ�ҳ�����¶�ȡ��������ݣ���������������в��Ի��ȡʵʱ���顣</p><p id="sourceNote" class="position-caption"></p></details>
+    </div>
+  </main>
+  <footer><span>�о��ź�������Ϲ۲죬�����������س���֤</span><span id="generatedAt">��</span></footer>
+  <script src="/position-advice.js?v=2" defer></script>
+</body>
+</html>

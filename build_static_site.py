@@ -21,9 +21,14 @@ WEB_FILES = (
     "etf-flows.html", "etf-flows.js", "etf-flows.css",
     "financing-activity.html", "financing-activity.js", "financing-activity.css",
     "macro-tracking.html", "macro-tracking.js", "macro-tracking.css",
+    "position-advice.html", "position-advice.js", "position-advice.css",
 )
 REQUIRED_DATA = ("rqdata-broad-sentiment.json", "rqdata-industry-sentiment.json")
 OPTIONAL_DATA = {
+    "position-advice.json": {
+        "available": False, "asOf": None,
+        "note": "当前发布版本尚未包含已核验的仓位建议快照。",
+    },
     "akshare-margin-risk.json": {"asOf": None, "series": [], "source": "AKShare / 东方财富"},
     "rqdata-industry-rotation.json": {"points": []},
     "data-freshness.json": {"entries": [], "targetDate": None},
