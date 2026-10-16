@@ -1,4 +1,4 @@
-/* Weekly observations use each week's last available source trading session. */
+/* Weekly rotation uses a trailing four-observation mean before range selection. */
 (() => {
   const el = id => document.getElementById(id);
   const view = { payload:null, customRange:false, start:0, end:0, points:[], chart:null };
@@ -12,7 +12,11 @@
       const key=monday.toISOString().slice(0,10),previous=weeks.get(key);
       if(!previous || point.date>previous.date)weeks.set(key,point);
     }
-    return [...weeks.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([,point])=>point);
+    const weekly=[...weeks.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([,point])=>point);
+    return weekly.slice(3).map((point,index)=>({
+      ...point,rawValue:point.value,
+      value:weekly.slice(index,index+4).reduce((sum,item)=>sum+item.value,0)/4
+    }));
   }
   function rangePoints() {
     return (view.payload?.points || []).slice(view.start,view.end+1);
@@ -85,7 +89,7 @@
     const tip=el('rotationHistoryTooltip');
     if(mx<pad.l || mx>pad.l+pw){tip.hidden=true;return;}
     const point=view.points[Math.max(0,Math.min(view.points.length-1,Math.round((mx-pad.l)/pw*(view.points.length-1))))];
-    tip.textContent=`${point.date}（当周末次观测）\n轮动强度：${number(point.value,0)}\n中证全指：${number(point.indexClose,2)}点\n行业覆盖：${point.industries || 29}个`;
+    tip.textContent=`${point.date}（当周末次观测）\n轮动强度MA4：${number(point.value,1)}\n原始周度值：${number(point.rawValue,0)}\n中证全指：${number(point.indexClose,2)}点\n行业覆盖：${point.industries || 29}个`;
     tip.hidden=false;tip.style.left=Math.max(4,Math.min(mx+12,width-tip.offsetWidth-8))+'px';tip.style.top=Math.max(4,my-95)+'px';
   }
   async function load(){
@@ -107,7 +111,7 @@
         syncSlider();
       }
       const latest=data.points.at(-1),window=data.points.slice(-52);
-      el('rotationHistoryValue').textContent=number(latest.value,0);
+      el('rotationHistoryValue').textContent=number(latest.value,1);
       el('rotationHistoryPercentile').textContent=number(window.filter(p=>p.value<=latest.value).length/window.length*100,1)+'%';
       el('rotationHistoryDate').textContent='周度 · 数据截至 '+data.points.at(-1).date;
       el('rotationHistoryIndex').textContent=number(data.points.at(-1).indexClose,2)+'点';
