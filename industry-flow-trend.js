@@ -1,13 +1,13 @@
-/* 一级行业资金流向：当日、近5日、近20日分组条形图。 */
+/* 一级行业资金流向：日度、周度、月度各自独立排名。 */
 const FLOW_TREND_META = {
   netFlow: { label: '主力资金净流入', unit: '亿元', signed: true, desc: '当日净额 / 近5个交易日累计 / 近20个交易日累计' },
   marginActivity: { label: '杠杆资金活跃度', unit: '%', signed: false, desc: '融资买入额÷行业成交额；周、月为近5、20个交易日的日均值' },
   amountShare: { label: '成交额占比', unit: '%', signed: false, desc: '行业成交额÷全市场成交额；周、月为近5、20个交易日的日均值' }
 };
 const FLOW_WINDOWS = [
-  { key: 'day', label: '当日', days: 1, color: '#478fff' },
-  { key: 'week', label: '最近一周', days: 5, color: '#29b8a3' },
-  { key: 'month', label: '最近一个月', days: 20, color: '#c89a39' }
+  { key: 'day', label: '日度', days: 1 },
+  { key: 'week', label: '周度', days: 5 },
+  { key: 'month', label: '月度', days: 20 }
 ];
 const flowTrend = { metric: 'netFlow' };
 
@@ -34,13 +34,15 @@ function buildFlowModel() {
     }));
     return { code: String(item.code), name: item.name, ...values };
   });
-  items.sort((a, b) => a.day === null ? (b.day === null ? 0 : 1) : b.day === null ? -1 : b.day - a.day);
   return { metric, items, dates };
 }
+function rankFlowItems(items, key) {
+  return [...items].sort((a, b) => a[key] === null ? (b[key] === null ? 0 : 1) : b[key] === null ? -1 : b[key] - a[key]);
+}
 function renderFlowLegend() {
-  el('flowBarLegend').innerHTML = FLOW_WINDOWS.map(window =>
-    `<span class="fl-item"><i style="background:${window.color}"></i>${window.label}${window.days > 1 ? `（${window.days}个交易日）` : ''}</span>`
-  ).join('');
+  el('flowBarLegend').innerHTML = flowTrend.metric === 'netFlow'
+    ? '<span class="fl-item"><i style="background:var(--red)"></i>净流入</span><span class="fl-item"><i style="background:var(--accent)"></i>净流出</span>'
+    : '<span class="fl-item"><i style="background:var(--blue)"></i>占比</span>';
 }
 window.renderFlowTrend = function renderFlowTrend() {
   const model = buildFlowModel();
@@ -54,33 +56,39 @@ window.renderFlowTrend = function renderFlowTrend() {
   });
   renderFlowLegend();
   el('flowMetricDescription').textContent = `${meta.label}（${meta.unit}） · ${meta.desc}`;
-  el('flowDataDate').textContent = model.dates.length ? `数据截至 ${model.dates.at(-1)} · 按当日值降序` : '暂无数据日期';
+  el('flowDataDate').textContent = model.dates.length ? `数据截至 ${model.dates.at(-1)} · 各时间维度独立降序排名` : '暂无数据日期';
   el('flowTrendEmpty').hidden = hasData;
   el('flowTrendEmpty').textContent = `暂无${meta.label}数据，待数据更新后显示。`;
   const wrap = el('flowBarWrap');
   wrap.hidden = !hasData;
   if (!hasData) { wrap.innerHTML = ''; return; }
-  const values = model.items.flatMap(row => FLOW_WINDOWS.map(window => row[window.key])).filter(value => value !== null);
-  const min = Math.min(0, ...values), max = Math.max(0, ...values);
-  const span = max - min || 1, zero = -min / span * 100;
   const format = value => value === null ? '—' : `${meta.signed ? signed(value, 2) : fmt(value, 2)}${meta.unit}`;
-  wrap.innerHTML = model.items.map(row => {
-    const selected = String(state.selected?.code) === row.code;
-    const bars = FLOW_WINDOWS.map(window => {
+  wrap.innerHTML = FLOW_WINDOWS.map(window => {
+    const rows = rankFlowItems(model.items, window.key);
+    const values = rows.map(row => row[window.key]).filter(value => value !== null);
+    const min = Math.min(0, ...values), max = Math.max(0, ...values);
+    const span = max - min || 1, zero = -min / span * 100;
+    const dates = model.dates.slice(-window.days);
+    const period = window.days === 1 ? '当日' : `近${window.days}个交易日`;
+    const statistic = meta.signed ? (window.days === 1 ? '净流入' : '累计净流入') : (window.days === 1 ? '占比' : '日均占比');
+    const bars = rows.map((row, index) => {
       const value = row[window.key];
       const left = value === null ? zero : (Math.min(0, value) - min) / span * 100;
       const width = value === null ? 0 : Math.abs(value) / span * 100;
-      const dates = model.dates.slice(-window.days);
-      const title = `${window.label} ${dates[0] || ''}～${dates.at(-1) || ''}：${format(value)}${value === null ? '（数据不足）' : ''}`;
-      return `<span class="flow-comparison-line" title="${esc(title)}">
-        <span class="flow-period-label">${window.label}</span>
-        <span class="flow-comparison-track" aria-hidden="true" style="--zero:${zero}%"><i style="left:${left}%;width:${width}%;background:${window.color}"></i></span>
-        <strong class="flow-comparison-value ${meta.signed && value !== null ? signClass(value) : ''}">${format(value)}</strong></span>`;
+      const selected = String(state.selected?.code) === row.code;
+      const color = meta.signed ? (value < 0 ? 'var(--accent)' : 'var(--red)') : 'var(--blue)';
+      const title = `${row.name} · ${window.label}：${format(value)}${value === null ? '（数据不足）' : ''}`;
+      return `<button type="button" class="flow-ranking-row${selected ? ' active' : ''}" data-code="${esc(row.code)}" aria-pressed="${selected}" title="${esc(title)}">
+        <span class="flow-rank-number">${value === null ? '—' : index + 1}</span>
+        <span class="flow-ranking-name">${esc(row.name)}</span>
+        <span class="flow-ranking-track" aria-hidden="true" style="--zero:${zero}%"><i style="left:${left}%;width:${width}%;background:${color}"></i></span>
+        <strong class="flow-ranking-value ${meta.signed && value !== null ? signClass(value) : ''}">${format(value)}</strong></button>`;
     }).join('');
-    return `<button type="button" class="flow-comparison-row${selected ? ' active' : ''}" data-code="${esc(row.code)}" aria-pressed="${selected}">
-      <span class="flow-comparison-name">${esc(row.name)}</span><span class="flow-comparison-bars">${bars}</span></button>`;
+    return `<section class="flow-ranking-card" data-period="${window.key}" aria-label="${window.label}${meta.label}排行">
+      <header class="flow-ranking-heading"><h3>${window.label}排行</h3><span>${period} · ${statistic}</span><small>${esc(dates[0] || '—')}${window.days > 1 ? ` ～ ${esc(dates.at(-1) || '—')}` : ''}</small></header>
+      <div class="flow-ranking-list">${bars}</div></section>`;
   }).join('');
-  wrap.setAttribute('aria-label', `${meta.label}分组条形图，单位${meta.unit}`);
+  wrap.setAttribute('aria-label', `${meta.label}日度、周度、月度独立排行，单位${meta.unit}`);
 };
 document.querySelectorAll('#flowMetricTabs .ft-tab').forEach(button => {
   button.addEventListener('click', () => {
@@ -89,11 +97,11 @@ document.querySelectorAll('#flowMetricTabs .ft-tab').forEach(button => {
   });
 });
 el('flowBarWrap').addEventListener('click', event => {
-  const row = event.target.closest('.flow-comparison-row');
+  const row = event.target.closest('.flow-ranking-row');
   if (!row) return;
   selectIndustry(row.dataset.code);
-  el('flowBarWrap').querySelectorAll('.flow-comparison-row').forEach(button => {
-    const active = button === row;
+  el('flowBarWrap').querySelectorAll('.flow-ranking-row').forEach(button => {
+    const active = button.dataset.code === row.dataset.code;
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
   });

@@ -35,3 +35,15 @@ assert.equal(row.day, -2);
 assert.equal(row.week, null);
 assert.equal(row.month, null);
 console.log('PASS: cumulative flows, mean ratios, missing/zero values, aligned dates and short histories');
+// 日/周/月必须按各自数值独立排序，不能复用日度名次。
+sandbox.rankingItems = [
+ { code: 'A', day: 20, week: -3, month: 2 },
+ { code: 'B', day: 10, week: 30, month: -5 },
+ { code: 'C', day: -1, week: 0, month: 100 },
+ { code: 'D', day: null, week: null, month: null }
+];
+assert.equal(evaluate("rankFlowItems(rankingItems, 'day').map(row => row.code).join(',')"), 'A,B,C,D');
+assert.equal(evaluate("rankFlowItems(rankingItems, 'week').map(row => row.code).join(',')"), 'B,C,A,D');
+assert.equal(evaluate("rankFlowItems(rankingItems, 'month').map(row => row.code).join(',')"), 'C,A,B,D');
+assert.equal(sandbox.rankingItems.map(row => row.code).join(','), 'A,B,C,D');
+console.log('PASS: independent daily/weekly/monthly rankings, negatives/zero, missing values last, source order retained');
