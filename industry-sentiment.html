@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>中信一级行业情绪｜A股市场情绪</title>
   <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/industry-sentiment.css?v=20261016-2">
+  <link rel="stylesheet" href="/industry-sentiment.css?v=20261016-3">
 </head>
 <body>
   <header class="topbar">
@@ -61,16 +61,24 @@
         </div>
       </div>
 
+      <div class="flow-period-controls">
+        <span>时间维度</span>
+        <div class="flow-metric-tabs" id="flowPeriodTabs" role="tablist" aria-label="时间维度">
+          <button class="ft-tab active" data-period="day" type="button" role="tab" aria-selected="true">日度</button>
+          <button class="ft-tab" data-period="week" type="button" role="tab" aria-selected="false">周度</button>
+          <button class="ft-tab" data-period="month" type="button" role="tab" aria-selected="false">月度</button>
+        </div>
+      </div>
       <div class="flow-trend-legend" id="flowBarLegend"></div>
       <div class="flow-comparison-caption" aria-live="polite"><span id="flowMetricDescription"></span><span id="flowDataDate"></span></div>
 
       <div class="flow-trend-body">
-        <div id="flowBarWrap" class="flow-bar-wrap" role="group" aria-label="一级行业资金流向日度、周度、月度排行"></div>
+        <div id="flowBarWrap" class="flow-bar-wrap" role="group" aria-label="一级行业资金流向排行"></div>
         <div id="flowTrendEmpty" class="empty-state" hidden>暂无资金流向数据，请运行 rqdata_industry_refresh.py 更新数据。</div>
       </div>
 
       <p class="flow-trend-note">
-        日度、周度、月度分别按各自指标值从高到低独立排名；日度为当日，周度为近5个交易日，月度为近20个交易日（均含当日）。每张图使用独立刻度，横条长度仅在同一时间维度内比较。主力资金为期间累计净流入；比例指标为期间日均值。缺失或不足完整窗口显示「—」。
+        点击资金类别和时间维度切换排行榜，每次仅显示所选时间维度，按对应指标值从高到低排名；日度为当日，周度为近5个交易日，月度为近20个交易日（均含当日）。横条长度仅在同一时间维度内比较。主力资金为期间累计净流入；比例指标为期间日均值。缺失或不足完整窗口显示「—」。
         主力资金＝成分股主动买入额－主动卖出额（亿元，可为负，零点左侧表示净流出）；杠杆资金＝融资买入额÷行业成交额（%）；成交额占比＝行业成交额÷全市场成交额（%）。
         点击行业行可联动下方二级行业面板。数据源：RQData，日频，中信2019一级行业。
       </p>
@@ -128,6 +136,6 @@
     <p class="industry-note">行业口径：中信2019行业。主动资金净额＝成分股主动买入额－主动卖出额；拥挤度采用近250日滚动分位，数值越高表示交易和价格动量越集中。</p>
   </main>
   <script src="/industry-sentiment.js?v=25" defer></script>
-  <script src="/industry-flow-trend.js?v=20261016-2" defer></script>
+  <script src="/industry-flow-trend.js?v=20261016-3" defer></script>
 </body>
 </html>

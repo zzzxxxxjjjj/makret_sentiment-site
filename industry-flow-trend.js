@@ -9,7 +9,7 @@ const FLOW_WINDOWS = [
   { key: 'week', label: '周度', days: 5 },
   { key: 'month', label: '月度', days: 20 }
 ];
-const flowTrend = { metric: 'netFlow' };
+const flowTrend = { metric: 'netFlow', period: 'day' };
 
 // 缺失值不能变为零，也不能用更早的日期补足窗口。
 function flowNumber(value) {
@@ -47,23 +47,29 @@ function renderFlowLegend() {
 window.renderFlowTrend = function renderFlowTrend() {
   const model = buildFlowModel();
   const meta = FLOW_TREND_META[model.metric];
-  const hasData = model.items.some(row => FLOW_WINDOWS.some(window => row[window.key] !== null));
+  const selectedPeriod = FLOW_WINDOWS.find(window => window.key === flowTrend.period);
+  const hasData = model.items.some(row => row[selectedPeriod.key] !== null);
   document.querySelectorAll('#flowMetricTabs .ft-tab').forEach(button => {
     const active = button.dataset.metric === model.metric;
     button.classList.toggle('active', active);
     button.setAttribute('aria-selected', String(active));
     button.setAttribute('role', 'tab');
   });
+  document.querySelectorAll('#flowPeriodTabs .ft-tab').forEach(button => {
+    const active = button.dataset.period === selectedPeriod.key;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
   renderFlowLegend();
   el('flowMetricDescription').textContent = `${meta.label}（${meta.unit}） · ${meta.desc}`;
-  el('flowDataDate').textContent = model.dates.length ? `数据截至 ${model.dates.at(-1)} · 各时间维度独立降序排名` : '暂无数据日期';
+  el('flowDataDate').textContent = model.dates.length ? `数据截至 ${model.dates.at(-1)} · 按${selectedPeriod.label}数值降序排名` : '暂无数据日期';
   el('flowTrendEmpty').hidden = hasData;
-  el('flowTrendEmpty').textContent = `暂无${meta.label}数据，待数据更新后显示。`;
+  el('flowTrendEmpty').textContent = `暂无${selectedPeriod.label}${meta.label}数据，待数据更新后显示。`;
   const wrap = el('flowBarWrap');
   wrap.hidden = !hasData;
   if (!hasData) { wrap.innerHTML = ''; return; }
   const format = value => value === null ? '—' : `${meta.signed ? signed(value, 2) : fmt(value, 2)}${meta.unit}`;
-  wrap.innerHTML = FLOW_WINDOWS.map(window => {
+  wrap.innerHTML = [selectedPeriod].map(window => {
     const rows = rankFlowItems(model.items, window.key);
     const values = rows.map(row => row[window.key]).filter(value => value !== null);
     const min = Math.min(0, ...values), max = Math.max(0, ...values);
@@ -88,11 +94,17 @@ window.renderFlowTrend = function renderFlowTrend() {
       <header class="flow-ranking-heading"><h3>${window.label}排行</h3><span>${period} · ${statistic}</span><small>${esc(dates[0] || '—')}${window.days > 1 ? ` ～ ${esc(dates.at(-1) || '—')}` : ''}</small></header>
       <div class="flow-ranking-list">${bars}</div></section>`;
   }).join('');
-  wrap.setAttribute('aria-label', `${meta.label}日度、周度、月度独立排行，单位${meta.unit}`);
+  wrap.setAttribute('aria-label', `${selectedPeriod.label}${meta.label}排行，单位${meta.unit}`);
 };
 document.querySelectorAll('#flowMetricTabs .ft-tab').forEach(button => {
   button.addEventListener('click', () => {
     flowTrend.metric = button.dataset.metric;
+    renderFlowTrend();
+  });
+});
+document.querySelectorAll('#flowPeriodTabs .ft-tab').forEach(button => {
+  button.addEventListener('click', () => {
+    flowTrend.period = button.dataset.period;
     renderFlowTrend();
   });
 });
