@@ -28,6 +28,9 @@ def main():
         points = series.get(sid, {}).get("points", [])
         return bool(points) and max(p["date"] for p in points) == target.isoformat()
     updates = []
+    if not current('star50-close'):
+        _,_,index_series=fetch_index_ma_history(target)
+        updates.extend(item for item in index_series if item['id']=='star50-close')
     if not all(current(sid) for sid in required):
         try:
             _, turnover, _ = fetch_index_ma_history(target)

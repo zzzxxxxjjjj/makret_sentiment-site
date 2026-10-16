@@ -15,12 +15,13 @@ class CloudRetryTests(unittest.TestCase):
                                             'cycleComparison': {'points': [{'date':'2026-10-13','sentiment':50}]}},
             save_page_cache=lambda payload: None)
         with patch.dict(os.environ, {'RQDATAC_CONF': 'test', 'AIDO_API_KEY': '', 'RQDATA_AS_OF': ''}), \
-                patch.dict(sys.modules, {'rqdatac': types.SimpleNamespace(), 'broad_sentiment': dashboard}), \
+                patch.dict(sys.modules, {'rqdatac': types.SimpleNamespace(get_trading_dates=lambda *args: []), 'broad_sentiment': dashboard}), \
                 patch.object(cloud, 'initialize_rqdata'), \
                 patch.object(cloud, 'completed_trading_date', return_value=date(2026, 10, 13)), \
                 patch.object(cloud, 'caches_current', return_value=True), \
                 patch.object(cloud, 'refresh_core_snapshots') as core, \
                 patch.object(cloud, 'verify_core_dates'), \
+                patch('data_freshness.write_report', return_value={'currentDailyCount':1,'dailyCount':1}), \
                 patch.object(cloud, 'run_stage', return_value=True) as stage:
             cloud.main()
         core.assert_not_called()

@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 import tempfile
 from pathlib import Path
 
@@ -29,6 +30,21 @@ def read_snapshot(path):
         return {}
 
 
+def snapshot_current(filename,value,trade_date):
+    if value.get('asOf')!=trade_date:return False
+    if filename=='rqdata-industry-sentiment.json':
+        rows=[row for row in value.get('industries',[]) if isinstance(row,dict) and row.get('name')!='综合']
+        if not rows:return False
+        for row in rows:
+            current=next((point for point in reversed(row.get('series',[])) if point.get('date')==trade_date),{})
+            if any(current.get(metric) is None for metric in ('netFlow','marginActivity','amountShare')):return False
+            if row.get('valuationAsOf')!=trade_date:return False
+    if filename=='rqdata-breadth-sentiment.json':
+        points=value.get('points',[])
+        return bool(points) and isinstance(points[-1],dict) and points[-1].get('date')==trade_date
+    return True
+
+
 def verify_snapshots(directory, trade_date):
     for _, filename, _ in CORE_UPDATES:
         value = read_snapshot(Path(directory) / filename)
@@ -41,7 +57,40 @@ def verify_snapshots(directory, trade_date):
             raise ValueError("Industry snapshot is empty")
 
 
-def refresh_core_snapshots(trade_date, *, directory=BASE_DIR):
+def refresh_independent_snapshots(trade_date, directory):
+    errors=[]
+    for script,filename,extra in CORE_UPDATES:
+        if snapshot_current(filename,read_snapshot(Path(directory)/filename),trade_date):
+            continue
+        with tempfile.TemporaryDirectory(prefix='.rqdata-source-',dir=directory) as temporary:
+            target=Path(temporary)/filename
+            source=Path(directory)/filename
+            checkpoint=BASE_DIR/'.rqdata-cache/checkpoints'/trade_date/filename
+            if checkpoint.is_file() and snapshot_current(filename,read_snapshot(checkpoint),trade_date):
+                shutil.copy2(checkpoint,source)
+                continue
+            if source.is_file():shutil.copy2(source,target)
+            try:
+                remaining=float(os.environ.get('RQDATA_RUN_DEADLINE','inf'))-time.time()-15
+                if remaining<5:raise TimeoutError('Morning publication budget exhausted')
+                result=subprocess.run([sys.executable,str(BASE_DIR/script),'--output',str(target),*extra],cwd=directory,
+                    capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=min(1500,remaining),
+                    env={**os.environ,'RQDATA_AS_OF':trade_date,'PYTHONUTF8':'1','PYTHONIOENCODING':'utf-8'})
+                value=read_snapshot(target)
+                if result.returncode or value.get('asOf')!=trade_date:
+                    raise ValueError((result.stderr or result.stdout)[-1200:] or 'Source did not reach target trading date')
+                if filename=='rqdata-breadth-sentiment.json' and not value.get('points'):raise ValueError('Empty breadth')
+                if filename=='rqdata-industry-sentiment.json' and not value.get('industries'):raise ValueError('Empty industries')
+                target.replace(source)
+            except Exception as error:
+                errors.append({'source':filename,'error':safe_error(error)})
+                print('Source delayed: '+filename,flush=True)
+    return errors
+
+
+def refresh_core_snapshots(trade_date, *, directory=BASE_DIR, allow_partial=False):
+    if allow_partial:
+        return refresh_independent_snapshots(trade_date,Path(directory))
     directory = Path(directory)
     env = {**os.environ, "RQDATA_AS_OF": trade_date, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
     # Stage all outputs, preserving previous files until every date is verified.
@@ -51,7 +100,11 @@ def refresh_core_snapshots(trade_date, *, directory=BASE_DIR):
             source, target = directory / filename, staging / filename
             if source.is_file():
                 shutil.copy2(source, target)
-            if read_snapshot(target).get("asOf") == trade_date:
+            checkpoint = BASE_DIR/'.rqdata-cache/checkpoints'/trade_date/filename
+            checkpointing = os.environ.get('RQDATA_CHECKPOINTS') == '1'
+            if checkpointing and read_snapshot(checkpoint).get('asOf') == trade_date:
+                shutil.copy2(checkpoint, target)
+            if snapshot_current(filename,read_snapshot(target),trade_date):
                 print(f"Already current: {filename} ({trade_date})", flush=True)
                 continue
             print(f"Refreshing {filename} for {trade_date}", flush=True)
@@ -63,6 +116,9 @@ def refresh_core_snapshots(trade_date, *, directory=BASE_DIR):
                 detail = (completed.stderr or completed.stdout).strip()[-700:]
                 raise RuntimeError(f"{script} failed; previous snapshots retained. "
                                    f"{safe_error(RuntimeError(detail))}")
+            if checkpointing and read_snapshot(target).get('asOf') == trade_date:
+                checkpoint.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copy2(target,checkpoint)
         verify_snapshots(staging, trade_date)
         # Keep rollback copies for replacement errors as well as script errors.
         originals = {filename: (directory / filename).read_bytes()

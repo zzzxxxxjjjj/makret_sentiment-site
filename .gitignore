@@ -170,3 +170,7 @@ build_strategy_factor_profiles.js
 synthetic_*
 regen_v2.py
 update_synthesis_labels.py
+
+# Private provider response cache and local verification
+.rqdata-cache/
+.test-tmp/

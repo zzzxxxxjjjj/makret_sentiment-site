@@ -17,13 +17,15 @@ BASE_DIR = Path(__file__).resolve().parent
 WEB_FILES = (
     "index.html", "app.js", "styles.css", "cycle.css", "theme.js",
     "industry-sentiment.html", "industry-sentiment.js",
-    "industry-flow-trend.js", "industry-sentiment.css",
+    "industry-flow-trend.js", "industry-sentiment.css", "industry-rotation-history.js", "data-health.js",
     "etf-flows.html", "etf-flows.js", "etf-flows.css",
     "financing-activity.html", "financing-activity.js", "financing-activity.css",
     "macro-tracking.html", "macro-tracking.js", "macro-tracking.css",
 )
 REQUIRED_DATA = ("rqdata-broad-sentiment.json", "rqdata-industry-sentiment.json")
 OPTIONAL_DATA = {
+    "rqdata-industry-rotation.json": {"points": []},
+    "data-freshness.json": {"entries": [], "targetDate": None},
     "rqdata-fund-exposure.json": {
         "available": False, "asOf": None, "industries": [],
         "note": "当前发布版本尚未包含公募基金行业超配数据。",
@@ -136,6 +138,8 @@ def build():
                 "当前发布版本尚未包含公募偏股基金行业超配数据。",
             )
         if name.endswith(".html"):
+            if "data-health.js" not in content:
+                content=content.replace("</body>", '<script src="/data-health.js?v=20261016-1" defer></script></body>')
             content = content.replace('type="button">刷新数据</button>', 'type="button">重新读取</button>')
         if name == "app.js":
             content = content.replace(
@@ -182,6 +186,8 @@ def validate_output(output):
         if name.endswith(".js") and "/api/" in content:
             raise ValueError(f"{name} still depends on a backend API")
         if name.endswith(".html"):
+            if "data-health.js" not in content:
+                content=content.replace("</body>", '<script src="/data-health.js?v=20261016-1" defer></script></body>')
             for link in re.findall(r'(?:src|href)=[\"\']([^\"\']+)', content):
                 target = link.split("?", 1)[0].split("#", 1)[0].lstrip("/")
                 if not target or ":" in target:

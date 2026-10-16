@@ -536,6 +536,7 @@ def fetch_index_ma_history(as_of):
         ("000001.XSHG", "sh-ma100", "上证综指距100日均线", "shCompositeDistance100d", None, None),
         ("000300.XSHG", "hs300-ma100", "沪深300距100日均线", "hs300Distance100d", "hs300-close", "沪深300"),
         ("000852.XSHG", None, None, None, "csi1000-close", "中证1000"),
+        ("000688.XSHG", None, None, None, "star50-close", "科创50"),
         ("000985.XSHG", "windall-ma100", "中证全指距100日均线", "allShareDistance100d", "allshare-close", "中证全指"),
     )
     latest = {}

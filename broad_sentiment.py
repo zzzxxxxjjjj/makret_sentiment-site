@@ -61,6 +61,7 @@ def source_signature():
         BASE_DIR / "rqdata-options-pcr.json",
         BASE_DIR / "wind-market-supplement.json",
         BASE_DIR / "wind-synthesis-inputs.json",
+        BASE_DIR / "cloud-market-inputs.json",
     ]
     signature = [["pageCacheVersion", 56, "completedDateAndVerifiedSynthesis"]]
     for path in paths:
@@ -571,101 +572,114 @@ def broad_market_new_equity_fund_shares_snapshot():
 
 
 def broad_market_medium_term_sentiment_snapshot():
-    from openpyxl import load_workbook
+    from cloud_market_refresh import read as read_cloud
+    cloud_data = read_cloud('cloud-market-inputs.json')
+    if cloud_data.get('modelVersion') == 'cloud-v2':
+        path = BASE_DIR / 'cloud-market-inputs.json'
+        def cloud_rows(key, field):
+            return [{'date': date.fromisoformat(p['date']), field: p['value']} for p in cloud_data['inputs'][key]]
+        pe_rows = cloud_rows('pe', 'peTtm')
+        dividend_rows = cloud_rows('dividend', 'dividend')
+        bond_rows = cloud_rows('yield', 'bondYield')
+        wind_all_rows = cloud_rows('equity', 'close')
+        bond_fund_rows = cloud_rows('bond', 'close')
+        financing_rows = []
+    else:
+        from openpyxl import load_workbook
 
-    path = resolve_broad_market_excel()
-    workbook = load_workbook(path, data_only=True, read_only=True)
-    worksheet = workbook["综合日频数据源"]
+        path = resolve_broad_market_excel()
+        workbook = load_workbook(path, data_only=True, read_only=True)
+        worksheet = workbook["综合日频数据源"]
 
-    def date_col_for(value_col):
-        for col in range(value_col - 1, max(0, value_col - 8), -1):
-            labels = [
-                str(worksheet.cell(row, col).value or "").strip().lower()
-                for row in range(1, 7)
-            ]
-            if any(label in ("date", "日期") for label in labels):
-                return col, 7
-        for col in range(value_col - 1, max(0, value_col - 8), -1):
-            for row in range(1, 8):
-                if as_date(worksheet.cell(row, col).value) is not None:
-                    return col, row
-        return None, None
+        def date_col_for(value_col):
+            for col in range(value_col - 1, max(0, value_col - 8), -1):
+                labels = [
+                    str(worksheet.cell(row, col).value or "").strip().lower()
+                    for row in range(1, 7)
+                ]
+                if any(label in ("date", "日期") for label in labels):
+                    return col, 7
+            for col in range(value_col - 1, max(0, value_col - 8), -1):
+                for row in range(1, 8):
+                    if as_date(worksheet.cell(row, col).value) is not None:
+                        return col, row
+            return None, None
 
-    def series_by_header(target, value_name="value"):
-        value_col = None
-        for col in range(1, worksheet.max_column + 1):
-            labels = [
-                str(worksheet.cell(row, col).value or "").strip()
-                for row in range(1, 7)
-            ]
-            if any(target in label for label in labels):
-                value_col = col
-                break
-        if value_col is None:
-            return []
-        date_col, start_row = date_col_for(value_col)
-        if date_col is None:
-            return []
-        return read_series(
-            worksheet,
-            date_col,
-            {value_name: value_col},
-            start_row=start_row,
-            end_row=worksheet.max_row,
-        )
-
-    def series_by_code_field(code, field_markers, value_name="value"):
-        markers = tuple(marker.lower() for marker in field_markers)
-        for col in range(1, worksheet.max_column + 1):
-            labels = [
-                str(worksheet.cell(row, col).value or "").strip()
-                for row in range(1, 7)
-            ]
-            label_text = " ".join(labels).lower()
-            if not any(label.upper() == code.upper() for label in labels):
-                continue
-            if not any(marker in label_text for marker in markers):
-                continue
-            date_col, start_row = date_col_for(col)
+        def series_by_header(target, value_name="value"):
+            value_col = None
+            for col in range(1, worksheet.max_column + 1):
+                labels = [
+                    str(worksheet.cell(row, col).value or "").strip()
+                    for row in range(1, 7)
+                ]
+                if any(target in label for label in labels):
+                    value_col = col
+                    break
+            if value_col is None:
+                return []
+            date_col, start_row = date_col_for(value_col)
             if date_col is None:
-                continue
+                return []
             return read_series(
                 worksheet,
                 date_col,
-                {value_name: col},
+                {value_name: value_col},
                 start_row=start_row,
                 end_row=worksheet.max_row,
             )
-        return []
 
-    def cdb_10y_from_cf_column():
-        date_col = 83
-        value_col = 84
-        labels = [
-            str(worksheet.cell(row, value_col).value or "").strip()
-            for row in range(1, 7)
-        ]
-        if not any("中国:国开债到期收益率:10年" in label for label in labels):
+        def series_by_code_field(code, field_markers, value_name="value"):
+            markers = tuple(marker.lower() for marker in field_markers)
+            for col in range(1, worksheet.max_column + 1):
+                labels = [
+                    str(worksheet.cell(row, col).value or "").strip()
+                    for row in range(1, 7)
+                ]
+                label_text = " ".join(labels).lower()
+                if not any(label.upper() == code.upper() for label in labels):
+                    continue
+                if not any(marker in label_text for marker in markers):
+                    continue
+                date_col, start_row = date_col_for(col)
+                if date_col is None:
+                    continue
+                return read_series(
+                    worksheet,
+                    date_col,
+                    {value_name: col},
+                    start_row=start_row,
+                    end_row=worksheet.max_row,
+                )
             return []
-        return read_series(
-            worksheet,
-            date_col,
-            {"bondYield": value_col},
-            start_row=3,
-            end_row=worksheet.max_row,
-        )
 
-    pe_rows = series_by_code_field("881001.WI", ("pe_ttm", "市盈率PE(TTM)", "市盈率"), "peTtm")
-    dividend_rows = series_by_code_field(
-        "881001.WI",
-        ("val_dividendyield3", "股息率ttm", "股息率TTM"),
-        "dividend",
-    )
-    bond_rows = cdb_10y_from_cf_column()
-    wind_all_rows = series_by_code_field("881001.WI", ("close", "收盘价"), "close")
-    bond_fund_rows = series_by_code_field("885003.WI", ("close", "收盘价"), "close")
-    financing_rows = series_by_header("中国:融资余额", "balance")
-    workbook.close()
+        def cdb_10y_from_cf_column():
+            date_col = 83
+            value_col = 84
+            labels = [
+                str(worksheet.cell(row, value_col).value or "").strip()
+                for row in range(1, 7)
+            ]
+            if not any("中国:国开债到期收益率:10年" in label for label in labels):
+                return []
+            return read_series(
+                worksheet,
+                date_col,
+                {"bondYield": value_col},
+                start_row=3,
+                end_row=worksheet.max_row,
+            )
+
+        pe_rows = series_by_code_field("881001.WI", ("pe_ttm", "市盈率PE(TTM)", "市盈率"), "peTtm")
+        dividend_rows = series_by_code_field(
+            "881001.WI",
+            ("val_dividendyield3", "股息率ttm", "股息率TTM"),
+            "dividend",
+        )
+        bond_rows = cdb_10y_from_cf_column()
+        wind_all_rows = series_by_code_field("881001.WI", ("close", "收盘价"), "close")
+        bond_fund_rows = series_by_code_field("885003.WI", ("close", "收盘价"), "close")
+        financing_rows = series_by_header("中国:融资余额", "balance")
+        workbook.close()
 
     def points(rows, key, digits=4, unit_transform=None, positive_only=False):
         output = []
@@ -685,7 +699,7 @@ def broad_market_medium_term_sentiment_snapshot():
         return value * 100 if abs(value) < 1 else value
 
     dividend_points = points(dividend_rows, "dividend", positive_only=True)
-    bond_points = points(bond_rows, "bondYield", unit_transform=yield_percent, positive_only=True)
+    bond_points = points(bond_rows, "bondYield", unit_transform=(None if cloud_data.get("modelVersion") == "cloud-v2" else yield_percent), positive_only=True)
     financing_points = points(financing_rows, "balance", digits=3, positive_only=True)
 
     pe_points = points(pe_rows, "peTtm", positive_only=True)
@@ -781,6 +795,7 @@ def broad_market_medium_term_sentiment_snapshot():
         saved_wind = {}
     saved_by_id = {s["id"]: s.get("points", []) for s in saved_wind.get("series", [])}
     def extend_wind(points, sid):
+        if cloud_data.get("modelVersion") == "cloud-v2": return points
         last = max((p["date"] for p in points), default="")
         limit = os.environ.get("RQDATA_AS_OF", "")
         incoming = [p for p in saved_by_id.get(sid, []) if p["date"] > last and (not limit or p["date"] <= limit)]

@@ -9,6 +9,7 @@ import pandas as pd
 import rqdatac as rq
 
 from rqdata_connection import initialize_rqdata
+from rqdata_history_cache import history as cached_history
 
 DEFAULT_OUTPUT = Path(__file__).with_name("rqdata-industry-sentiment.json")
 
@@ -95,7 +96,7 @@ def fetch_capital_flow(stocks, start, end):
     parts = []
     for part in batches(stocks):
         try:
-            raw = frame(rq.get_capital_flow(part, start_date=start, end_date=end, frequency="1d"))
+            raw = frame(cached_history(rq,"get_capital_flow",part,start,end,frequency="1d"))
         except Exception as exc:
             print(f"资金流分块跳过 {len(part)} 只：{exc}")
             continue
@@ -194,6 +195,10 @@ def main():
     output = Path(args.output)
     payload, industries = load_payload(output)
     as_of = datetime.strptime(str(args.as_of or payload.get("asOf"))[:10], "%Y-%m-%d").date()
+    existing = [child for industry in industries for child in industry.get('children', [])]
+    if existing and all(child.get('asOf') == as_of.isoformat() for child in existing):
+        print('Second-industry observations already current: '+as_of.isoformat())
+        return
     start = as_of - timedelta(days=args.lookback_days)
 
     initialize_rqdata()

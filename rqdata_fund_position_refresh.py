@@ -102,6 +102,7 @@ def load_history(codes, start_date):
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--cloud-universe", action="store_true")
     parser.add_argument("--excel", default=str(DEFAULT_EXCEL))
     parser.add_argument(
         "--output",
@@ -113,17 +114,15 @@ def parse_args():
 
 def run():
     args = parse_args()
-    excel_path = Path(args.excel)
-    if not excel_path.exists():
-        excel_path = LOCAL_EXCEL
-    if not excel_path.exists():
-        raise FileNotFoundError("未找到开放式基金估算股票投资比例20260729(3).xlsx")
-
-    stock_codes = read_stock_fund_codes(excel_path)
-    if not stock_codes:
-        raise RuntimeError("Excel 中没有普通股票型基金代码")
-
     initialize_rqdata()
+    excel_path = Path(args.excel)
+    if args.cloud_universe:
+        instruments = fund.all_instruments()
+        stock_codes = instruments.loc[instruments.fund_type == 'Stock', 'order_book_id'].astype(str).tolist()
+    else:
+        if not excel_path.exists(): excel_path = LOCAL_EXCEL
+        stock_codes = read_stock_fund_codes(excel_path)
+    if not stock_codes: raise RuntimeError('No ordinary stock funds returned')
     primary_codes = main_codes(stock_codes)
     points = load_history(primary_codes, args.start)
     if not points:
@@ -132,7 +131,8 @@ def run():
     payload = {
         "generatedAt": datetime.now().isoformat(timespec="seconds"),
         "source": "RQData基金定期报告资产配置",
-        "excelUniverse": excel_path.name,
+        "universe": "RQData普通股票型基金主代码去重" if args.cloud_universe else excel_path.name,
+        "frequency": "quarterly",
         "start": args.start,
         "end": points[-1]["date"],
         "fundCount": len(primary_codes),

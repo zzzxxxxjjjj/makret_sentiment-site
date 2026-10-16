@@ -27,7 +27,7 @@ def apply_market_data_sync(payload, directory):
     # These three RQData series measure the same index turnover rates as the
     # saved Wind columns. Use the complete RQData history when it is newer;
     # mixing observations from two calculation methods would create a seam.
-    daily_turnover_ids = {"hs300-turnover", "csi1000-turnover", "star50-turnover"}
+    daily_turnover_ids = {"hs300-turnover", "csi1000-turnover", "star50-turnover", "star50-close"}
     for incoming in rqdata.get("series", []):
         sid = incoming.get("id")
         if sid not in daily_turnover_ids or not incoming.get("points"):
@@ -143,4 +143,5 @@ def apply_market_data_sync(payload, directory):
                         "mode": "Wind/Excel快照", "source": card.get("source")})
     payload["freshness"] = {"targetDate": target, "items": watched,
                             "delayedCount": sum(item["status"] != "current" for item in watched)}
-    return payload
+    from cloud_display import apply_cloud_display
+    return apply_cloud_display(payload, directory)

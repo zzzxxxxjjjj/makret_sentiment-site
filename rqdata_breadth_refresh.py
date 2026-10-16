@@ -227,6 +227,15 @@ def main():
     initialize_rqdata()
     end = completed_trading_date(rq)
     start = datetime.strptime(args.start, "%Y-%m-%d").date()
+    requested_start = start
+    previous = {}
+    output_path = Path(args.output)
+    if output_path.is_file():
+        previous = json.loads(output_path.read_text(encoding='utf-8-sig'))
+    raw_history = previous.get('dailyCounts', [])
+    if raw_history:
+        last = date.fromisoformat(raw_history[-1]['date'])
+        start = min(end, last - timedelta(days=7))
     fetch_start = start - timedelta(days=120)
 
     instruments = rq.all_instruments(type="CS")
@@ -257,14 +266,27 @@ def main():
         print(json.dumps({"progress": completed, "total": len(codes)}, ensure_ascii=False), flush=True)
 
     daily = merge_daily(daily_parts)
+    if raw_history:
+        old = pd.DataFrame(raw_history)
+        old['date'] = pd.to_datetime(old['date']).dt.date
+        # Drop warmup dates, then retain the verified aggregate history verbatim.
+        daily = pd.concat([old[old['date'] < start], daily[daily['date'] >= start]], ignore_index=True)
+        daily = daily.drop_duplicates('date', keep='last').sort_values('date')
+    else:
+        daily = daily[daily['date'] >= requested_start]
+    daily_counts = [{**row, 'date': row['date'].isoformat()} for row in daily.to_dict('records')]
     points = build_sentiment(
         daily,
         percentile_window=args.percentile_window,
         percentile_min_periods=args.percentile_min_periods,
     )
+    if raw_history:
+        kept = [p for p in previous.get('points', []) if p['date'] < start.isoformat()]
+        points = kept + [p for p in points if p['date'] >= start.isoformat()]
     latest = points[-1] if points else {}
     payload = {
         "source": "RQData逐股前复权日线",
+        "dailyCounts": daily_counts,
         "methodology": {
             "universe": "全部境内A股（含沪深北交所，剔除B股）；20日和60日指标分别要求足够历史且当日有成交",
             "newHighLow": "严格突破此前20个收盘价的新高/新低；(新高家数 - 新低家数) / 当日有效股票数",

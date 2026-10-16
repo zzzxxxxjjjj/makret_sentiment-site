@@ -8,8 +8,8 @@ on:
       - tests/test_akshare_medium_inputs.py
       - .github/workflows/akshare-medium-inputs.yml
   schedule:
-    # Asia/Shanghai 10:45, Monday-Saturday; collect the previous calendar day.
-    - cron: '45 2 * * 1-6'
+    # Beijing 06:25/08:25/18:25; refresh public inputs before the morning deadline.
+    - cron: '25 22,0,10 * * *'
   workflow_dispatch:
 
 permissions:
@@ -42,12 +42,17 @@ jobs:
           target=$(python -c "from datetime import datetime,timedelta; from zoneinfo import ZoneInfo; print((datetime.now(ZoneInfo('Asia/Shanghai'))-timedelta(days=1)).date())")
           python akshare_medium_inputs.py --as-of "$target"
 
+      - name: Rebuild page and actual-date report from current inputs
+        run: |
+          python rebuild_saved_page.py
+          python build_static_site.py
+
       - name: Publish source snapshot to main
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- akshare-medium-inputs.json
+          git add -- akshare-medium-inputs.json broad-sentiment-page-cache.json data-freshness.json
           if git diff --cached --quiet; then
             echo 'Public source data unchanged.'
             exit 0

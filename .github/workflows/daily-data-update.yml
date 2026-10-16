@@ -4,8 +4,16 @@ on:
   push:
     branches: [main]
     paths:
+      - cloud_market_refresh.py
+      - cloud_display.py
+      - broad_sentiment.py
       - cloud_daily_update.py
       - rqdata_daily_update.py
+      - rqdata_history_cache.py
+      - rqdata_breadth_refresh.py
+      - rqdata_industry_refresh.py
+      - rotation_history_refresh.py
+      - data_freshness.py
       - rqdata_options_refresh.py
       - rqdata_late_market_refresh.py
       - market_data_sync.py
@@ -17,8 +25,11 @@ on:
       - broad-market-excel-source.xlsx
       - .github/workflows/daily-data-update.yml
   schedule:
-    # Asia/Shanghai 18:37, 20:37, 22:37: retry late provider data.
-    - cron: '37 10,12,14 * * 1-5'
+    # Beijing 18:17/22:17, next-day 01:17/06:17/07:17, 08:17/08:47 and 09:07/09:17.
+    # Retry every calendar day, covering Friday data and holiday boundaries.
+    - cron: '17 10,14,17,22,23 * * *'
+    - cron: '17,47 0 * * *'
+    - cron: '7,17 1 * * *'
   workflow_dispatch:
 
 permissions:
@@ -47,6 +58,13 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-cloud.txt
 
+      - name: Restore successful provider responses
+        uses: actions/cache/restore@v4
+        with:
+          path: .rqdata-cache
+          key: rqdata-v2-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: rqdata-v2-
+
       - name: Install data dependencies
         run: python -m pip install -r requirements-cloud.txt
 
@@ -68,6 +86,13 @@ jobs:
           AIDO_API_KEY: ${{ secrets.AIDO_API_KEY }}
         run: python cloud_daily_update.py
 
+      - name: Persist successful source responses even after a failed run
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .rqdata-cache
+          key: rqdata-v2-${{ github.run_id }}-${{ github.run_attempt }}
+
       - name: Validate static build
         run: python build_static_site.py
 
@@ -75,7 +100,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in rqdata-broad-sentiment.json rqdata-breadth-sentiment.json rqdata-industry-sentiment.json rqdata-fund-stock-position-history.json rqdata-fund-exposure.json rqdata-options-pcr.json broad-sentiment-page-cache.json; do
+          for file in rqdata-broad-sentiment.json rqdata-breadth-sentiment.json rqdata-industry-sentiment.json rqdata-fund-stock-position-history.json rqdata-fund-exposure.json rqdata-options-pcr.json broad-sentiment-page-cache.json rqdata-industry-rotation.json data-freshness.json cloud-market-inputs.json; do
             if [ -f "$file" ]; then git add -- "$file"; fi
           done
           if git diff --cached --quiet; then
@@ -85,3 +110,9 @@ jobs:
           git commit -m 'Update published market data'
           git pull --rebase origin main
           git push origin HEAD:main
+
+      - name: Verify public website received this data report
+        run: python verify_publication.py
+
+      - name: Check every daily indicator date
+        run: python data_freshness.py --check

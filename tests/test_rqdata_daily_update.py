@@ -24,6 +24,20 @@ class CoreBatchTests(unittest.TestCase):
         output.write_text(json.dumps(value), encoding="utf-8")
         return subprocess.CompletedProcess(args, 0, "", "")
 
+    def test_partial_mode_keeps_successful_sources_and_reports_failure(self):
+        with tempfile.TemporaryDirectory(dir=updater.BASE_DIR) as temporary:
+            self.directory=Path(temporary)
+            self.seed(self.directory)
+            def run(args, **kwargs):
+                if 'rqdata_industry_refresh.py' in args[1]:
+                    return subprocess.CompletedProcess(args,1,'','Quota exceeded')
+                return self.fake_run(args,**kwargs)
+            with patch.object(updater.subprocess,'run',side_effect=run):
+                errors=updater.refresh_core_snapshots('2026-10-09',directory=self.directory,allow_partial=True)
+            self.assertEqual(len(errors),1)
+            self.assertEqual(updater.read_snapshot(self.directory/'rqdata-broad-sentiment.json')['asOf'],'2026-10-09')
+            self.assertEqual(updater.read_snapshot(self.directory/'rqdata-industry-sentiment.json')['asOf'],'2026-10-08')
+
     def test_success_commits_one_date(self):
         with tempfile.TemporaryDirectory(dir=updater.BASE_DIR) as temporary:
             self.directory = Path(temporary)

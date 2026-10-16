@@ -10,6 +10,7 @@ import pandas as pd
 import rqdatac as rq
 
 from rqdata_connection import initialize_rqdata
+from rqdata_history_cache import history as cached_history, snapshot as cached_snapshot
 from rqdata_trading_day import completed_trading_date
 
 PB_FACTOR_CANDIDATES = ("pb_ratio_lf", "pb_ratio", "PB_RATIO_LF", "PB_RATIO")
@@ -88,7 +89,7 @@ def resolve_factor_name(ids, candidates, as_of):
     for name in candidates:
         try:
             data = normalize_factor_frame(
-                rq.get_factor(sample_ids, name, start_date=as_of, end_date=as_of, expect_df=True)
+                cached_snapshot(rq, "get_factor", sample_ids, name, start_date=as_of, end_date=as_of, expect_df=True)
             )
             if name in data.columns and pd.to_numeric(data[name], errors="coerce").notna().any():
                 return name
@@ -128,11 +129,11 @@ def valuation_universe_and_industry(sample_date):
         ]
     sample_ids = instruments["order_book_id"].dropna().astype(str).tolist()
     industry_parts = []
-    for ids_batch in batches(sample_ids):
+    for ids_batch in batches(sample_ids, size=5000):
         try:
             industry_parts.append(
                 frame(
-                    rq.get_instrument_industry(
+                    cached_snapshot(rq, "get_instrument_industry",
                         ids_batch,
                         source="citics_2019",
                         level=1,
@@ -190,11 +191,11 @@ def build_pb_roe_percentiles(ids, industry, as_of):
         if not sample_ids or sample_industry.empty:
             continue
         pieces = []
-        for ids_batch in batches(sample_ids):
+        for ids_batch in batches(sample_ids, size=5000):
             try:
                 pieces.append(
                     normalize_factor_frame(
-                        rq.get_factor(ids_batch, requested_factors, start_date=sample_date, end_date=sample_date, expect_df=True)
+                        cached_snapshot(rq, "get_factor", ids_batch, requested_factors, start_date=sample_date, end_date=sample_date, expect_df=True)
                     )
                 )
             except Exception:
@@ -298,11 +299,11 @@ def build_payload(as_of):
 
     for ids_batch in batches(ids):
         industry_parts.append(
-            frame(rq.get_instrument_industry(ids_batch, source="citics_2019", level=1, date=as_of))
+            frame(cached_snapshot(rq, "get_instrument_industry", ids_batch, source="citics_2019", level=1, date=as_of))
         )
         price_parts.append(
             frame(
-                rq.get_price(
+                cached_history(rq, "get_price",
                     ids_batch,
                     dates[0],
                     dates[-1],
@@ -313,15 +314,13 @@ def build_payload(as_of):
             )
         )
         turnover_parts.append(
-            frame(rq.get_turnover_rate(ids_batch, dates[0], dates[-1], fields="today"))
+            frame(cached_history(rq, "get_turnover_rate", ids_batch, dates[0], dates[-1], fields="today"))
         )
         try:
             margin_parts.append(
                 frame(
-                    rq.get_securities_margin(
-                        ids_batch,
-                        start_date=flow_start,
-                        end_date=dates[-1],
+                    cached_history(rq, "get_securities_margin",
+                        ids_batch, flow_start, dates[-1],
                         fields=["margin_balance", "buy_on_margin_value"],
                     )
                 )
@@ -331,10 +330,8 @@ def build_payload(as_of):
         try:
             flow_parts.append(
                 frame(
-                    rq.get_capital_flow(
-                        ids_batch,
-                        start_date=flow_start,
-                        end_date=dates[-1],
+                    cached_history(rq, "get_capital_flow",
+                        ids_batch, flow_start, dates[-1],
                         frequency="1d",
                     )
                 )
@@ -921,7 +918,14 @@ def main():
     args = parser.parse_args()
     initialize_rqdata()
     as_of = completed_date()
+    previous = {}
+    if Path(args.output).is_file():
+        previous=json.loads(Path(args.output).read_text(encoding='utf-8-sig'))
     payload = build_payload(as_of)
+    old={str(item['code']):item for item in previous.get('industries',[])}
+    for item in payload['industries']:
+        if not item.get('children'):
+            item['children']=old.get(str(item['code']),{}).get('children',[])
     Path(args.output).write_text(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
