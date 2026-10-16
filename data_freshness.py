@@ -50,6 +50,11 @@ def build_report(target, directory=BASE_DIR, errors=None, calendar=None):
     add('second-industry-flow','二级行业资金流向',min(child_dates) if child_dates and all(child_dates) else None,source='RQData')
     rotation=read(directory,'rqdata-industry-rotation.json')
     add('industry-rotation','行业轮动强度与中证全指',rotation.get('asOf'),source='RQData')
+    risk=read(directory,'akshare-margin-risk.json')
+    risk_series={item.get('id'):item for item in risk.get('series',[]) if isinstance(item,dict)}
+    for sid,label in [('margin-guarantee-ratio','市场平均维持担保比例'),
+                      ('margin-investor-participation-ratio','两融交易投资者参与率')]:
+        add(sid,label,last_date(risk_series.get(sid,{}).get('points',[])),source='AKShare / 东方财富')
     for filename,label,freq in [('rqdata-fund-exposure.json','公募行业超配','weekly'),('macro-tracking.json','宏观月度指标','monthly')]:
         payload=read(directory,filename);add(filename,label,payload.get('asOf'),freq,payload.get('source',''))
     daily=[e for e in entries if e['frequency']=='daily']

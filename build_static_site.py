@@ -24,6 +24,7 @@ WEB_FILES = (
 )
 REQUIRED_DATA = ("rqdata-broad-sentiment.json", "rqdata-industry-sentiment.json")
 OPTIONAL_DATA = {
+    "akshare-margin-risk.json": {"asOf": None, "series": [], "source": "AKShare / 东方财富"},
     "rqdata-industry-rotation.json": {"points": []},
     "data-freshness.json": {"entries": [], "targetDate": None},
     "rqdata-fund-exposure.json": {
