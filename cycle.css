@@ -34,6 +34,8 @@
 .benchmark-legend i{width:18px;margin-right:6px;vertical-align:middle}
 .sentiment-line{background:var(--accent)}
 .cycle-legend .indicator-bar{width:8px;height:12px;border-radius:2px;background:var(--accent)}
+/* 资金流向柱图例：左半红（净流入）／右半绿（净流出） */
+.cycle-legend .indicator-bar.split{background:linear-gradient(90deg,var(--red) 0 50%,var(--accent) 50% 100%)}
 .cycle-legend #cycleMetricLegend{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
 .cycle-legend #cycleMetricLegend .cycle-band-label{display:inline-flex;align-items:center;white-space:nowrap;margin-left:5px;width:auto}
 .cycle-legend .cycle-band-label i{background:var(--legend-color);margin-right:4px}

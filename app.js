@@ -128,7 +128,7 @@ const comparisonGroups={
   funds:[
     {key:'financing-activity',label:'全A融资买入额占比',unit:'%'},
     {key:'margin-guarantee-ratio',label:'市场平均担保比例',unit:'%'},
-    {key:'broad-etf-flow',label:'宽基ETF净流入/流出',unit:'亿元',zeroLine:true},
+    {key:'broad-etf-flow',label:'宽基ETF净流入/流出',unit:'亿元',zeroLine:true,type:'bar',barColorMode:'flow',description:'左轴为宽基ETF净流入/流出（亿元），红色柱为净流入、绿色柱为净流出；右轴可叠加宽基指数，指数按当前区间起点归一至100'},
     {key:'land-connect-turnover-ma20',label:'陆股通成交总额 MA5',unit:'亿元'},
     {key:'a-share-new-accounts',label:'A股新增开户数',unit:'户'},
     {key:'dragon-tiger-net-inflow',label:'龙虎榜资金净流入',unit:'亿元',zeroLine:true},
@@ -494,7 +494,7 @@ function activateComparison(key){
     :definition.sentiment||definition.score
     ?`${description}；虚线为历史P5/P95极值；时间轴固定显示最近五年。`
     :`${description}；时间轴固定显示最近五年。`;
-  el('cycleMetricLegend').innerHTML=`<i class="${definition.type==='bar'?'indicator-bar':'sentiment-line'}"${definition.lineColor?` style="background:${MC(definition.lineColor)}"`:''}></i>${escapeHtml(definition.label)}${definition.overlays?.map(line=>`<span class="cycle-band-label"><i class="${line.dashed?'dashed':''}" style="--legend-color:${MC(line.color)}"></i>${escapeHtml(line.label)}</span>`).join('')||''}`;
+  el('cycleMetricLegend').innerHTML=`<i class="${definition.type==='bar'?(definition.barColorMode==='flow'?'indicator-bar split':'indicator-bar'):'sentiment-line'}"${definition.lineColor?` style="background:${MC(definition.lineColor)}"`:''}></i>${escapeHtml(definition.label)}${definition.overlays?.map(line=>`<span class="cycle-band-label"><i class="${line.dashed?'dashed':''}" style="--legend-color:${MC(line.color)}"></i>${escapeHtml(line.label)}</span>`).join('')||''}`;
   const updateInfo=state.series.find(item=>item.id===definition.key)?.updateInfo;
   if(updateInfo&&updateInfo.status!=='current')el('cycleDescription').textContent+=` 当前数据截至 ${updateInfo.asOf||'—'}，${updateInfo.mode==='Wind快照'?'等待Wind快照更新':'等待来源更新'}。`;
   renderBenchmarkLegend();
@@ -627,12 +627,17 @@ function drawCycleChart(points){
   }
   if(definition.type==='bar'){
     const zeroY=y(0,indicatorScale);
+    const P=PAL();
+    // barColorMode:'flow' 表示资金流向柱：红=净流入（正值），绿=净流出（负值）
+    const flowBars=definition.barColorMode==='flow';
     const barWidth=Math.max(1,Math.min(9,(w-pad.l-pad.r)/Math.max(points.length,1)*.72));
     points.forEach((point,index)=>{
       if(!hasNumber(point.indicator))return;
       const value=Number(point.indicator);
       const pointY=y(value,indicatorScale);
-      ctx.fillStyle=value>=0?'rgba(70,214,178,.58)':'rgba(255,107,120,.58)';
+      ctx.fillStyle=flowBars
+        ?(value>=0?MA(P.red,.88):MA(P.green,.8))
+        :(value>=0?'rgba(70,214,178,.58)':'rgba(255,107,120,.58)');
       ctx.fillRect(x(index)-barWidth/2,Math.min(pointY,zeroY),barWidth,Math.max(1,Math.abs(zeroY-pointY)));
     });
   }
