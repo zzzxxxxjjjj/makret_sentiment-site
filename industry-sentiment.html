@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>中信一级行业情绪｜A股市场情绪</title>
   <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/industry-sentiment.css?v=20261016-4">
+  <link rel="stylesheet" href="/industry-sentiment.css?v=20261016-5">
 </head>
 <body>
   <header class="topbar">
@@ -43,6 +43,15 @@
       <div class="rotation-history-legend"><span>轮动强度（左轴）</span><span>中证全指点位（右轴）</span></div>
       <div class="rotation-history-chart-wrap"><canvas id="rotationHistoryChart" role="img" aria-label="近十年行业轮动强度与中证全指双轴日线图"></canvas><div id="rotationHistoryTooltip" class="rotation-history-tooltip" hidden></div><div id="rotationHistoryEmpty" class="empty-state">正在读取行业轮动数据</div></div>
       <div id="rotationHistoryRange" class="rotation-history-range"></div>
+      <div class="rotation-time-slider" role="group" aria-label="轮动图时间区间">
+        <div class="rotation-slider-caption"><span>拖动两端选择时间区间</span><output id="rotationHistorySliderDates">正在读取时间区间</output></div>
+        <div class="rotation-slider-track" id="rotationHistorySliderTrack">
+          <div class="rotation-slider-selection"></div>
+          <input id="rotationHistoryStart" type="range" min="0" max="1" value="0" step="1" aria-label="开始日期" disabled>
+          <input id="rotationHistoryEnd" type="range" min="0" max="1" value="1" step="1" aria-label="结束日期" disabled>
+        </div>
+        <div class="rotation-slider-bounds"><span id="rotationHistoryFirstDate">—</span><span id="rotationHistoryLastDate">—</span></div>
+      </div>
       <p class="flow-trend-note">轮动强度＝Σ｜各一级行业今日近5日涨跌幅排名－上一交易日近5日涨跌幅排名｜，数值越大表示行业轮动越强。采用中信一级行业指数（剔除综合，当前29个行业），并列涨跌幅取平均名次；历史按当时可用行业，连续两日使用同一行业集合重排。中证全指为000985.XSHG，双轴单位不同。数据源：RQData，日频。</p>
     </section>
 
@@ -154,7 +163,7 @@
   </main>
   <script src="/industry-sentiment.js?v=25" defer></script>
   <script src="/industry-flow-trend.js?v=20261016-3" defer></script>
-  <script src="/industry-rotation-history.js?v=20261016-1" defer></script>
+  <script src="/industry-rotation-history.js?v=20261016-2" defer></script>
   <script src="/data-health.js?v=20261016-1" defer></script>
 </body>
 </html>

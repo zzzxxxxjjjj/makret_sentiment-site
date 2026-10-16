@@ -1,15 +1,46 @@
 /* Independent daily rotation panel; data uses the source's actual trading dates. */
 (() => {
   const el = id => document.getElementById(id);
-  const view = { payload:null, years:10, points:[], chart:null };
+  const view = { payload:null, years:10, start:0, end:0, points:[], chart:null };
   const number = (v,d=1) => Number(v).toLocaleString('zh-CN',{maximumFractionDigits:d,minimumFractionDigits:d});
   const color = (name,fallback) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
   function rangePoints() {
-    const points = view.payload?.points || [];
-    if (!points.length) return [];
-    const first = new Date(points.at(-1).date+'T00:00:00Z');
-    first.setUTCFullYear(first.getUTCFullYear()-view.years);
-    return points.filter(p=>p.date >= first.toISOString().slice(0,10));
+    return (view.payload?.points || []).slice(view.start,view.end+1);
+  }
+  function syncSlider() {
+    const points=view.payload?.points || [],last=Math.max(0,points.length-1);
+    const start=el('rotationHistoryStart'),end=el('rotationHistoryEnd');
+    for(const input of [start,end]){input.max=last;input.disabled=points.length<2;}
+    start.value=view.start;end.value=view.end;
+    start.setAttribute('aria-valuetext',points[view.start]?.date || '暂无数据');
+    end.setAttribute('aria-valuetext',points[view.end]?.date || '暂无数据');
+    const track=el('rotationHistorySliderTrack');
+    track.style.setProperty('--range-start',(last?view.start/last*100:0)+'%');
+    track.style.setProperty('--range-end',(last?view.end/last*100:100)+'%');
+    el('rotationHistorySliderDates').textContent=points.length?`${points[view.start].date} ～ ${points[view.end].date}`:'暂无数据';
+    el('rotationHistoryFirstDate').textContent=points[0]?.date || '—';
+    el('rotationHistoryLastDate').textContent=points.at(-1)?.date || '—';
+    document.querySelectorAll('[data-rotation-years]').forEach(button=>{
+      const active=Number(button.dataset.rotationYears)===view.years;
+      button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+    });
+  }
+  function preset(years) {
+    view.years=years;
+    const points=view.payload?.points || [];
+    if(!points.length)return;
+    const first=new Date(points.at(-1).date+'T00:00:00Z');
+    first.setUTCFullYear(first.getUTCFullYear()-years);
+    const start=points.findIndex(p=>p.date>=first.toISOString().slice(0,10));
+    view.start=Math.max(0,Math.min(start,points.length-2));view.end=points.length-1;
+    syncSlider();draw();
+  }
+  function slide(event) {
+    if(!view.payload?.points.length)return;
+    const value=Number(event.target.value);
+    if(event.target.id==='rotationHistoryStart')view.start=Math.min(value,view.end-1);
+    else view.end=Math.max(value,view.start+1);
+    view.years=null;el('rotationHistoryTooltip').hidden=true;syncSlider();draw();
   }
   function draw() {
     const canvas=el('rotationHistoryChart'), wrap=canvas.parentElement;
@@ -66,22 +97,31 @@
       const response=await fetch('/rqdata-industry-rotation.json',{cache:'no-store'});
       if(!response.ok)throw new Error('missing');
       const data=await response.json();
-      if(!Array.isArray(data.points)||!data.points.length)throw new Error('empty');
+      if(!Array.isArray(data.points)||data.points.length<2)throw new Error('empty');
+      const previous=rangePoints();
       view.payload=data;
+      if(view.years!==null)preset(view.years);
+      else {
+        const start=data.points.findIndex(p=>p.date>=(previous[0]?.date || data.points[0].date));
+        const after=data.points.findIndex(p=>p.date>(previous.at(-1)?.date || data.points.at(-1).date));
+        view.start=Math.max(0,Math.min(start<0?data.points.length-2:start,data.points.length-2));
+        view.end=Math.max(view.start+1,after<0?data.points.length-1:after-1);
+        syncSlider();
+      }
       el('rotationHistoryValue').textContent=number(data.value,0);
       el('rotationHistoryPercentile').textContent=number(data.percentile250D,1)+'%';
       el('rotationHistoryDate').textContent='数据截至 '+data.asOf+' · 日度更新';
       el('rotationHistoryIndex').textContent=number(data.points.at(-1).indexClose,2)+'点';
       draw();
     }catch(error){
-      view.payload=null;el('rotationHistoryEmpty').hidden=false;el('rotationHistoryEmpty').textContent='暂无完整行业轮动和中证全指对比数据';
+      view.payload=null;view.start=0;view.end=0;syncSlider();view.chart=null;el('rotationHistoryRange').textContent='';el('rotationHistoryEmpty').hidden=false;el('rotationHistoryEmpty').textContent='暂无完整行业轮动和中证全指对比数据';
     }
   }
   document.querySelectorAll('[data-rotation-years]').forEach(button=>button.addEventListener('click',()=>{
-    view.years=Number(button.dataset.rotationYears);
-    document.querySelectorAll('[data-rotation-years]').forEach(item=>{const active=item===button;item.classList.toggle('active',active);item.setAttribute('aria-pressed',String(active));});
-    el('rotationHistoryTooltip').hidden=true;draw();
+    el('rotationHistoryTooltip').hidden=true;preset(Number(button.dataset.rotationYears));
   }));
+  el('rotationHistoryStart').addEventListener('input',slide);
+  el('rotationHistoryEnd').addEventListener('input',slide);
   el('rotationHistoryChart').addEventListener('pointermove',tooltip);
   el('rotationHistoryChart').addEventListener('pointerdown',tooltip);
   el('rotationHistoryChart').addEventListener('pointerleave',()=>{el('rotationHistoryTooltip').hidden=true;});
