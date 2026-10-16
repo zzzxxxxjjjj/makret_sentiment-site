@@ -9,6 +9,15 @@ import cloud_daily_update as cloud
 
 
 class CloudRetryTests(unittest.TestCase):
+    def test_login_limit_still_publishes_visible_failure(self):
+        with patch.dict(sys.modules, {'rqdatac': types.SimpleNamespace()}), \
+             patch.object(cloud, 'initialize_rqdata', side_effect=RuntimeError('login machine num exceeds')), \
+             patch('data_freshness.read', return_value={'targetDate':'2026-10-15','tradingCalendar':['2026-10-15']}), \
+             patch('data_freshness.write_report') as report:
+            cloud.main()
+        self.assertEqual(report.call_args.args[0], '2026-10-15')
+        self.assertIn('login machine num exceeds', report.call_args.kwargs['errors'][0]['error'])
+
     def test_current_core_still_retries_optional_data_and_rebuilds(self):
         dashboard = types.SimpleNamespace(ENABLE_RQDATA_REFRESH=True,
             _build_payload=lambda **kwargs: {'asOf': '2026-10-13', 'cards': [1], 'series': [{'id':'sample','points':[]}],

@@ -57,7 +57,7 @@ def build_report(target, directory=BASE_DIR, errors=None, calendar=None):
     return {'targetDate':target,'checkedAt':datetime.now(CHINA_TIME).isoformat(timespec='seconds'),
             'deadlineTime':'09:30','timezone':'Asia/Shanghai','allDailyCurrent':bool(daily) and not lagging,
             'dailyCount':len(daily),'currentDailyCount':len(daily)-len(lagging),'laggingDaily':lagging,
-            'entries':entries,'errors':errors or [],'tradingCalendar':calendar or [],
+            'entries':entries,'errors':errors or [],'pipelineHealthy':not bool(errors),'tradingCalendar':calendar or [],
             'methodologyChanges':page.get('methodologyChanges',[]),
             'note':'日频指标以前一交易日为更新目标；周频、月频、季频按各自披露周期保留实际日期。未到齐的数据不会标为已全部更新。'}
 
@@ -73,5 +73,5 @@ if __name__=='__main__':
     args=parser.parse_args()
     report=read(BASE_DIR,'data-freshness.json') if args.check else write_report(args.target)
     print(json.dumps({key:report.get(key) for key in ['targetDate','allDailyCurrent','dailyCount','currentDailyCount','laggingDaily']},ensure_ascii=True))
-    if args.check and not report.get('allDailyCurrent'):
+    if args.check and (not report.get('allDailyCurrent') or report.get('errors')):
         raise SystemExit(1)

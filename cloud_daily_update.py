@@ -91,7 +91,22 @@ def main():
     import rqdatac as rq
 
     print("Stage: initialize RQData connection", flush=True)
-    initialize_rqdata()
+    try:
+        initialize_rqdata()
+    except Exception as exc:
+        # Publish a visible failure state even when authentication blocks the calendar API.
+        from datetime import datetime
+        from rqdata_trading_day import CHINA_TIME
+        from data_freshness import read, write_report
+        previous=read(BASE_DIR,'data-freshness.json')
+        now=datetime.now(CHINA_TIME);today=now.date().isoformat()
+        sessions=[d for d in previous.get('tradingCalendar',[]) if d<today or (d==today and now.hour>=18)]
+        target=max(sessions,default=previous.get('targetDate') or today)
+        detail=safe_error(exc)
+        if "login machine num exceeds" in detail: detail += "（云端登录机器数超过账户限制，需要调整授权）"
+        write_report(target,errors=[{'source':'RQData','error':detail}],calendar=previous.get('tradingCalendar',[]))
+        print('Cloud source unavailable; publish actual dates and failure report: '+detail,flush=True)
+        return
     print("Stage: read completed trading date", flush=True)
     trade_date = completed_trading_date(rq).isoformat()
     # Freeze the target for every subprocess, even if the run crosses midnight.
