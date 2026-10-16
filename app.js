@@ -21,7 +21,8 @@ function renderCards(cards){
       .filter(item=>card.id!=='stock-fund-position'||!hiddenFundLabels.has(item.label))
       .map(item=>`<div class="submetric"><span>${escapeHtml(item.label)}</span><strong>${item.text?escapeHtml(item.text):fmt(item.value)}<em>${escapeHtml(item.unit||'')}</em></strong></div>`).join('');
     const main=card.value!==null&&card.value!==undefined?`<div class="value-row"><span class="value">${fmt(card.value)}</span><span class="unit">${escapeHtml(card.unit||'')}</span></div>`:'';
-    const percentile=card.percentile!==null&&card.percentile!==undefined?`<div class="percentile">历史分位 ${fmt(card.percentile,1)}%</div>`:'';
+    const percentileLabel=card.id==='top5-concentration'?'近5年滚动历史分位':'历史分位';
+    const percentile=card.percentile!==null&&card.percentile!==undefined?`<div class="percentile">${percentileLabel} ${fmt(card.percentile,1)}%</div>`:'';
     return `<article class="metric-card"><div class="card-top"><span class="card-index">${String(startIndex+index+1).padStart(2,'0')}</span><span class="badge ${card.status==='available'?'':'missing'}">${card.status==='available'?'已更新':'待接入'}</span></div><h3>${escapeHtml(card.title)}</h3>${main}${percentile}${sub}<div class="card-note">${escapeHtml(card.note||'数据口径待补充')} · ${fmtDate(card.asOf)}</div></article>`;
   }).join('');
   el('momentumMetricGrid').innerHTML=renderGroup(groups.momentum,0);
@@ -94,7 +95,7 @@ function withAmountBands(series){
 
 const chartDefinitions=[
   {group:'momentum',key:'marketAmount',title:'两市成交额',description:'中证全指口径全A成交额；120个交易日均线及滚动标准差（总体）',series:['alla-turnover-amount',...amountBandLines.map(line=>line.key)],colors:['#46d6b2',...amountBandLines.map(line=>line.color)],dashes:[false,...amountBandLines.map(line=>line.dashed)],unit:'万亿元',type:'line',valueDivisor:10000,currentMetrics:[{series:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000}]},
-  {group:'momentum',key:'concentration',title:'成交额拥挤度',description:'成交额前5%个股占全市场成交额比例',series:['top5-concentration'],card:'top5-concentration',colors:['#f5bd5c'],unit:'%',type:'line',snapshotDomain:[0,100]},
+  {group:'momentum',key:'concentration',title:'成交额拥挤度',description:'成交额前5%个股占全市场成交额比例；分位按近5个自然年滚动计算',series:['top5-concentration'],card:'top5-concentration',colors:['#f5bd5c'],unit:'%',type:'line',snapshotDomain:[0,100]},
   {group:'funds',key:'margin',title:'融资活跃度',description:'融资活跃度与全A融资买入额（亿元）',series:['financing-activity','alla-financing-buy'],card:'margin-financing',colors:['#46d6b2','#f5bd5c'],unit:'%',type:'line',dualAxis:true,href:'/financing-activity.html?v=20260806',linkLabel:'查看各指数融资明细 →',clickableCard:true,currentMetrics:[{series:'financing-activity',label:'融资活跃度',unit:'%'},{series:'alla-financing-buy',label:'融资买入额',unit:'亿元'}]},
   {group:'funds',key:'etf',title:'宽基ETF流入 / 流出',description:'ETF份额变化 × 收盘价，红色流入、绿色流出',series:['broad-etf-flow'],card:'broad-etf-flow',colors:['#ff6b78'],unit:'亿元',type:'bar',zeroLine:true,href:'/etf-flows.html',linkLabel:'查看9只ETF明细 →'},
   {group:'funds',key:'landConnect',title:'陆股通成交总额 MA5',description:'沪股通与深股通当日成交金额合计的5日移动平均',series:['land-connect-turnover-ma20'],colors:['#9d8cff'],unit:'亿元',type:'line'},
@@ -179,7 +180,7 @@ function renderIndicatorCharts(series,cards){
         const value=point?Number(point.value)/(metric.valueDivisor||1):null;
         return `<strong>${fmt(value)}${metric.unit?` <small>${escapeHtml(metric.unit)}</small>`:''}</strong><span>${escapeHtml(metric.label)} · ${fmtDate(point?.date||asOf)}</span>`;
       }).join('')}</div>`
-      :`<div class="chart-current"><strong>${fmt(current)}${unit?` <small>${escapeHtml(unit)}</small>`:''}</strong><span>${fmtDate(asOf)}</span></div>`;
+      :`<div class="chart-current"><strong>${fmt(current)}${unit?` <small>${escapeHtml(unit)}</small>`:''}</strong>${definition.key==='concentration'&&hasNumber(card?.percentile)?`<span>近5年分位 ${fmt(card.percentile,1)}%</span>`:''}<span>${fmtDate(asOf)}</span></div>`;
     return {group:definition.group,html:`<article class="indicator-chart-card${cardLink}>
       <div class="indicator-chart-head">
         <div><h3>${escapeHtml(definition.title)}</h3><p>${escapeHtml(definition.description)}</p>${detailsLink}</div>

@@ -180,6 +180,24 @@ def percentile(values, current):
     return round(rank / (len(nums) - 1) * 100, 1)
 
 
+def rolling_year_percentile(points, years=5):
+    """Rank the latest valid observation within the trailing calendar-year window."""
+    observations = sorted(
+        (day, value)
+        for point in points
+        if (day := as_date(point.get("date"))) is not None
+        if (value := numeric(point.get("value"))) is not None
+    )
+    if not observations:
+        return None
+    latest_day, latest_value = observations[-1]
+    try:
+        start = latest_day.replace(year=latest_day.year - years)
+    except ValueError:  # February 29 has no counterpart in a non-leap year.
+        start = latest_day.replace(year=latest_day.year - years, day=28)
+    return percentile((value for day, value in observations if day >= start), latest_value)
+
+
 def resolve_excel():
     configured = os.environ.get("MARKET_SENTIMENT_EXCEL")
     if configured:
@@ -2740,17 +2758,7 @@ def _build_payload(*, force=False):
         ),
         [],
     )
-    top5_percentile = numeric(
-        rqdata.get("top5ConcentrationPercentile250D")
-    )
-    if top5_percentile is None and top5_history:
-        top5_values = [
-            numeric(item.get("value"))
-            for item in top5_history[-250:]
-            if numeric(item.get("value")) is not None
-        ]
-        if top5_values:
-            top5_percentile = percentile(top5_values, top5_values[-1])
+    top5_percentile = rolling_year_percentile(top5_history)
     cards = [
         metric_card(
             "breadth-sentiment",
@@ -2850,7 +2858,7 @@ def _build_payload(*, force=False):
             value=rqdata.get("top5Concentration"),
             unit="%",
             percentile_value=top5_percentile,
-            note="读取最近已完成交易日；历史分位基于最近250个交易日，之后每日增量更新。",
+            note="读取最近已完成交易日；近5年滚动历史分位按最新交易日向前5个自然年的有效交易日计算，包含当日，之后每日增量更新。",
         ),
         metric_card(
             "ma-distance",

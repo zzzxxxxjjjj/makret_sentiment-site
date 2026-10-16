@@ -7,6 +7,15 @@ from sentiment_update import synthesis_status
 
 
 class SynthesisTests(unittest.TestCase):
+    def test_concentration_percentile_uses_trailing_five_calendar_years(self):
+        points = [
+            {'date':'2021-10-14','value':100},
+            {'date':'2021-10-15','value':20},
+            {'date':'2023-05-01','value':40},
+            {'date':'2026-10-15','value':30},
+        ]
+        self.assertEqual(broad.rolling_year_percentile(points),50.0)
+
     def test_medium_lag_is_identified_even_when_page_header_is_current(self):
         p = {'asOf':'2026-10-13','cycleComparison':{'points':[{'date':'2026-10-13','sentiment':50}]},
              'series':[{'id':'medium-term-sentiment','points':[{'date':'2026-10-09','value':40}]},
