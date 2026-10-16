@@ -130,7 +130,7 @@
 @media(max-width:760px){.fund-ow-table-head{align-items:flex-start;flex-direction:column;gap:8px}.fund-ow-thead{display:none}.fund-ow-trow{grid-template-columns:22px minmax(66px,1fr) 76px 62px;grid-template-areas:"rank name over wgt" "bar bar bar mkt";row-gap:7px}.fund-ow-trow .c-rank{grid-area:rank}.fund-ow-trow .c-name{grid-area:name}.fund-ow-trow .c-bar{grid-area:bar}.fund-ow-trow .c-over{grid-area:over}.fund-ow-trow .c-wgt{grid-area:wgt}.fund-ow-trow .c-mkt{grid-area:mkt}.fund-ow-trow .c-band{display:none}.fund-ow-trow .c-mkt::before{content:"mkt ";color:var(--muted)}.fund-ow-trow .c-wgt::before{content:"wgt_eq ";color:var(--muted)}.fund-ow-row{grid-template-columns:minmax(0,1fr) auto;row-gap:6px}.fund-ow-row-name{grid-column:1;grid-row:1}.fund-ow-row strong{grid-column:2;grid-row:1;text-align:right}.fund-ow-row .fund-ow-row-bar{grid-column:1/-1;grid-row:2}.fund-ow-row em{grid-column:1/-1;grid-row:3;text-align:right}}
 @media(max-width:480px){.fund-ow-summary{grid-template-columns:1fr}}
 
-/* ===== 行业资金流向走势（行业×交易日热力图） ===== */
+/* ===== 一级行业资金流向分组条形图 ===== */
 .flow-trend-panel .panel-head{align-items:flex-start;gap:12px;flex-wrap:wrap}
 .flow-metric-tabs{display:inline-flex;background:var(--row-bg-strong);border:1px solid var(--line);border-radius:9px;padding:3px;gap:3px}
 .flow-metric-tabs .ft-tab{border:0;background:transparent;color:var(--muted);font-size:13px;padding:7px 14px;border-radius:7px;cursor:pointer;white-space:nowrap}
@@ -141,9 +141,24 @@
 .ft-seg-btn{border:0;background:transparent;color:var(--muted);font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap}
 .ft-seg-btn.active{background:var(--line);color:var(--text);font-weight:600}
 .flow-trend-body{position:relative}
-.flow-heat-wrap{position:relative}
-.flow-heat-wrap[hidden]{display:none}
-.flow-heat-wrap canvas{width:100%;height:100%;display:block;cursor:crosshair}
+.flow-bar-wrap{position:relative;max-height:760px;overflow:auto;scrollbar-gutter:stable;border-top:1px solid var(--line-soft)}
+.flow-bar-wrap[hidden]{display:none}
+.flow-comparison-caption{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:12px 0;color:var(--muted);font-size:11px;line-height:1.7}
+.flow-comparison-row{display:grid;grid-template-columns:132px minmax(0,1fr);gap:14px;align-items:center;width:100%;padding:12px 10px;border:0;border-bottom:1px solid var(--line-soft);background:transparent;color:var(--text);text-align:left;cursor:pointer}
+.flow-comparison-row:hover,.flow-comparison-row.active{background:var(--row-bg-strong)}
+.flow-comparison-row:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.flow-comparison-name{font-size:12px;font-weight:650;line-height:1.5}
+.flow-comparison-bars{display:grid;gap:6px;min-width:0}
+.flow-comparison-line{display:grid;grid-template-columns:70px minmax(0,1fr) 112px;align-items:center;gap:10px;min-height:16px}
+.flow-period-label{font-size:10px;color:var(--muted)}
+.flow-comparison-track{position:relative;height:10px;background:var(--row-bg-strong);border-radius:2px}
+.flow-comparison-track:before{content:'';position:absolute;left:var(--zero);top:-3px;bottom:-3px;width:1px;background:var(--chart-zero)}
+.flow-comparison-track i{position:absolute;top:0;height:100%;border-radius:2px;min-width:0}
+.flow-comparison-value{font-size:11px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:550}
+@media(max-width:760px){.flow-comparison-row{grid-template-columns:1fr;gap:8px;padding:12px 4px}.flow-comparison-line{grid-template-columns:60px minmax(0,1fr) 100px;gap:6px}.flow-bar-wrap{max-height:680px}}
+.flow-trend-legend{display:flex;flex-wrap:wrap;gap:14px;margin:4px 0 10px;color:var(--muted);font-size:10px}
+.flow-trend-legend .fl-item{display:inline-flex;align-items:center;gap:6px}
+.flow-trend-legend .fl-item i{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
 .flow-trend-tooltip{display:none;position:absolute;z-index:30;min-width:160px;max-width:300px;background:var(--tooltip-bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:12px;color:var(--text);pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.45)}
 .flow-trend-tooltip .tt-date{color:var(--muted);font-size:11px;margin-bottom:5px}
 .flow-trend-tooltip .tt-row{display:flex;align-items:center;gap:6px;padding:1.5px 0}
@@ -153,5 +168,3 @@
 .flow-trend-note{margin:14px 2px 0;color:var(--foot);font-size:10px;line-height:1.8}
 @media(max-width:860px){.flow-metric-tabs{width:100%}.flow-metric-tabs .ft-tab{flex:1;padding:7px 6px}}
 @media(max-width:760px){.flow-trend-controls{gap:6px 8px}.ft-seg-btn{padding:5px 8px;font-size:11px}}
-
-

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>中信一级行业情绪｜A股市场情绪</title>
   <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/industry-sentiment.css?v=16">
+  <link rel="stylesheet" href="/industry-sentiment.css?v=20261016-1">
 </head>
 <body>
   <header class="topbar">
@@ -51,39 +51,27 @@
     <section id="flowTrendPanel" class="panel flow-trend-panel">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">INDUSTRY FLOW TREND</p>
-          <h2>行业资金流向走势</h2>
+          <p class="eyebrow">INDUSTRY FLOW · 当日 / 近一周 / 近一月</p>
+          <h2>一级行业资金流向条形图</h2>
         </div>
-        <div class="flow-metric-tabs" id="flowMetricTabs" role="tablist">
-          <button class="ft-tab active" data-metric="flowRatio" type="button">主力资金</button>
+        <div class="flow-metric-tabs" id="flowMetricTabs" role="tablist" aria-label="资金指标">
+          <button class="ft-tab active" data-metric="netFlow" type="button">主力资金</button>
           <button class="ft-tab" data-metric="marginActivity" type="button">杠杆资金</button>
           <button class="ft-tab" data-metric="amountShare" type="button">成交额占比</button>
         </div>
       </div>
 
-      <div class="flow-trend-controls">
-        <div class="ft-seg" id="flowRangeSeg">
-          <button class="ft-seg-btn" data-range="60" type="button">60日</button>
-          <button class="ft-seg-btn active" data-range="120" type="button">120日</button>
-          <button class="ft-seg-btn" data-range="250" type="button">250日</button>
-        </div>
-        <div class="ft-seg" id="flowFreqSeg">
-          <button class="ft-seg-btn" data-freq="day" type="button">日</button>
-          <button class="ft-seg-btn active" data-freq="week" type="button">周</button>
-        </div>
-      </div>
+      <div class="flow-trend-legend" id="flowBarLegend"></div>
+      <div class="flow-comparison-caption" aria-live="polite"><span id="flowMetricDescription"></span><span id="flowDataDate"></span></div>
 
       <div class="flow-trend-body">
-        <div id="flowHeatWrap" class="flow-heat-wrap">
-          <canvas id="flowHeatChart" aria-label="行业资金流向热力图"></canvas>
-          <div id="flowHeatTooltip" class="flow-trend-tooltip"></div>
-        </div>
-        <div id="flowTrendEmpty" class="empty-state" hidden>暂无资金流向时序数据，请运行 rqdata_industry_refresh.py 更新数据。</div>
+        <div id="flowBarWrap" class="flow-bar-wrap" role="group" aria-label="一级行业资金流向分组条形图"></div>
+        <div id="flowTrendEmpty" class="empty-state" hidden>暂无资金流向数据，请运行 rqdata_industry_refresh.py 更新数据。</div>
       </div>
 
       <p class="flow-trend-note">
-        主力资金＝主动资金净额÷行业成交额（净流入率，%）；杠杆资金＝融资买入额÷行业成交额（%）；成交额占比＝行业成交额÷全市场成交额（%）。
-        热力图为全部一级行业×交易日，行按最新值排序：主力资金以 0 为轴红正绿负（P98 分位满格），占比类指标按当日横截面分位着色。
+        条形图按各行业「当日」值由高到低排列；每个行业三根横条分别代表当日、最近一周（5个交易日）、最近一个月（20个交易日，均含当日）。主力资金为期间累计净流入；比例指标为期间日均值。缺失或不足完整窗口显示「—」。
+        主力资金＝成分股主动买入额－主动卖出额（亿元，可为负，零点左侧表示净流出）；杠杆资金＝融资买入额÷行业成交额（%）；成交额占比＝行业成交额÷全市场成交额（%）。
         点击行业行可联动下方二级行业面板。数据源：RQData，日频，中信2019一级行业。
       </p>
     </section>
@@ -140,6 +128,6 @@
     <p class="industry-note">行业口径：中信2019行业。主动资金净额＝成分股主动买入额－主动卖出额；拥挤度采用近250日滚动分位，数值越高表示交易和价格动量越集中。</p>
   </main>
   <script src="/industry-sentiment.js?v=25" defer></script>
-  <script src="/industry-flow-trend.js?v=2" defer></script>
+  <script src="/industry-flow-trend.js?v=20261016-1" defer></script>
 </body>
 </html>
