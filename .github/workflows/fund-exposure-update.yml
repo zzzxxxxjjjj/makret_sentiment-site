@@ -1,0 +1,62 @@
+name: Morning fund exposure update
+
+on:
+  schedule:
+    # Beijing Monday-Saturday 06:17/06:47/07:17/07:47 (UTC previous day).
+    - cron: '17,47 22,23 * * 0-5'
+    # Beijing Monday-Saturday 08:17/08:47 and 09:07/09:17.
+    - cron: '17,47 0 * * 1-6'
+    - cron: '7,17 1 * * 1-6'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fund-exposure-update.yml
+      - rqdata_fund_exposure_refresh.py
+      - fund_exposure_cloud_sync.py
+      - tests/test_fund_exposure_refresh.py
+      - tests/test_fund_exposure_cloud_sync.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fund-exposure-update
+  cancel-in-progress: false
+
+jobs:
+  update-fund-exposure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TZ: Asia/Shanghai
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test fund validation and concurrent publication
+        run: python -m unittest discover -s tests -p 'test_fund_exposure*.py'
+      - name: Fetch the latest provider week with retries
+        env:
+          AIDO_API_KEY: ${{ secrets.AIDO_API_KEY }}
+        shell: bash
+        run: |
+          if [ -z "$AIDO_API_KEY" ]; then
+            echo 'AIDO_API_KEY repository secret is missing; fund update cannot run.'
+            exit 1
+          fi
+          for attempt in 1 2 3; do
+            if python rqdata_fund_exposure_refresh.py --output rqdata-fund-exposure.json --timeout 20; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then sleep 10; fi
+          done
+          exit 1
+      - name: Publish only fund data and verify the public website
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python fund_exposure_cloud_sync.py
