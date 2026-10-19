@@ -22,13 +22,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 DEFAULT_BASE_URL = "http://81.70.32.217"
@@ -97,9 +98,49 @@ def number_or_none(value):
         number = float(value)
     except (TypeError, ValueError):
         return None
-    if number != number:  # NaN
+    if not math.isfinite(number):
         return None
     return round(number, 4)
+
+
+def validate_snapshot(payload):
+    """Reject incomplete or mixed-week responses before replacing the last good file."""
+    try:
+        as_of = date.fromisoformat(payload['asOf'])
+    except (KeyError, TypeError, ValueError):
+        raise ValueError('Fund exposure response has no valid weekly date') from None
+    rows = payload.get('industries', [])
+    if len(rows) != INDUSTRY_COUNT or len({r.get('code') for r in rows}) != INDUSTRY_COUNT:
+        raise ValueError('Fund exposure response must contain 31 unique industries')
+    for row in rows:
+        if not row.get('code') or not row.get('name') or row.get('tradeDate') != as_of.isoformat():
+            raise ValueError('Fund exposure contains missing industry names or mixed weekly dates')
+        if any(number_or_none(row.get(k)) is None for k in ('wgtEq', 'mkt', 'overPp')):
+            raise ValueError('Fund exposure contains invalid weights')
+        if abs(row['wgtEq'] - row['mkt'] - row['overPp']) > 0.02:
+            raise ValueError('Fund overweight does not equal equity weight minus benchmark weight')
+    for key in ('wgtEq', 'mkt'):
+        if abs(sum(r[key] for r in rows) - 100) > 0.1:
+            raise ValueError('Fund exposure weights do not sum to 100 percent')
+
+
+def save_snapshot(payload, output_path):
+    validate_snapshot(payload)
+    if output_path.exists():
+        try:
+            previous = json.loads(output_path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            previous = {}
+        if previous.get('asOf', '') > payload['asOf']:
+            raise ValueError('Fund exposure source returned an older week; existing snapshot retained')
+        meaningful = lambda d: {k: v for k, v in d.items() if k != 'updatedAt'}
+        if meaningful(previous) == meaningful(payload):
+            return False
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = output_path.with_suffix(output_path.suffix + '.tmp')
+    temp_path.write_text(json.dumps(payload, ensure_ascii=False, allow_nan=False, separators=(',', ':')), encoding='utf-8')
+    temp_path.replace(output_path)
+    return True
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -179,10 +220,7 @@ def main(argv: list[str] | None = None) -> int:
         "industries": industries,
     }
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    temp_path = output_path.with_suffix(output_path.suffix + ".tmp")
-    temp_path.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    temp_path.replace(output_path)
+    save_snapshot(payload, output_path)
 
     print(
         f"已写入 {output_path.name}：{payload['indexName']}（{payload['index']}）"
