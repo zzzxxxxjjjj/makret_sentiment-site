@@ -89,6 +89,10 @@
 @media(max-width:480px){.industry-summary{grid-template-columns:1fr}.industry-meta{gap:12px;flex-wrap:wrap}.detail-head>strong{font-size:23px}.flow-bar-row,.subindustry-flow-row{grid-template-columns:1fr}.flow-bar-row strong,.flow-bar-row em,.subindustry-flow-row strong,.subindustry-flow-row em{text-align:left}.subindustry-heatmap{grid-template-columns:1fr}.stock-leader-row{grid-template-columns:24px 1fr 78px}.stock-leader-row span{display:none}}
 /* ===== 公募偏股基金行业超配 ===== */
 .fund-ow-panel{margin-top:18px}
+.fund-change-panel{margin-top:24px;padding-top:18px;border-top:1px solid var(--line-soft)}
+.fund-change-row{grid-template-columns:minmax(90px,110px) minmax(40px,1fr) 74px 132px}
+.fund-change-rank{display:inline-grid;place-items:center;width:18px;height:18px;margin-right:5px;border-radius:50%;background:var(--line-soft);font-style:normal;font-size:10px;color:var(--muted)}
+.fund-change-breakdown{grid-column:1/-1;color:var(--muted);font-size:10px;line-height:1.6}
 .fund-ow-asof{align-self:flex-start;color:var(--muted);font-size:11px;white-space:nowrap}
 .fund-ow-lists{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:14px}
 .fund-ow-row-empty{padding:14px;border:1px dashed var(--line-soft);border-radius:7px;color:var(--muted);font-size:11px;text-align:center}

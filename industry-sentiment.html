@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>中信一级行业情绪｜A股市场情绪</title>
   <link rel="stylesheet" href="/styles.css?v=20261016-position">
-  <link rel="stylesheet" href="/industry-sentiment.css?v=20261016-6">
+  <link rel="stylesheet" href="/industry-sentiment.css?v=20261019-fund-change">
 </head>
 <body>
   <header class="topbar">
@@ -145,6 +145,24 @@
         </article>
       </div>
 
+      <div id="fundChangePanel" class="fund-change-panel">
+        <div class="fund-ow-table-head">
+          <div><h3>超配 / 低配周度变化</h3><span id="fundChangeDates">正在读取最近两期数据</span></div>
+          <span>按超配变化排序 · 单位：百分点（pp）</span>
+        </div>
+        <div class="fund-ow-lists">
+          <article class="fund-ow-card">
+            <div class="fund-ow-card-head"><div><h3>超配上升 / 低配收窄</h3><span id="fundChangeUpNote">变化为正的前10个行业</span></div></div>
+            <div id="fundChangeUp" class="fund-ow-rows"></div>
+          </article>
+          <article class="fund-ow-card">
+            <div class="fund-ow-card-head"><div><h3>超配下降 / 低配扩大</h3><span id="fundChangeDownNote">变化为负的前10个行业</span></div></div>
+            <div id="fundChangeDown" class="fund-ow-rows"></div>
+          </article>
+        </div>
+        <p class="fund-ow-note">变化 = 本期超配 − 上期超配。每行同时列出基金配置与市场基准的变化；相对超配变化包含基准权重变化，不等同于基金买卖金额。</p>
+      </div>
+
       <p id="fundOwEmpty" class="fund-ow-empty" hidden>暂无公募偏股基金超配数据，请运行 rqdata_fund_exposure_refresh.py 生成 rqdata-fund-exposure.json。</p>
 
       <p class="fund-ow-note">
@@ -156,7 +174,7 @@
 
     <p class="industry-note">行业口径：中信2019行业。主动资金净额＝成分股主动买入额－主动卖出额；拥挤度采用近250日滚动分位，数值越高表示交易和价格动量越集中。</p>
   </main>
-  <script src="/industry-sentiment.js?v=25" defer></script>
+  <script src="/industry-sentiment.js?v=20261019-fund-change" defer></script>
   <script src="/industry-flow-trend.js?v=20261016-3" defer></script>
   <script src="/industry-rotation-history.js?v=20261016-4" defer></script>
   <script src="/data-health.js?v=20261016-1" defer></script>

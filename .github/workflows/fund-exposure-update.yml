@@ -16,6 +16,8 @@ on:
       - fund_exposure_cloud_sync.py
       - tests/test_fund_exposure_refresh.py
       - tests/test_fund_exposure_cloud_sync.py
+      - tests/fund-changes.test.cjs
+      - industry-sentiment.js
 
 permissions:
   contents: write
@@ -40,6 +42,8 @@ jobs:
           python-version: '3.12'
       - name: Test fund validation and concurrent publication
         run: python -m unittest discover -s tests -p 'test_fund_exposure*.py'
+      - name: Test weekly ranking display
+        run: node tests/fund-changes.test.cjs
       - name: Fetch the latest provider week with retries
         env:
           AIDO_API_KEY: ${{ secrets.AIDO_API_KEY }}

@@ -354,8 +354,40 @@ function fundOwBar(overPp, scale, extraClass = '') {
     `<i class="${centered >= 0 ? 'positive' : 'negative'}" style="--bar:${raw.toFixed(2)}%"></i></span>`;
 }
 
+function renderFundChanges(payload) {
+  const comparison = payload?.comparison;
+  const rows = Array.isArray(comparison?.industries) ? comparison.industries : [];
+  const valid = comparison?.asOf === payload?.asOf && comparison?.previousAsOf < comparison?.asOf && rows.length === 31 &&
+    rows.every(r => ['changeOverPp', 'previousOverPp', 'currentOverPp', 'weightChangePp', 'benchmarkChangePp']
+      .every(k => typeof r[k] === 'number' && Number.isFinite(r[k])));
+  if (!valid) {
+    el('fundChangeDates').textContent = '暂无完整的两期对比数据';
+    el('fundChangeUpNote').textContent = '等待上期数据';
+    el('fundChangeDownNote').textContent = '等待上期数据';
+    for (const id of ['fundChangeUp', 'fundChangeDown']) el(id).innerHTML = '<div class="fund-ow-row-empty">暂无可比较的周度数据</div>';
+    return;
+  }
+  el('fundChangeDates').textContent = `${comparison.previousAsOf} → ${comparison.asOf}`;
+  const up = rows.filter(r => r.changeOverPp > 0).sort((a,b) => b.changeOverPp-a.changeOverPp || String(a.code).localeCompare(String(b.code)));
+  const down = rows.filter(r => r.changeOverPp < 0).sort((a,b) => a.changeOverPp-b.changeOverPp || String(a.code).localeCompare(String(b.code)));
+  const scale = Math.max(...rows.map(r => Math.abs(r.changeOverPp)), 0.0001);
+  const changeText = value => signed(value, value !== 0 && Math.abs(value) < 0.01 ? 4 : 2);
+  const render = list => list.slice(0,10).map((r,i) => `<div class="fund-ow-row fund-change-row">
+    <span class="fund-ow-row-name"><i class="fund-change-rank">${i+1}</i>${esc(r.name)}</span>
+    ${fundOwBar(r.changeOverPp,scale,'fund-ow-row-bar')}
+    <strong class="${signClass(r.changeOverPp)}">${changeText(r.changeOverPp)}pp</strong>
+    <em title="上期超配 → 本期超配">${changeText(r.previousOverPp)} → ${changeText(r.currentOverPp)}pp</em>
+    <small class="fund-change-breakdown">基金配置 ${changeText(r.weightChangePp)}pp · 市场基准 ${changeText(r.benchmarkChangePp)}pp</small>
+  </div>`).join('');
+  el('fundChangeUpNote').textContent = `${up.length}个行业上升${up.length>10?' · 显示前10名':''}`;
+  el('fundChangeDownNote').textContent = `${down.length}个行业下降${down.length>10?' · 显示前10名':''}`;
+  el('fundChangeUp').innerHTML = up.length ? render(up) : '<div class="fund-ow-row-empty">本期无行业超配上升</div>';
+  el('fundChangeDown').innerHTML = down.length ? render(down) : '<div class="fund-ow-row-empty">本期无行业超配下降</div>';
+}
+
 function renderFundOverweight() {
   const payload = fundOwState.payload;
+  renderFundChanges(payload);
   const rows = Array.isArray(payload?.industries) ? payload.industries : [];
   const empty = el('fundOwEmpty');
 

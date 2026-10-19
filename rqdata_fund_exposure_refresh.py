@@ -29,7 +29,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 DEFAULT_BASE_URL = "http://81.70.32.217"
@@ -122,6 +122,42 @@ def validate_snapshot(payload):
     for key in ('wgtEq', 'mkt'):
         if abs(sum(r[key] for r in rows) - 100) > 0.1:
             raise ValueError('Fund exposure weights do not sum to 100 percent')
+
+
+def build_weekly_comparison(current, previous_raw):
+    """Compare actual adjacent provider weeks, allowing holiday gaps."""
+    validate_snapshot(current)
+    previous = {
+        'asOf': previous_raw.get('as_of'),
+        'industries': [{
+            'code': row.get('code'), 'name': row.get('name'),
+            'tradeDate': row.get('trade_date'),
+            'wgtEq': number_or_none(row.get('wgt_eq')),
+            'mkt': number_or_none(row.get('mkt')),
+            'overPp': number_or_none(row.get('over_pp')),
+        } for row in previous_raw.get('data', [])],
+    }
+    validate_snapshot(previous)
+    if previous['asOf'] >= current['asOf']:
+        raise ValueError('Previous fund week must precede the latest week')
+    if previous_raw.get('index', current.get('index')) != current.get('index'):
+        raise ValueError('Fund comparison must use the same fund index')
+    by_code = {r['code']: r for r in previous['industries']}
+    if set(by_code) != {r['code'] for r in current['industries']}:
+        raise ValueError('Fund comparison industry coverage changed; refusing partial rankings')
+    rows = []
+    for row in current['industries']:
+        old = by_code[row['code']]
+        rows.append({
+            'code': row['code'], 'name': row['name'],
+            'previousOverPp': old['overPp'], 'currentOverPp': row['overPp'],
+            'changeOverPp': round(row['overPp'] - old['overPp'], 4),
+            'weightChangePp': round(row['wgtEq'] - old['wgtEq'], 4),
+            'benchmarkChangePp': round(row['mkt'] - old['mkt'], 4),
+        })
+    rows.sort(key=lambda r: (-r['changeOverPp'], r['code']))
+    return {'previousAsOf': previous['asOf'], 'asOf': current['asOf'],
+            'unit': 'pp', 'industries': rows}
 
 
 def save_snapshot(payload, output_path):
@@ -220,6 +256,12 @@ def main(argv: list[str] | None = None) -> int:
         "industries": industries,
     }
 
+    # The last available observation before the current week, not an assumed
+    # seven-day offset: holidays can leave a longer interval between snapshots.
+    before = (date.fromisoformat(payload['asOf']) - timedelta(days=1)).isoformat()
+    previous_raw = fetch_json(args.base_url, 'v1/pefidx/snapshot', api_key,
+                              {'category': 'industry', 'index': args.index, 'date': before}, args.timeout)
+    payload['comparison'] = build_weekly_comparison(payload, previous_raw)
     save_snapshot(payload, output_path)
 
     print(
