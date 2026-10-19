@@ -948,12 +948,12 @@ def long_value(raw, value_name):
     return result.dropna(subset=[value_name])
 
 
-def fetch_etf_flows(as_of):
+def fetch_etf_flows(as_of, *, start_date=None):
     broad_ids = select_broad_etfs(as_of)
     ids = sorted(set(broad_ids) | set(FOCUS_ETFS))
     if not ids:
         return {}, [], []
-    start = as_of - timedelta(days=FIVE_YEAR_CALENDAR_DAYS + 10)
+    start = start_date or (as_of - timedelta(days=FIVE_YEAR_CALENDAR_DAYS + 10))
     units_parts = []
     price_parts = []
     for ids_batch in batch(ids, 300):
@@ -977,6 +977,7 @@ def fetch_etf_flows(as_of):
             "broadEtfFlow5D": round(float(sum(values[-5:])), 3),
             "broadEtfFlow20D": round(float(sum(values[-20:])), 3),
             "broadEtfCount": len(broad_ids),
+            "broadEtfAsOf": daily.iloc[-1]['date'].isoformat(),
         }
         series = [
             {"date": item["date"].isoformat(), "value": round(float(item["flow"]), 3)}
