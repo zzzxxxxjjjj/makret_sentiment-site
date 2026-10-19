@@ -16,10 +16,10 @@
   "hs300Distance100dAsOf": "2026-10-16",
   "allShareDistance100d": -12.067,
   "allShareDistance100dAsOf": "2026-10-16",
-  "financingAsOf": "2026-10-15",
-  "financingNet": -313.243,
-  "financingBalance": 24661.609,
-  "financingActivity": 7.847,
+  "financingAsOf": "2026-10-16",
+  "financingNet": -144.042,
+  "financingBalance": 24517.567,
+  "financingActivity": 8.101,
   "landConnectTurnoverAsOf": "2024-08-16",
   "landConnectTurnover": 920.576,
   "landConnectTurnoverMA5": 866.586,
@@ -124948,6 +124948,10 @@
         {
           "date": "2026-10-15",
           "value": -313.243
+        },
+        {
+          "date": "2026-10-16",
+          "value": -144.042
         }
       ]
     },
@@ -129995,6 +129999,10 @@
         {
           "date": "2026-10-15",
           "value": 7.847
+        },
+        {
+          "date": "2026-10-16",
+          "value": 8.101
         }
       ]
     },
@@ -135042,6 +135050,10 @@
         {
           "date": "2026-10-15",
           "value": 1238.296
+        },
+        {
+          "date": "2026-10-16",
+          "value": 1213.26
         }
       ]
     },
@@ -140089,6 +140101,10 @@
         {
           "date": "2026-10-15",
           "value": 15781.342
+        },
+        {
+          "date": "2026-10-16",
+          "value": 14976.97
         }
       ]
     },
@@ -145136,6 +145152,10 @@
         {
           "date": "2026-10-15",
           "value": 24661.609
+        },
+        {
+          "date": "2026-10-16",
+          "value": 24517.567
         }
       ]
     },
