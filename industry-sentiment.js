@@ -388,46 +388,11 @@ function renderFundChanges(payload) {
 function renderFundOverweight() {
   const payload = fundOwState.payload;
   renderFundChanges(payload);
-  const rows = Array.isArray(payload?.industries) ? payload.industries : [];
-  const empty = el('fundOwEmpty');
-
-  if (!rows.length) {
-    empty.hidden = false;
-    el('fundOwAsOf').textContent = '暂无快照';
-    el('fundOwTopListNote').textContent = 'over_pp > 0 的行业';
-    el('fundOwUnderListNote').textContent = 'over_pp < 0 的行业';
-    el('fundOwTopList').innerHTML = '';
-    el('fundOwUnderList').innerHTML = '';
-    return;
-  }
-  empty.hidden = true;
-
-  const scale = Math.max(...rows.map(item => Math.abs(numeric(item.overPp) ?? 0)), 0.0001);
-  const byOver = [...rows].sort((a, b) => b.overPp - a.overPp);
-  const overRows = byOver.filter(item => Number(item.overPp) > 0);
-  const underRows = byOver.filter(item => Number(item.overPp) < 0);
-  const top = overRows.slice(0, 10);
-  const under = underRows.slice(-10).reverse();
-
-  el('fundOwAsOf').textContent = `${payload.asOf || '—'} · ${payload.indexName || ''}（${payload.index || ''}）· 周频`;
-
-  const renderList = list => list.map(item => {
-    const value = numeric(item.overPp);
-    return `<div class="fund-ow-row">
-      <span class="fund-ow-row-name">${esc(item.name)}</span>
-      ${fundOwBar(item.overPp, scale, 'fund-ow-row-bar')}
-      <strong class="${signClass(value)}">${signed(value, 2)}pp</strong>
-      <em title="行业权重 wgt_eq / 全市场自由流通市值占比 mkt">${fmt(item.wgtEq, 2)}% / ${fmt(item.mkt, 2)}%</em>
-    </div>`;
-  }).join('');
-  el('fundOwTopListNote').textContent = overRows.length
-    ? `over_pp > 0 的 ${overRows.length} 个行业${overRows.length > top.length ? `（显示前 ${top.length} 个）` : ''}`
-    : '当前无行业超配';
-  el('fundOwUnderListNote').textContent = underRows.length
-    ? `over_pp < 0 的 ${underRows.length} 个行业（显示最低的 ${under.length} 个）`
-    : '当前无行业低配';
-  el('fundOwTopList').innerHTML = top.length ? renderList(top) : '<div class="fund-ow-row-empty">当前没有超配行业</div>';
-  el('fundOwUnderList').innerHTML = under.length ? renderList(under) : '<div class="fund-ow-row-empty">当前没有低配行业</div>';
+  const available = Array.isArray(payload?.industries) && payload.industries.length > 0;
+  el('fundOwEmpty').hidden = available;
+  el('fundOwAsOf').textContent = available
+    ? `${payload.asOf || '—'} · ${payload.indexName || ''}（${payload.index || ''}）· 周频`
+    : '暂无快照';
 }
 
 async function loadFundOverweight() {

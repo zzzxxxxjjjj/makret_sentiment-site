@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>中信一级行业情绪｜A股市场情绪</title>
   <link rel="stylesheet" href="/styles.css?v=20261016-position">
-  <link rel="stylesheet" href="/industry-sentiment.css?v=20261019-fund-change">
+  <link rel="stylesheet" href="/industry-sentiment.css?v=20261019-fund-change-only">
 </head>
 <body>
   <header class="topbar">
@@ -125,29 +125,14 @@
       <div class="panel-head">
         <div>
           <p class="eyebrow">PUBLIC FUND OVERWEIGHT / SW LEVEL-1</p>
-          <h2>公募偏股基金行业超配（Top 超配 · Top 低配）</h2>
+          <h2>超配 / 低配周度变化</h2>
         </div>
         <span id="fundOwAsOf" class="fund-ow-asof">—</span>
       </div>
 
-      <div class="fund-ow-lists">
-        <article class="fund-ow-card">
-          <div class="fund-ow-card-head">
-            <div><h3>Top 超配</h3><span id="fundOwTopListNote">over_pp 最高的 10 个行业</span></div>
-          </div>
-          <div id="fundOwTopList" class="fund-ow-rows"></div>
-        </article>
-        <article class="fund-ow-card">
-          <div class="fund-ow-card-head">
-            <div><h3>Top 低配</h3><span id="fundOwUnderListNote">over_pp 最低的 10 个行业</span></div>
-          </div>
-          <div id="fundOwUnderList" class="fund-ow-rows"></div>
-        </article>
-      </div>
-
       <div id="fundChangePanel" class="fund-change-panel">
         <div class="fund-ow-table-head">
-          <div><h3>超配 / 低配周度变化</h3><span id="fundChangeDates">正在读取最近两期数据</span></div>
+          <div><span id="fundChangeDates">正在读取最近两期数据</span></div>
           <span>按超配变化排序 · 单位：百分点（pp）</span>
         </div>
         <div class="fund-ow-lists">
@@ -163,18 +148,14 @@
         <p class="fund-ow-note">变化 = 本期超配 − 上期超配。每行同时列出基金配置与市场基准的变化；相对超配变化包含基准权重变化，不等同于基金买卖金额。</p>
       </div>
 
-      <p id="fundOwEmpty" class="fund-ow-empty" hidden>暂无公募偏股基金超配数据，请运行 rqdata_fund_exposure_refresh.py 生成 rqdata-fund-exposure.json。</p>
+      <p id="fundOwEmpty" class="fund-ow-empty" hidden>暂无可用的公募基金周度数据。</p>
 
-      <p class="fund-ow-note">
-        口径：<b>行业权重 wgt_eq</b> 为权益内占比（31 个行业合计 100）；<b>全市场自由流通市值占比 mkt</b> 为超配的比较基准（合计 100）；
-        <b>over_pp</b> = wgt_eq − mkt，单位百分点。幅度带：|over_pp| ≥ 5pp 为大幅，2–5pp 明显，0.5–2pp 温和，&lt; 0.5pp 大致中性。
-        超配 / 低配是相对基准的持仓暴露状态，不构成单独买卖建议。数据源：AIDO Research（东北证券金融工程），周频，申万一级行业口径。
-      </p>
+      <p class="fund-ow-note">数据源：AIDO Research（东北证券金融工程）· 偏股混合型基金指数（885001）· 申万一级 · 周频。</p>
     </section>
 
     <p class="industry-note">行业口径：中信2019行业。主动资金净额＝成分股主动买入额－主动卖出额；拥挤度采用近250日滚动分位，数值越高表示交易和价格动量越集中。</p>
   </main>
-  <script src="/industry-sentiment.js?v=20261019-fund-change" defer></script>
+  <script src="/industry-sentiment.js?v=20261019-fund-change-only" defer></script>
   <script src="/industry-flow-trend.js?v=20261016-3" defer></script>
   <script src="/industry-rotation-history.js?v=20261016-4" defer></script>
   <script src="/data-health.js?v=20261016-1" defer></script>
