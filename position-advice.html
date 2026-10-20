@@ -7,6 +7,7 @@
   <script src="/theme.js?v=1"></script>
   <link rel="stylesheet" href="/styles.css?v=20261016-position">
   <link rel="stylesheet" href="/position-advice.css?v=2">
+  <link rel="stylesheet" href="/style-crowding.css?v=1">
 </head>
 <body>
   <header class="topbar">
@@ -41,8 +42,19 @@
 
       <details class="panel position-method"><summary>查看评分与定仓口径</summary><ul id="methodNotes"></ul><p class="position-caption">评分和仓位来自已核验研究快照；页面重新读取保存的数据，不在浏览器中运行策略或获取实时行情。</p><p id="sourceNote" class="position-caption"></p></details>
     </div>
+
+    <section class="panel crowding-panel" aria-labelledby="crowdingTitle">
+      <div class="panel-head"><div><p class="eyebrow">STYLE CROWDING / RISK CONTEXT</p><h2 id="crowdingTitle">风格拥挤度 · 风险与信心提示</h2><p class="section-description">综合分及四个分项观察交易风险，轮盘沿用原有评分和排序。</p></div><span id="crowdingDate" class="crowding-date">正在读取数据</span></div>
+      <p id="crowdingError" class="position-caption" role="status">正在读取风格拥挤度。</p>
+      <div id="crowdingData" hidden>
+        <p id="crowdingConfidence" class="crowding-confidence" aria-live="polite"></p>
+        <div class="crowding-table-wrap"><table aria-label="风格拥挤度"><thead><tr><th scope="col">风格因子</th><th scope="col">综合分（标准差）</th><th scope="col">历史分位</th><th scope="col">分档</th><th scope="col">较对比日变化</th><th scope="col">主要拥挤分项</th></tr></thead><tbody id="crowdingRows"></tbody></table></div>
+      </div>
+      <details><summary>查看信心调整口径</summary><p class="position-caption">综合分 ≥1.5 为显著拥挤，≥1 为偏拥挤；≤−1.5 为显著低位，≤−1 为偏低位，其余为中性。分档按标准差统一判断，历史分位单独展示。高拥挤时增加审慎提示，低拥挤不自动提高信心；数据滞后时暂停调整。因子多空方向尚未核验，不将大小盘因子的高低分直接解释为大盘或小盘拥挤。轮盘代理指数与因子口径不同，暂不做单侧映射。当前未将拥挤度纳入轮盘评分、五维投票或仓位；方向核验和历史检验完成后再评估。数据来源：AIDO Research · 东北证券金融工程。</p></details>
+    </section>
   </main>
   <footer><span>研究信号用于组合观察，不构成收益或回撤保证</span><span id="generatedAt">—</span></footer>
   <script src="/position-advice.js?v=2" defer></script>
+  <script src="/style-crowding.js?v=1" defer></script>
 </body>
 </html>

@@ -16,6 +16,7 @@ from publication_filters import without_northbound
 
 BASE_DIR = Path(__file__).resolve().parent
 WEB_FILES = (
+    "style-crowding.js", "style-crowding.css",
     "index.html", "app.js", "styles.css", "cycle.css", "theme.js",
     "industry-sentiment.html", "industry-sentiment.js",
     "industry-flow-trend.js", "industry-sentiment.css", "industry-rotation-history.js", "data-health.js",
@@ -26,6 +27,7 @@ WEB_FILES = (
 )
 REQUIRED_DATA = ("rqdata-broad-sentiment.json", "rqdata-industry-sentiment.json")
 OPTIONAL_DATA = {
+    "style-crowding.json": {"available": False, "asOf": None, "factors": []},
     "position-advice.json": {
         "available": False, "asOf": None,
         "note": "当前发布版本尚未包含已核验的择时观点数据。",

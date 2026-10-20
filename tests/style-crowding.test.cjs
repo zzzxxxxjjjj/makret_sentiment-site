@@ -1,0 +1,18 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const {validate, band, assess} = require('../style-crowding.js');
+const data = JSON.parse(fs.readFileSync('style-crowding.json','utf8'));
+validate(data);
+assert.deepEqual([-1.5,-1,0,1,1.5].map(band),['显著低位','偏低位','中性','偏拥挤','显著拥挤']);
+const base=structuredClone(data);base.factors.forEach(r=>r.crowding_score=0);
+assert.match(assess(base,base.asOf,base.asOf).text,/保持原判断/);
+base.factors[0].crowding_score=1.5;
+assert.match(assess(base,base.asOf,base.asOf).text,/审慎解读/);
+assert.match(assess(base,base.asOf,base.asOf).text,/暂不定位轮盘哪一侧/);
+assert.equal(assess(base,'2026-10-20','2026-10-20').stale,true);
+assert.equal(assess(base,base.asOf,'2026-10-26').stale,true);
+assert.equal(assess(base,base.asOf,'2026-10-18').stale,true);
+const before=JSON.stringify(base);assess(base,base.asOf,base.asOf);assert.equal(JSON.stringify(base),before);
+const bad=structuredClone(data);bad.factors[0].crowding_score=null;assert.throws(()=>validate(bad));
+bad.factors[0].crowding_score=0;bad.factors[0].directionVerified=true;assert.throws(()=>validate(bad));
+console.log('PASS: risk-only confidence, date guards, invalid data and unverified direction');
