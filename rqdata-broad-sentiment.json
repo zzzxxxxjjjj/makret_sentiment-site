@@ -16,16 +16,16 @@
   "hs300Distance100dAsOf": "2026-10-19",
   "allShareDistance100d": -11.862,
   "allShareDistance100dAsOf": "2026-10-19",
-  "financingAsOf": "2026-10-16",
-  "financingNet": -144.042,
-  "financingBalance": 24517.567,
-  "financingActivity": 8.101,
+  "financingAsOf": "2026-10-19",
+  "financingNet": -62.597,
+  "financingBalance": 24454.97,
+  "financingActivity": 8.567,
   "landConnectTurnoverAsOf": "2024-08-16",
   "landConnectTurnover": 920.576,
   "landConnectTurnoverMA5": 866.586,
-  "broadEtfFlow1D": 130.928,
-  "broadEtfFlow5D": 762.918,
-  "broadEtfFlow20D": 1227.408,
+  "broadEtfFlow1D": 184.368,
+  "broadEtfFlow5D": 816.358,
+  "broadEtfFlow20D": 1280.848,
   "broadEtfCount": 261,
   "broadEtfAsOf": "2026-10-19",
   "dragonTigerNetInflow20D": 285.797,
@@ -14705,11 +14705,11 @@
       "index": "创业板50",
       "group": "科技成长主线",
       "orderBookId": "159949.XSHE",
-      "asOf": "2026-10-16",
-      "flow1D": -0.72,
-      "flow5D": 18.091,
-      "flow20D": 30.225,
-      "close": 1.285,
+      "asOf": "2026-10-19",
+      "flow1D": 3.205,
+      "flow5D": 19.769,
+      "flow20D": 31.112,
+      "close": 1.272,
       "points": [
         {
           "date": "2021-10-11",
@@ -19578,6 +19578,10 @@
         {
           "date": "2026-10-16",
           "value": -0.72
+        },
+        {
+          "date": "2026-10-19",
+          "value": 3.205
         }
       ]
     },
@@ -19587,11 +19591,11 @@
       "index": "创业板指",
       "group": "科技成长主线",
       "orderBookId": "159915.XSHE",
-      "asOf": "2026-10-16",
-      "flow1D": 12.997,
-      "flow5D": 111.797,
-      "flow20D": 191.949,
-      "close": 2.789,
+      "asOf": "2026-10-19",
+      "flow1D": 22.096,
+      "flow5D": 127.808,
+      "flow20D": 206.227,
+      "close": 2.762,
       "points": [
         {
           "date": "2021-10-11",
@@ -24460,6 +24464,10 @@
         {
           "date": "2026-10-16",
           "value": 12.997
+        },
+        {
+          "date": "2026-10-19",
+          "value": 22.096
         }
       ]
     },
@@ -125017,6 +125025,10 @@
         {
           "date": "2026-10-16",
           "value": -144.042
+        },
+        {
+          "date": "2026-10-19",
+          "value": -62.597
         }
       ]
     },
@@ -130064,6 +130076,10 @@
         {
           "date": "2026-10-16",
           "value": 8.101
+        },
+        {
+          "date": "2026-10-19",
+          "value": 8.567
         }
       ]
     },
@@ -135111,6 +135127,10 @@
         {
           "date": "2026-10-16",
           "value": 1213.26
+        },
+        {
+          "date": "2026-10-19",
+          "value": 1178.7
         }
       ]
     },
@@ -140158,6 +140178,10 @@
         {
           "date": "2026-10-16",
           "value": 14976.97
+        },
+        {
+          "date": "2026-10-19",
+          "value": 13759.075
         }
       ]
     },
@@ -145205,6 +145229,10 @@
         {
           "date": "2026-10-16",
           "value": 24517.567
+        },
+        {
+          "date": "2026-10-19",
+          "value": 24454.97
         }
       ]
     },
@@ -215114,7 +215142,7 @@
         },
         {
           "date": "2026-10-19",
-          "value": 130.928
+          "value": 184.368
         }
       ]
     },
