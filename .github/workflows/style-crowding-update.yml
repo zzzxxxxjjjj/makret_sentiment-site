@@ -41,6 +41,7 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_style_crowding.py'
           node tests/style-crowding.test.cjs
+          node tests/style-crowding-chart.test.cjs
       - name: Fetch style crowding with retries
         env:
           AIDO_API_KEY: ${{ secrets.AIDO_API_KEY }}

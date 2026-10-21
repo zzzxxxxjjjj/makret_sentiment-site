@@ -2,7 +2,7 @@ import copy
 import unittest
 import urllib.error
 
-from aido_style_crowding_refresh import CODES, FIELDS, band, build_snapshot, validate_snapshot
+from aido_style_crowding_refresh import CODES, FIELDS, band, build_snapshot, build_chart, validate_snapshot
 from aido_crowding_cloud_sync import publish
 from test_fund_exposure_cloud_sync import FakeGitHub
 
@@ -13,6 +13,14 @@ def raw(day='2026-10-19'):
 
 
 class CrowdingTests(unittest.TestCase):
+    def test_chart_uses_aligned_observation_means_not_sums(self):
+        histories={code:{'code':code,'category':'style','data':[{'trade_date':f'2026-09-{i:02d}','crowding_score':float(i)} for i in range(1,26)]} for code in CODES}
+        chart=build_chart(histories,'2026-09-25')
+        self.assertEqual([p['values']['SIZE'] for p in chart['periods']],[23,18,15.5])
+        self.assertEqual([p['count'] for p in chart['periods']],[5,5,20])
+        histories['SIZE']['data'][-1]['crowding_score']=None
+        with self.assertRaises(ValueError):build_chart(histories,'2026-09-25')
+
     def test_actual_dates_changes_and_no_direction_claims(self):
         latest, previous = raw(), raw('2026-10-08')
         latest['data'][0]['crowding_score'] = 1.5

@@ -64,6 +64,33 @@ def build_snapshot(latest, previous=None):
             'directionStatus': 'unverified', 'factors': sorted(items, key=lambda r: -r['crowding_score'])}
 
 
+def build_chart(histories, as_of):
+    """Trailing observation means, not accumulated scores or excess returns."""
+    dates = None
+    clean = {}
+    for code in sorted(CODES):
+        response = histories[code]
+        if response.get('code') != code or response.get('category') != 'style':
+            raise ValueError('History identity mismatch')
+        points = {}
+        for row in response.get('data', []):
+            day, value = row.get('trade_date'), row.get('crowding_score')
+            date.fromisoformat(day)
+            if day > as_of or day in points or isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                raise ValueError('Invalid historical observation')
+            points[day] = value
+        clean[code] = points
+        dates = set(points) if dates is None else dates & set(points)
+    dates = sorted(dates or [])
+    if len(dates) < 20 or dates[-1] != as_of:
+        raise ValueError('History lacks 20 aligned observations through latest date')
+    groups = [('week', '近一周', dates[-5:]), ('previousWeek', '上一周', dates[-10:-5]), ('month', '近一月', dates[-20:])]
+    return {'method': 'observation-mean', 'unit': '标准差', 'periods': [
+        {'id': key, 'label': label, 'start': ds[0], 'end': ds[-1], 'count': len(ds),
+         'values': {code: round(sum(clean[code][d] for d in ds)/len(ds), 6) for code in sorted(CODES)}}
+        for key, label, ds in groups]}
+
+
 def validate_snapshot(data):
     if data.get('available') is not True or data.get('mode') != 'risk-only' or data.get('directionStatus') != 'unverified':
         raise ValueError('Invalid crowding snapshot mode')
@@ -81,6 +108,17 @@ def validate_snapshot(data):
             if isinstance(change, bool) or not isinstance(change, (int, float)) or not math.isfinite(change):
                 raise ValueError('Invalid comparison value')
         elif change is not None: raise ValueError('Change without source date')
+    if 'chart' in data:
+        chart = data['chart']
+        if chart.get('method') != 'observation-mean' or len(chart.get('periods', [])) != 3:
+            raise ValueError('Invalid chart methodology')
+        for period, key, count in zip(chart['periods'], ['week','previousWeek','month'], [5,5,20]):
+            if period.get('id') != key or period.get('count') != count or set(period.get('values',{})) != CODES:
+                raise ValueError('Invalid chart period')
+            if not period['start'] <= period['end'] <= data['asOf']:
+                raise ValueError('Invalid chart dates')
+            if any(isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v) for v in period['values'].values()):
+                raise ValueError('Invalid chart value')
 
 
 def main():
@@ -101,6 +139,8 @@ def main():
     # Snapshot endpoint returns an actual source date; never label it as exactly five sessions.
     prior = fetch('/v1/crowding/snapshot', {'category': 'style', 'date': (date.fromisoformat(as_of)-timedelta(days=7)).isoformat()})
     snapshot = build_snapshot(latest, prior)
+    histories = {code: fetch('/v1/crowding/style/'+code, {'start': (date.fromisoformat(as_of)-timedelta(days=80)).isoformat(), 'end': as_of}) for code in sorted(CODES)}
+    snapshot['chart'] = build_chart(histories, as_of)
     validate_snapshot(snapshot)
     path = Path(args.output)
     if path.exists():
