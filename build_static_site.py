@@ -16,6 +16,7 @@ from publication_filters import without_northbound
 
 BASE_DIR = Path(__file__).resolve().parent
 WEB_FILES = (
+    "style-factor-returns.js",
     "style-crowding-chart.js", "style-crowding-chart.css",
     "style-crowding.js", "style-crowding.css",
     "index.html", "app.js", "styles.css", "cycle.css", "theme.js",
@@ -28,6 +29,7 @@ WEB_FILES = (
 )
 REQUIRED_DATA = ("rqdata-broad-sentiment.json", "rqdata-industry-sentiment.json")
 OPTIONAL_DATA = {
+    "style-factor-returns.json": {"available": False, "asOf": None},
     "style-crowding.json": {"available": False, "asOf": None, "factors": []},
     "position-advice.json": {
         "available": False, "asOf": None,

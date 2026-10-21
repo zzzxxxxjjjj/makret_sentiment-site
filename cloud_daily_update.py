@@ -129,6 +129,7 @@ def main():
     run_stage("rotation_history_refresh.py", ("--output", "rqdata-industry-rotation.json"), required=False)
 
     # These supplementary services may not be included in every RQData license.
+    run_stage("rqdata_style_returns_refresh.py", (), required=False)
     run_stage("rqdata_late_market_refresh.py", ("--output", "rqdata-broad-sentiment.json"), required=False)
     run_stage("rqdata_options_refresh.py", ("--output", "rqdata-options-pcr.json"), required=False)
     run_stage("rqdata_second_industry_flow_refresh.py",

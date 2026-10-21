@@ -43,6 +43,17 @@
       <details class="panel position-method"><summary>查看评分与定仓口径</summary><ul id="methodNotes"></ul><p class="position-caption">评分和仓位来自已核验研究快照；页面重新读取保存的数据，不在浏览器中运行策略或获取实时行情。</p><p id="sourceNote" class="position-caption"></p></details>
     </div>
 
+    <section class="panel crowding-panel" aria-labelledby="factorReturnsTitle">
+      <div class="panel-head"><div><p class="eyebrow">STYLE FACTOR EXCESS RETURNS</p><h2 id="factorReturnsTitle">风格因子超额收益</h2><p class="section-description">RQData v2 · 全市场 · 隐式因子收益，比较三个区间的累计表现。</p></div><span id="factorReturnsDate" class="crowding-date">正在读取数据</span></div>
+      <p id="factorReturnsError" class="position-caption" role="status">正在读取因子收益。</p>
+      <div id="factorReturnsData" hidden>
+        <div id="factorReturnsLegend" class="crowding-legend" aria-label="收益区间图例"></div>
+        <div class="crowding-chart-wrap"><svg id="factorReturnsChart" class="crowding-chart" role="img" aria-label="风格因子三周期超额收益分组柱状图"></svg></div>
+        <p id="factorReturnsTooltip" class="crowding-tooltip" aria-live="polite"></p>
+      </div>
+      <p class="position-caption">近一周为最近5个交易日，上一周为此前5个，近一月为最近20个。区间值按日因子收益算术累加并以百分比展示，是模型控制其他因素后的收益，不等于指数涨跌或可投资组合收益。价值采用账面市值比（B/P），盈利收益率独立列示；RQData与AIDO因子定义不同，不能逐项等同，RQData无“民营企业”因子。来源：RQData风险模型，非MSCI Barra官方收益。</p>
+    </section>
+
     <section class="panel crowding-panel" aria-labelledby="crowdingTitle">
       <div class="panel-head"><div><p class="eyebrow">STYLE FACTOR CROWDING</p><h2 id="crowdingTitle">风格因子拥挤度表现</h2><p class="section-description">近一周、上一周与近一月的平均拥挤度，单位为标准差。</p></div><span id="crowdingDate" class="crowding-date">正在读取数据</span></div>
       <p id="crowdingError" class="position-caption" role="status">正在读取历史拥挤度。</p>
@@ -57,5 +68,6 @@
   <footer><span>研究信号用于组合观察，不构成收益或回撤保证</span><span id="generatedAt">—</span></footer>
   <script src="/position-advice.js?v=2" defer></script>
   <script src="/style-crowding-chart.js?v=1" defer></script>
+  <script src="/style-factor-returns.js?v=1" defer></script>
 </body>
 </html>
