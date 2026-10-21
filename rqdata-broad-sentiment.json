@@ -23,9 +23,9 @@
   "landConnectTurnoverAsOf": "2024-08-16",
   "landConnectTurnover": 920.576,
   "landConnectTurnoverMA5": 866.586,
-  "broadEtfFlow1D": 58.544,
-  "broadEtfFlow5D": 799.342,
-  "broadEtfFlow20D": 1331.201,
+  "broadEtfFlow1D": 80.229,
+  "broadEtfFlow5D": 821.027,
+  "broadEtfFlow20D": 1352.886,
   "broadEtfCount": 262,
   "broadEtfAsOf": "2026-10-20",
   "dragonTigerNetInflow20D": 253.459,
@@ -14717,11 +14717,11 @@
       "index": "创业板50",
       "group": "科技成长主线",
       "orderBookId": "159949.XSHE",
-      "asOf": "2026-10-19",
-      "flow1D": 3.205,
-      "flow5D": 19.769,
-      "flow20D": 31.112,
-      "close": 1.272,
+      "asOf": "2026-10-20",
+      "flow1D": 2.457,
+      "flow5D": 18.623,
+      "flow20D": 32.412,
+      "close": 1.26,
       "points": [
         {
           "date": "2021-10-11",
@@ -19594,6 +19594,10 @@
         {
           "date": "2026-10-19",
           "value": 3.205
+        },
+        {
+          "date": "2026-10-20",
+          "value": 2.457
         }
       ]
     },
@@ -19603,11 +19607,11 @@
       "index": "创业板指",
       "group": "科技成长主线",
       "orderBookId": "159915.XSHE",
-      "asOf": "2026-10-19",
-      "flow1D": 22.096,
-      "flow5D": 127.808,
-      "flow20D": 206.227,
-      "close": 2.762,
+      "asOf": "2026-10-20",
+      "flow1D": 16.729,
+      "flow5D": 122.738,
+      "flow20D": 219.784,
+      "close": 2.756,
       "points": [
         {
           "date": "2021-10-11",
@@ -24480,6 +24484,10 @@
         {
           "date": "2026-10-19",
           "value": 22.096
+        },
+        {
+          "date": "2026-10-20",
+          "value": 16.729
         }
       ]
     },
@@ -215178,7 +215186,7 @@
         },
         {
           "date": "2026-10-20",
-          "value": 58.544
+          "value": 80.229
         }
       ]
     },
