@@ -22088,6 +22088,17 @@
       "newHigh60": 88,
       "newLow60": 187,
       "aboveMa60": 1309
+    },
+    {
+      "date": "2026-10-21",
+      "eligible": 5209,
+      "newHigh": 159,
+      "newLow": 668,
+      "aboveMa20": 1010,
+      "eligible60": 5191,
+      "newHigh60": 87,
+      "newLow60": 321,
+      "aboveMa60": 1228
     }
   ],
   "methodology": {
@@ -22099,35 +22110,35 @@
     "smoothing": "3日指数平滑",
     "phase": "顶部沿用高位回落规则；底部要求近10日曾低于25分、5日回升至少5分，并由净新高广度、均线上方广度或新低收缩至少一项确认"
   },
-  "generatedAt": "2026-10-20T23:07:10",
-  "asOf": "2026-10-20",
-  "score": 23.47,
+  "generatedAt": "2026-10-21T23:16:17",
+  "asOf": "2026-10-21",
+  "score": 27.83,
   "phase": "falling",
   "phaseLabel": "下行",
   "components": {
-    "nhnlBreadth": 34.1,
-    "aboveMaBreadth": 13.9,
-    "nhnlChange": 63.3,
-    "aboveMaChange": 23.4,
-    "nhnlBreadth60": 31.0,
-    "aboveMaBreadth60": 21.0,
-    "breadth60Confirmation": 26.0
+    "nhnlBreadth": 25.3,
+    "aboveMaBreadth": 11.9,
+    "nhnlChange": 86.7,
+    "aboveMaChange": 41.1,
+    "nhnlBreadth60": 24.3,
+    "aboveMaBreadth60": 17.9,
+    "breadth60Confirmation": 21.1
   },
   "metrics": {
-    "eligible": 5210,
-    "newHigh": 166,
-    "newLow": 415,
-    "aboveMa20": 1065,
-    "nhnlBreadth": -4.779,
-    "newHighBreadth": 3.186,
-    "newLowBreadth": 7.965,
-    "aboveMaBreadth": 20.441,
+    "eligible": 5209,
+    "newHigh": 159,
+    "newLow": 668,
+    "aboveMa20": 1010,
+    "nhnlBreadth": -9.772,
+    "newHighBreadth": 3.052,
+    "newLowBreadth": 12.824,
+    "aboveMaBreadth": 19.39,
     "eligible60": 5191,
-    "newHigh60": 88,
-    "newLow60": 187,
-    "aboveMa60": 1309,
-    "nhnlBreadth60": -1.907,
-    "aboveMaBreadth60": 25.217
+    "newHigh60": 87,
+    "newLow60": 321,
+    "aboveMa60": 1228,
+    "nhnlBreadth60": -4.508,
+    "aboveMaBreadth60": 23.656
   },
   "weights": {
     "nhnlBreadth": 35,
@@ -22135,7 +22146,7 @@
     "nhnlChange": 15,
     "aboveMaChange": 15
   },
-  "stockMasterCount": 5581,
+  "stockMasterCount": 5582,
   "points": [
     {
       "date": "2019-01-09",
@@ -80540,6 +80551,37 @@
       },
       "phase": "falling",
       "phaseLabel": "下行"
+    },
+    {
+      "date": "2026-10-21",
+      "sentiment": 27.83,
+      "metrics": {
+        "eligible": 5209,
+        "newHigh": 159,
+        "newLow": 668,
+        "aboveMa20": 1010,
+        "nhnlBreadth": -9.772,
+        "newHighBreadth": 3.052,
+        "newLowBreadth": 12.824,
+        "aboveMaBreadth": 19.39,
+        "eligible60": 5191,
+        "newHigh60": 87,
+        "newLow60": 321,
+        "aboveMa60": 1228,
+        "nhnlBreadth60": -4.508,
+        "aboveMaBreadth60": 23.656
+      },
+      "components": {
+        "nhnlBreadth": 25.3,
+        "aboveMaBreadth": 11.9,
+        "nhnlChange": 86.7,
+        "aboveMaChange": 41.1,
+        "nhnlBreadth60": 24.3,
+        "aboveMaBreadth60": 17.9,
+        "breadth60Confirmation": 21.1
+      },
+      "phase": "falling",
+      "phaseLabel": "下行"
     }
   ],
   "series": [
@@ -88083,6 +88125,10 @@
         {
           "date": "2026-10-20",
           "value": -4.779
+        },
+        {
+          "date": "2026-10-21",
+          "value": -9.772
         }
       ]
     },
@@ -95626,6 +95672,10 @@
         {
           "date": "2026-10-20",
           "value": 20.441
+        },
+        {
+          "date": "2026-10-21",
+          "value": 19.39
         }
       ]
     },
@@ -103169,6 +103219,10 @@
         {
           "date": "2026-10-20",
           "value": -1.907
+        },
+        {
+          "date": "2026-10-21",
+          "value": -4.508
         }
       ]
     },
@@ -110712,6 +110766,10 @@
         {
           "date": "2026-10-20",
           "value": 25.217
+        },
+        {
+          "date": "2026-10-21",
+          "value": 23.656
         }
       ]
     },
@@ -118255,6 +118313,10 @@
         {
           "date": "2026-10-20",
           "value": 26.0
+        },
+        {
+          "date": "2026-10-21",
+          "value": 21.1
         }
       ]
     },
@@ -125798,6 +125860,10 @@
         {
           "date": "2026-10-20",
           "value": 23.47
+        },
+        {
+          "date": "2026-10-21",
+          "value": 27.83
         }
       ]
     }
