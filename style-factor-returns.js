@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  const factors=[['book_to_price','价值（B/P）'],['growth','成长'],['profitability','盈利能力'],['liquidity','流动性'],['dividend_yield','股息率'],['size','规模'],['mid_cap','中盘'],['leverage','杠杆'],['momentum','动量'],['beta','BETA'],['residual_volatility','残差波动'],['earnings_quality','盈利质量'],['earnings_variability','盈利波动'],['investment_quality','投资质量'],['longterm_reversal','长期反转'],['earnings_yield','盈利收益率']];
+  const factors=[['book_to_price','价值'],['growth','成长'],['profitability','盈利能力'],['liquidity','流动性'],['dividend_yield','股息率'],['size','规模'],['mid_cap','中盘'],['leverage','杠杆'],['momentum','动量'],['beta','BETA'],['residual_volatility','残差波动'],['earnings_quality','盈利质量'],['earnings_variability','盈利波动'],['investment_quality','投资质量'],['longterm_reversal','长期反转']];
   const colors=['#ff535a','#538fda','#777e89'];
   function validate(data){
     const ps=data?.chart?.periods;
