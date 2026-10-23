@@ -99,9 +99,12 @@ class LateETFTests(unittest.TestCase):
                     patch.object(late, 'initialize_rqdata'), \
                     patch.object(late, 'completed_trading_date', return_value=TARGET), \
                     patch.object(late, 'fetch_etf_flows', return_value=response()), \
-                    patch.object(late, 'fetch_financing') as finance:
+                    patch.object(late, 'fetch_index_ma_history', return_value=({}, {}, [])), \
+                    patch.object(late, 'recent_trading_dates', return_value=[TARGET]), \
+                    patch.object(late, 'build_index_financing_activity_series', return_value=[]), \
+                    patch.object(late, 'fetch_financing', return_value=({}, [])) as finance:
                 late.main()
-            finance.assert_not_called()
+            finance.assert_called_once()
             saved = json.loads(path.read_text(encoding='utf-8'))
             self.assertEqual(saved['broadEtfAsOf'], '2026-10-16')
             self.assertEqual(saved['broadEtfFlow1D'], 12)

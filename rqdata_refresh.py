@@ -339,6 +339,8 @@ def build_index_financing_activity_series(previous, window_dates):
         if item.get("id") in series_ids
     }
     window_set = set(window_dates)
+    # Recheck observations which may have been cached before publication ended.
+    recheck_dates = set(window_dates[-5:])
     history = {}
     missing_by_series = {}
     for series_id in series_ids:
@@ -350,6 +352,8 @@ def build_index_financing_activity_series(previous, window_dates):
             and pd.to_datetime(item.get("date")).date() in window_set
         }
         history[series_id] = old_values
+        for trading_date in recheck_dates:
+            history[series_id].pop(trading_date, None)
     for _, activity_id, _ in INDEX_FINANCING_ACTIVITY_DEFINITIONS:
         prefix = activity_id.removesuffix("-financing-activity")
         required_ids = (
@@ -360,7 +364,8 @@ def build_index_financing_activity_series(previous, window_dates):
         missing_by_series[activity_id] = [
             trading_date
             for trading_date in window_dates
-            if any(trading_date not in history[metric_id] for metric_id in required_ids)
+            if trading_date in recheck_dates
+            or any(trading_date not in history[metric_id] for metric_id in required_ids)
         ]
 
     active_dates = [
@@ -463,6 +468,12 @@ def build_index_financing_activity_series(previous, window_dates):
                     turnover_parts.append(turnover)
 
             if turnover_parts:
+                eligible_by_date = {}
+                for trading_date in sorted(set(constituents['date'])):
+                    eligible = rq.get_margin_stocks(date=trading_date, margin_type='cash')
+                    if not eligible:
+                        raise ValueError(f'{trading_date}: missing financing eligibility list')
+                    eligible_by_date[trading_date] = set(eligible)
                 turnover = pd.concat(turnover_parts, ignore_index=True)
                 margin = (
                     pd.concat(margin_parts, ignore_index=True)
@@ -483,6 +494,14 @@ def build_index_financing_activity_series(previous, window_dates):
                 for (series_id, trading_date), values in merged.groupby(
                     ["series_id", "date"]
                 ):
+                    prefix = series_id.removesuffix("-financing-activity")
+                    # Remove recent unverified cached observations as well.
+                    # The next refresh retries them, including legitimate zeros.
+                    if trading_date in recheck_dates:
+                        for metric_id in (series_id, f'{prefix}-financing-buy', f'{prefix}-turnover-amount'):
+                            history[metric_id].pop(trading_date, None)
+                    if values['order_book_id'].duplicated().any():
+                        continue
                     valid = values[
                         values["turnover"].notna() & (values["turnover"] > 0)
                     ].copy()
@@ -491,8 +510,11 @@ def build_index_financing_activity_series(previous, window_dates):
                     turnover_sum = valid["turnover"].sum()
                     if turnover_sum <= 0:
                         continue
-                    margin_sum = valid["margin_buy"].fillna(0).sum()
-                    prefix = series_id.removesuffix("-financing-activity")
+                    eligible = valid[valid['order_book_id'].isin(eligible_by_date[trading_date])]
+                    if eligible.empty or eligible['margin_buy'].isna().any() or (eligible['margin_buy'] < 0).any():
+                        continue
+                    # Only non-eligible securities have a structural zero.
+                    margin_sum = eligible['margin_buy'].sum()
                     history[series_id][trading_date] = round(
                         float(margin_sum / turnover_sum * 100), 4
                     )
@@ -520,10 +542,9 @@ def build_index_financing_activity_series(previous, window_dates):
                 for trading_date in window_dates
                 if trading_date in history[series_id]
             ]
-            if points:
-                result.append(
-                    {"id": series_id, "name": series_name, "unit": unit, "points": points}
-                )
+            result.append(
+                {"id": series_id, "name": series_name, "unit": unit, "points": points}
+            )
     return result
 
 
@@ -619,6 +640,24 @@ def fetch_financing(as_of, all_share_turnover):
     numeric_cols = [name for name in ("margin_balance", "buy_on_margin_value", "margin_repayment", "total_balance") if name in raw.columns]
     for name in numeric_cols:
         raw[name] = pd.to_numeric(raw[name], errors="coerce")
+    # Exchanges publish independently. Never divide one exchange's margin
+    # purchases by the full market turnover, or treat missing fields as zero.
+    if "order_book_id" not in raw.columns:
+        raise ValueError("融资数据缺少交易所标识，无法确认沪深数据完整性")
+    required = ["margin_balance", "buy_on_margin_value", "margin_repayment"]
+    if not all(name in raw.columns for name in required):
+        raise ValueError("融资数据缺少必要字段")
+    raw = raw[raw["order_book_id"].isin(["XSHG", "XSHE"])].copy()
+    complete_dates = []
+    for dt, rows in raw.groupby(dt_col):
+        if (len(rows) == 2 and set(rows["order_book_id"]) == {"XSHG", "XSHE"}
+                and rows[required].notna().all().all()
+                and (rows[required] >= 0).all().all()
+                and (rows["margin_balance"] > 0).all()):
+            complete_dates.append(dt)
+    raw = raw[raw[dt_col].isin(complete_dates)]
+    if raw.empty:
+        raise ValueError("暂无沪深两市完整融资数据，等待补齐后重试")
     daily = raw.groupby(dt_col, as_index=False)[numeric_cols].sum().sort_values(dt_col)
     if daily.empty:
         return {}, []

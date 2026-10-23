@@ -97,7 +97,6 @@ def main():
     target = completed_trading_date(rq)
     etf_changed = retry_etf(payload, target)
     series = {item["id"]: item for item in payload.get("series", [])}
-    required = ["financing-activity", *[item[1] for item in INDEX_FINANCING_ACTIVITY_DEFINITIONS]]
     def current(sid):
         points = series.get(sid, {}).get("points", [])
         return latest_point_date(points) == target.isoformat()
@@ -108,16 +107,16 @@ def main():
             updates.extend(item for item in index_series if item['id']=='star50-close')
         except Exception as exc:
             print(f'Index retry retained prior data: {safe_error(exc)}', flush=True)
-    if not all(current(sid) for sid in required):
-        try:
-            _, turnover, _ = fetch_index_ma_history(target)
-            metrics, incoming = fetch_financing(target, turnover)
-            payload.update(metrics)
-            updates.extend(incoming)
-            dates = recent_trading_dates(target, FIVE_YEAR_TRADING_DAYS)
-            updates.extend(build_index_financing_activity_series(payload, dates))
-        except Exception as exc:
-            print(f"Financing retry retained prior data: {safe_error(exc)}", flush=True)
+    # Recheck recently cached financing values for incomplete publication.
+    try:
+        _, turnover, _ = fetch_index_ma_history(target)
+        metrics, incoming = fetch_financing(target, turnover)
+        payload.update(metrics)
+        updates.extend(incoming)
+        dates = recent_trading_dates(target, FIVE_YEAR_TRADING_DAYS)
+        updates.extend(build_index_financing_activity_series(payload, dates))
+    except Exception as exc:
+        print(f"Financing retry retained prior data: {safe_error(exc)}", flush=True)
     if not current("land-connect-turnover-ma20"):
         try:
             metrics, incoming = fetch_land_connect_flow(target)
@@ -130,7 +129,10 @@ def main():
     if updates or etf_changed:
         for item in updates:
             sid = item["id"]
-            series[sid] = {**item, "points": merge_points(series.get(sid, {}).get("points", []), item.get("points", []))}
+            if sid.endswith(('-financing-activity', '-financing-buy', '-turnover-amount')) or sid in {'financing-activity', 'financing-net', 'financing-balance'}:
+                series[sid] = item
+            else:
+                series[sid] = {**item, "points": merge_points(series.get(sid, {}).get("points", []), item.get("points", []))}
         payload["series"] = list(series.values())
         temporary = path.with_suffix(".json.tmp")
         temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
