@@ -22061,7 +22061,7 @@
       "eligible": 5208,
       "newHigh": 117,
       "newLow": 1112,
-      "aboveMa20": 903,
+      "aboveMa20": 902,
       "eligible60": 5190,
       "newHigh60": 70,
       "newLow60": 505,
@@ -22083,7 +22083,7 @@
       "eligible": 5210,
       "newHigh": 166,
       "newLow": 415,
-      "aboveMa20": 1066,
+      "aboveMa20": 1065,
       "eligible60": 5191,
       "newHigh60": 88,
       "newLow60": 187,
@@ -22110,6 +22110,17 @@
       "newHigh60": 57,
       "newLow60": 1188,
       "aboveMa60": 817
+    },
+    {
+      "date": "2026-10-23",
+      "eligible": 5213,
+      "newHigh": 276,
+      "newLow": 503,
+      "aboveMa20": 1024,
+      "eligible60": 5193,
+      "newHigh60": 134,
+      "newLow60": 164,
+      "aboveMa60": 1044
     }
   ],
   "methodology": {
@@ -22121,35 +22132,35 @@
     "smoothing": "3日指数平滑",
     "phase": "顶部沿用高位回落规则；底部要求近10日曾低于25分、5日回升至少5分，并由净新高广度、均线上方广度或新低收缩至少一项确认"
   },
-  "generatedAt": "2026-10-22T23:19:05",
-  "asOf": "2026-10-22",
-  "score": 23.44,
-  "phase": "bottom",
-  "phaseLabel": "底部",
+  "generatedAt": "2026-10-23T23:06:18",
+  "asOf": "2026-10-23",
+  "score": 30.32,
+  "phase": "falling",
+  "phaseLabel": "下行",
   "components": {
-    "nhnlBreadth": 3.4,
-    "aboveMaBreadth": 3.7,
-    "nhnlChange": 67.3,
-    "aboveMaChange": 43.3,
-    "nhnlBreadth60": 6.7,
-    "aboveMaBreadth60": 7.5,
-    "breadth60Confirmation": 7.1
+    "nhnlBreadth": 35.1,
+    "aboveMaBreadth": 12.6,
+    "nhnlChange": 79.5,
+    "aboveMaChange": 57.1,
+    "nhnlBreadth60": 36.3,
+    "aboveMaBreadth60": 12.5,
+    "breadth60Confirmation": 24.4
   },
   "metrics": {
-    "eligible": 5211,
-    "newHigh": 113,
-    "newLow": 2751,
-    "aboveMa20": 608,
-    "nhnlBreadth": -50.624,
-    "newHighBreadth": 2.168,
-    "newLowBreadth": 52.792,
-    "aboveMaBreadth": 11.668,
-    "eligible60": 5192,
-    "newHigh60": 57,
-    "newLow60": 1188,
-    "aboveMa60": 817,
-    "nhnlBreadth60": -21.784,
-    "aboveMaBreadth60": 15.736
+    "eligible": 5213,
+    "newHigh": 276,
+    "newLow": 503,
+    "aboveMa20": 1024,
+    "nhnlBreadth": -4.354,
+    "newHighBreadth": 5.294,
+    "newLowBreadth": 9.649,
+    "aboveMaBreadth": 19.643,
+    "eligible60": 5193,
+    "newHigh60": 134,
+    "newLow60": 164,
+    "aboveMa60": 1044,
+    "nhnlBreadth60": -0.578,
+    "aboveMaBreadth60": 20.104
   },
   "weights": {
     "nhnlBreadth": 35,
@@ -80477,11 +80488,11 @@
         "eligible": 5208,
         "newHigh": 117,
         "newLow": 1112,
-        "aboveMa20": 903,
+        "aboveMa20": 902,
         "nhnlBreadth": -19.105,
         "newHighBreadth": 2.247,
         "newLowBreadth": 21.352,
-        "aboveMaBreadth": 17.339,
+        "aboveMaBreadth": 17.32,
         "eligible60": 5190,
         "newHigh60": 70,
         "newLow60": 505,
@@ -80539,11 +80550,11 @@
         "eligible": 5210,
         "newHigh": 166,
         "newLow": 415,
-        "aboveMa20": 1066,
+        "aboveMa20": 1065,
         "nhnlBreadth": -4.779,
         "newHighBreadth": 3.186,
         "newLowBreadth": 7.965,
-        "aboveMaBreadth": 20.461,
+        "aboveMaBreadth": 20.441,
         "eligible60": 5191,
         "newHigh60": 88,
         "newLow60": 187,
@@ -80624,6 +80635,37 @@
       },
       "phase": "bottom",
       "phaseLabel": "底部"
+    },
+    {
+      "date": "2026-10-23",
+      "sentiment": 30.32,
+      "metrics": {
+        "eligible": 5213,
+        "newHigh": 276,
+        "newLow": 503,
+        "aboveMa20": 1024,
+        "nhnlBreadth": -4.354,
+        "newHighBreadth": 5.294,
+        "newLowBreadth": 9.649,
+        "aboveMaBreadth": 19.643,
+        "eligible60": 5193,
+        "newHigh60": 134,
+        "newLow60": 164,
+        "aboveMa60": 1044,
+        "nhnlBreadth60": -0.578,
+        "aboveMaBreadth60": 20.104
+      },
+      "components": {
+        "nhnlBreadth": 35.1,
+        "aboveMaBreadth": 12.6,
+        "nhnlChange": 79.5,
+        "aboveMaChange": 57.1,
+        "nhnlBreadth60": 36.3,
+        "aboveMaBreadth60": 12.5,
+        "breadth60Confirmation": 24.4
+      },
+      "phase": "falling",
+      "phaseLabel": "下行"
     }
   ],
   "series": [
@@ -88175,6 +88217,10 @@
         {
           "date": "2026-10-22",
           "value": -50.624
+        },
+        {
+          "date": "2026-10-23",
+          "value": -4.354
         }
       ]
     },
@@ -95709,7 +95755,7 @@
         },
         {
           "date": "2026-10-16",
-          "value": 17.339
+          "value": 17.32
         },
         {
           "date": "2026-10-19",
@@ -95717,7 +95763,7 @@
         },
         {
           "date": "2026-10-20",
-          "value": 20.461
+          "value": 20.441
         },
         {
           "date": "2026-10-21",
@@ -95726,6 +95772,10 @@
         {
           "date": "2026-10-22",
           "value": 11.668
+        },
+        {
+          "date": "2026-10-23",
+          "value": 19.643
         }
       ]
     },
@@ -103277,6 +103327,10 @@
         {
           "date": "2026-10-22",
           "value": -21.784
+        },
+        {
+          "date": "2026-10-23",
+          "value": -0.578
         }
       ]
     },
@@ -110828,6 +110882,10 @@
         {
           "date": "2026-10-22",
           "value": 15.736
+        },
+        {
+          "date": "2026-10-23",
+          "value": 20.104
         }
       ]
     },
@@ -118379,6 +118437,10 @@
         {
           "date": "2026-10-22",
           "value": 7.1
+        },
+        {
+          "date": "2026-10-23",
+          "value": 24.4
         }
       ]
     },
@@ -125930,6 +125992,10 @@
         {
           "date": "2026-10-22",
           "value": 23.44
+        },
+        {
+          "date": "2026-10-23",
+          "value": 30.32
         }
       ]
     }
