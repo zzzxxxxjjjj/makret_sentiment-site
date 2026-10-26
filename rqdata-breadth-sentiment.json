@@ -22121,6 +22121,17 @@
       "newHigh60": 134,
       "newLow60": 164,
       "aboveMa60": 1044
+    },
+    {
+      "date": "2026-10-26",
+      "eligible": 5211,
+      "newHigh": 261,
+      "newLow": 1143,
+      "aboveMa20": 1139,
+      "eligible60": 5191,
+      "newHigh60": 112,
+      "newLow60": 545,
+      "aboveMa60": 1105
     }
   ],
   "methodology": {
@@ -22132,35 +22143,35 @@
     "smoothing": "3日指数平滑",
     "phase": "顶部沿用高位回落规则；底部要求近10日曾低于25分、5日回升至少5分，并由净新高广度、均线上方广度或新低收缩至少一项确认"
   },
-  "generatedAt": "2026-10-23T23:06:18",
-  "asOf": "2026-10-23",
-  "score": 30.32,
+  "generatedAt": "2026-10-27T00:49:04",
+  "asOf": "2026-10-26",
+  "score": 30.47,
   "phase": "falling",
   "phaseLabel": "下行",
   "components": {
-    "nhnlBreadth": 35.1,
-    "aboveMaBreadth": 12.6,
-    "nhnlChange": 79.5,
-    "aboveMaChange": 57.1,
-    "nhnlBreadth60": 36.3,
-    "aboveMaBreadth60": 12.5,
-    "breadth60Confirmation": 24.4
+    "nhnlBreadth": 17.1,
+    "aboveMaBreadth": 16.2,
+    "nhnlChange": 66.5,
+    "aboveMaChange": 59.8,
+    "nhnlBreadth60": 16.6,
+    "aboveMaBreadth60": 14.3,
+    "breadth60Confirmation": 15.5
   },
   "metrics": {
-    "eligible": 5213,
-    "newHigh": 276,
-    "newLow": 503,
-    "aboveMa20": 1024,
-    "nhnlBreadth": -4.354,
-    "newHighBreadth": 5.294,
-    "newLowBreadth": 9.649,
-    "aboveMaBreadth": 19.643,
-    "eligible60": 5193,
-    "newHigh60": 134,
-    "newLow60": 164,
-    "aboveMa60": 1044,
-    "nhnlBreadth60": -0.578,
-    "aboveMaBreadth60": 20.104
+    "eligible": 5211,
+    "newHigh": 261,
+    "newLow": 1143,
+    "aboveMa20": 1139,
+    "nhnlBreadth": -16.926,
+    "newHighBreadth": 5.009,
+    "newLowBreadth": 21.934,
+    "aboveMaBreadth": 21.858,
+    "eligible60": 5191,
+    "newHigh60": 112,
+    "newLow60": 545,
+    "aboveMa60": 1105,
+    "nhnlBreadth60": -8.341,
+    "aboveMaBreadth60": 21.287
   },
   "weights": {
     "nhnlBreadth": 35,
@@ -80666,6 +80677,37 @@
       },
       "phase": "falling",
       "phaseLabel": "下行"
+    },
+    {
+      "date": "2026-10-26",
+      "sentiment": 30.47,
+      "metrics": {
+        "eligible": 5211,
+        "newHigh": 261,
+        "newLow": 1143,
+        "aboveMa20": 1139,
+        "nhnlBreadth": -16.926,
+        "newHighBreadth": 5.009,
+        "newLowBreadth": 21.934,
+        "aboveMaBreadth": 21.858,
+        "eligible60": 5191,
+        "newHigh60": 112,
+        "newLow60": 545,
+        "aboveMa60": 1105,
+        "nhnlBreadth60": -8.341,
+        "aboveMaBreadth60": 21.287
+      },
+      "components": {
+        "nhnlBreadth": 17.1,
+        "aboveMaBreadth": 16.2,
+        "nhnlChange": 66.5,
+        "aboveMaChange": 59.8,
+        "nhnlBreadth60": 16.6,
+        "aboveMaBreadth60": 14.3,
+        "breadth60Confirmation": 15.5
+      },
+      "phase": "falling",
+      "phaseLabel": "下行"
     }
   ],
   "series": [
@@ -88221,6 +88263,10 @@
         {
           "date": "2026-10-23",
           "value": -4.354
+        },
+        {
+          "date": "2026-10-26",
+          "value": -16.926
         }
       ]
     },
@@ -95776,6 +95822,10 @@
         {
           "date": "2026-10-23",
           "value": 19.643
+        },
+        {
+          "date": "2026-10-26",
+          "value": 21.858
         }
       ]
     },
@@ -103331,6 +103381,10 @@
         {
           "date": "2026-10-23",
           "value": -0.578
+        },
+        {
+          "date": "2026-10-26",
+          "value": -8.341
         }
       ]
     },
@@ -110886,6 +110940,10 @@
         {
           "date": "2026-10-23",
           "value": 20.104
+        },
+        {
+          "date": "2026-10-26",
+          "value": 21.287
         }
       ]
     },
@@ -118441,6 +118499,10 @@
         {
           "date": "2026-10-23",
           "value": 24.4
+        },
+        {
+          "date": "2026-10-26",
+          "value": 15.5
         }
       ]
     },
@@ -125996,6 +126058,10 @@
         {
           "date": "2026-10-23",
           "value": 30.32
+        },
+        {
+          "date": "2026-10-26",
+          "value": 30.47
         }
       ]
     }
