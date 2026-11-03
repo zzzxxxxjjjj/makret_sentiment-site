@@ -16,6 +16,7 @@ from publication_filters import without_northbound
 
 BASE_DIR = Path(__file__).resolve().parent
 WEB_FILES = (
+    "correlation.js", "correlation.css", "correlation-data.json",
     "style-factor-returns.js",
     "style-crowding-chart.js", "style-crowding-chart.css",
     "style-crowding.js", "style-crowding.css",
