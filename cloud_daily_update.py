@@ -157,6 +157,8 @@ def main():
         errors.append({'source':'shortTerm','error':'Short-term synthesis did not reach target date'})
     payload['synthesisStatus'] = status
     broad_sentiment.save_page_cache(payload)
+    from position_advice_refresh import refresh as refresh_position_advice
+    refresh_position_advice()
     print(json.dumps(status, ensure_ascii=True), flush=True)
     from data_freshness import write_report
     from datetime import date, timedelta
