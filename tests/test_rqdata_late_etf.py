@@ -64,9 +64,19 @@ class LateETFTests(unittest.TestCase):
         data = payload()
         with patch.object(late, 'fetch_etf_flows', return_value=response()):
             late.retry_etf(data, TARGET)
-        with patch.object(late, 'fetch_etf_flows') as fetch:
-            self.assertFalse(late.retry_etf(data, TARGET))
+        with patch.object(late, 'FOCUS_ETFS', {'510300.XSHG': {'code': '510300'}}):
+            with patch.object(late, 'fetch_etf_flows') as fetch:
+                self.assertFalse(late.retry_etf(data, TARGET))
         fetch.assert_not_called()
+
+    def test_current_snapshot_retries_when_new_focus_etf_is_missing(self):
+        data = payload()
+        with patch.object(late, 'fetch_etf_flows', return_value=response()):
+            late.retry_etf(data, TARGET)
+        with patch.object(late, 'FOCUS_ETFS', {'510050.XSHG': {'code': '510050'}}):
+            with patch.object(late, 'fetch_etf_flows', return_value=response()) as fetch:
+                self.assertTrue(late.retry_etf(data, TARGET))
+        fetch.assert_called_once()
 
     def test_lagging_response_does_not_regress_a_newer_detail_close(self):
         data = payload()
