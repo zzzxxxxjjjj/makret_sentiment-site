@@ -100,6 +100,20 @@
       const response = await fetch(`/position-advice.json?t=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error('仓位快照暂时无法读取，请稍后重试。');
       const data = validate(await response.json()); if (request !== state.request) return; render(data);
+      try {
+        const statusResponse = await fetch(`/position-update-status.json?t=${Date.now()}`, { cache: 'no-store' });
+        if (statusResponse.ok) {
+          const status = await statusResponse.json();
+          if (request !== state.request) return;
+          if (status.ok === false) {
+            el('statusText').textContent = `更新失败 · 保留 ${data.asOf} 数据`;
+            el('statusDot').className = 'dot error';
+            el('statusText').title = `${status.message || '数据获取或校验未通过'} 检查时间：${status.checkedAt || '未知'}`;
+          } else if (status.ok === true && status.asOf === data.asOf) {
+            el('statusText').textContent = `自动更新 · ${data.asOf}`;
+          }
+        }
+      } catch (_) { /* Main snapshot remains usable if the status request fails. */ }
     } catch (error) {
       if (request !== state.request) return;
       state.data = null; el('positionContent').hidden = true; el('loadError').hidden = false; el('loadError').textContent = error.message || '研究数据读取失败。'; el('asOf').textContent = '—'; el('decisionDate').textContent = '—'; el('generatedAt').textContent = ''; el('statusDot').className = 'dot error'; el('statusText').textContent = '读取失败';
