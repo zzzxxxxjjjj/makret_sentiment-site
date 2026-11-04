@@ -18,29 +18,29 @@
   <main class="position-main">
     <section class="hero">
       <div><p class="eyebrow">STYLE ROTATION / MARKET TIMING</p><h1>择时观点</h1><p class="summary">查看风格强弱与五个维度的择时观点。</p></div>
-      <div class="hero-meta"><div><span>数据核验日</span><strong id="asOf">—</strong></div><div><span>最近完整周末</span><strong id="decisionDate">—</strong></div><button id="refreshButton" type="button">重新读取</button></div>
+      <div class="hero-meta"><div><span>信号核验日</span><strong id="asOf">—</strong></div><div><span>最近周度决策</span><strong id="decisionDate">—</strong></div><button id="refreshButton" type="button">重新读取</button></div>
     </section>
     <div id="loadError" class="position-error" role="alert" hidden></div>
     <div id="positionContent" hidden>
       <div class="position-grid">
         <section class="panel wheel-panel" aria-labelledby="wheelTitle">
-          <div class="panel-head"><div><p class="eyebrow">RELATIVE STYLE STRENGTH</p><h2 id="wheelTitle">风格观察</h2><p class="section-description">120日实际涨跌；综合评分所需数据不足时保留空缺。</p></div><span class="position-tag">研究观察 v2</span></div>
+          <div class="panel-head"><div><p class="eyebrow">RELATIVE STYLE STRENGTH</p><h2 id="wheelTitle">风格轮盘</h2><p class="section-description">动量50%＋估值30%＋资金流20%，0–100分。</p></div><span class="position-tag">相对评分</span></div>
           <svg id="styleWheel" class="style-wheel" role="img" aria-label="四类风格相对强弱"></svg>
-          
+          <div class="wheel-legend"><span><i></i>相对领先的两组</span><span>分数不是上涨概率</span></div>
           <div id="styleButtons" class="style-buttons" aria-label="查看风格评分构成"></div>
           <div id="styleDetail" class="style-detail" aria-live="polite"></div>
         </section>
 
         <section class="panel vote-panel" aria-labelledby="voteTitle">
-          <div class="panel-head"><div><p class="eyebrow">FIVE MODULE VOTES</p><h2 id="voteTitle">多维度择时信号</h2><p class="section-description">展示实际数据与研究票；缺失数据和证据不足均保留空缺。</p></div></div>
+          <div class="panel-head"><div><p class="eyebrow">FIVE MODULE VOTES</p><h2 id="voteTitle">多维度择时信号</h2><p class="section-description">各维度先形成观点，再等权合成总信号。</p></div></div>
           <div id="moduleVotes" class="module-votes"></div>
           <div class="composite-readout"><span>五维平均观点</span><strong id="compositeMean">—</strong><small id="compositeLabel">—</small></div>
           <p id="signalScope" class="position-caption">—</p>
-          <p class="position-caption">当前为描述性研究观察；信号族或证据不足时，不生成总方向和仓位。</p>
+          <p class="position-caption">平均观点大于0时允许权益参与；小于或等于0时不持有权益，不建立空头仓位。</p>
         </section>
       </div>
 
-      <details class="panel position-method"><summary>查看评分与定仓口径</summary><ul id="methodNotes"></ul><p class="position-caption">每日更新程序重新计算并发布观察数据；按钮重新读取最近发布结果。</p><p id="sourceNote" class="position-caption"></p></details>
+      <details class="panel position-method"><summary>查看评分与定仓口径</summary><ul id="methodNotes"></ul><p class="position-caption">评分和仓位来自已核验研究快照；页面重新读取保存的数据，不在浏览器中运行策略或获取实时行情。</p><p id="sourceNote" class="position-caption"></p></details>
     </div>
 
     <section class="panel crowding-panel" aria-labelledby="factorReturnsTitle">
@@ -66,7 +66,7 @@
     </section>
   </main>
   <footer><span>研究信号用于组合观察，不构成收益或回撤保证</span><span id="generatedAt">—</span></footer>
-  <script src="/position-observations.js?v=1" defer></script>
+  <script src="/position-advice.js?v=2" defer></script>
   <script src="/style-crowding-chart.js?v=2" defer></script>
   <script src="/style-factor-returns.js?v=2" defer></script>
 </body>
