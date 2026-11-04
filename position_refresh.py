@@ -162,9 +162,11 @@ def dated(raw, field, code=None):
     df = raw.reset_index()
     if code and 'order_book_id' in df:
         df = df[df.order_book_id.astype(str) == code]
-    day = next((k for k in ['date', 'datetime', 'trading_date'] if k in df), None)
+    day = next((k for k in ['date', 'datetime', 'trading_date', 'trade_date'] if k in df), None)
+    if day is None:
+        day = next((k for k in df if pd.api.types.is_datetime64_any_dtype(df[k])), None)
     if day is None or field not in df:
-        raise ValueError('Unexpected provider schema: ' + field)
+        raise ValueError('Unexpected provider schema: ' + field + '; columns=' + ','.join(map(str, df.columns)))
     out = pd.Series(pd.to_numeric(df[field], errors='coerce').to_numpy(), index=pd.to_datetime(df[day]).dt.normalize())
     if out.index.duplicated().any():
         raise ValueError('Duplicated provider dates')
