@@ -48,14 +48,32 @@
       ? `${value > 0 ? '+' : ''}${value.toFixed(2)} · ${labels(value)}` : '待补数据';
     const container = el('moduleVotes');
     container.replaceChildren();
-    for (const [label, value, method] of rows) {
+    for (const [label, value] of rows) {
       const item = document.createElement('div'); item.className = 'module-row';
       const name = document.createElement('span'); name.textContent = label;
-      const detail = document.createElement('small'); detail.textContent = method;
+      const scale = document.createElement('div'); scale.className = 'module-scale'; scale.setAttribute('aria-hidden', 'true');
+      for (const direction of [-1, 0, 1]) {
+        const mark = document.createElement('span');
+        const active = Number.isFinite(value) && Math.sign(value) === direction;
+        mark.className = `${active ? 'active ' : ''}${tone(direction)}`;
+        scale.append(mark);
+      }
       const score = document.createElement('span');
       score.className = `module-value ${tone(value)}`;
       score.textContent = format(value);
-      item.append(name, detail, score); container.append(item);
+      item.append(name, scale, score); container.append(item);
+    }
+    const notes = el('methodNotes');
+    notes.replaceChildren();
+    const rules = [
+      '右侧择时评分：宏观、估值、资金、价量、情绪各占20%，单项分数范围为 −1 至 +1，数据齐备时取五项算术平均。',
+      ...rows.map(([label, , method]) => `${label}：${method}。`),
+      '估值采用反向历史分位，达到70投 +1，低至30投 −1，其余投 0。',
+      '以下为原研究快照的评分与定仓规则，供核对原始信号来源。',
+      ...data.notes,
+    ];
+    for (const rule of rules) {
+      const note = document.createElement('li'); note.textContent = rule; notes.append(note);
     }
     const mean = average(rows.map(row => row[1]));
     el('compositeMean').textContent = Number.isFinite(mean) ? mean.toFixed(2) : '—';
@@ -111,7 +129,6 @@
     for (const style of data.styles) {
       const button = document.createElement('button'); button.type = 'button'; button.dataset.style = style.id; button.setAttribute('aria-label', `查看${style.name}评分构成`); const label = document.createElement('span'); label.textContent = style.name; const value = document.createElement('strong'); value.textContent = number(style.score); button.append(label, value); button.addEventListener('click', () => { state.styleId = style.id; renderStyleDetail(); }); el('styleButtons').append(button);
     }
-    el('methodNotes').replaceChildren(); for (const note of data.notes) { const item = document.createElement('li'); item.textContent = note; el('methodNotes').append(item); }
     el('sourceNote').textContent = data.source;
     const generated = new Date(data.generatedAt); el('generatedAt').textContent = Number.isNaN(generated.valueOf()) ? '' : `快照导出 ${generated.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })}`;
     renderVotes(); renderStyleDetail(); el('statusDot').className = 'dot'; el('statusText').textContent = '已读取数据';
