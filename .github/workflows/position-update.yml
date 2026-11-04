@@ -1,0 +1,42 @@
+name: Update timing snapshot without changing layout
+on:
+  push:
+    branches: [main]
+    paths:
+      - position_refresh.py
+      - .github/workflows/position-update.yml
+  schedule:
+    - cron: '35 10,14,22,0 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: position-snapshot-update
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing data dependencies
+        run: python -m pip install -r requirements-cloud.txt
+      - name: Test timing rules and unchanged-page contract
+        run: python -m unittest discover -s tests -p test_position_refresh.py
+      - name: Refresh complete timing snapshot
+        id: update
+        continue-on-error: true
+        env:
+          RQDATAC_CONF: ${{ secrets.RQDATAC_CONF }}
+          PYTHONUNBUFFERED: '1'
+        run: python position_refresh.py
+      - name: Validate and publish only timing result and status
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python position_publish.py
+      - name: Report provider failure after retaining last valid result
+        if: steps.update.outcome == 'failure'
+        run: exit 1
