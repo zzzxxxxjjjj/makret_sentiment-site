@@ -89,9 +89,18 @@ def retry_etf(payload, target):
         return False
 
 
-def refresh_sse50_etf(payload, target):
-    """Collect 510050 using SSE share counts and unadjusted Eastmoney closes via AkShare."""
-    code = '510050'
+SSE_AKSHARE_ETFS = {
+    '510050': ('上证50ETF华夏', '上证50', '大盘压舱石'),
+    '510300': ('沪深300ETF华泰柏瑞', '沪深300', '大盘压舱石'),
+    '588000': ('科创50ETF华夏', '科创50', '科技成长主线'),
+    '510500': ('中证500ETF南方', '中证500', '中小市值流动性托底'),
+    '512100': ('中证1000ETF南方', '中证1000', '中小市值流动性托底'),
+}
+
+
+def refresh_sse_etf(payload, target, code, metadata, share_cache):
+    """Collect one Shanghai ETF using dated share counts and unadjusted closes."""
+    name, index, group = metadata
     target_date = target.isoformat()
     details = payload.get('etfDetails', [])
     prior = next((item for item in details if str(item.get('code')) == code), {})
@@ -117,7 +126,9 @@ def refresh_sse50_etf(payload, target):
 
         shares = {}
         for day in dates:
-            frame = ak.fund_etf_scale_sse(date=day.replace('-', ''))
+            if day not in share_cache:
+                share_cache[day] = ak.fund_etf_scale_sse(date=day.replace('-', ''))
+            frame = share_cache[day]
             match = frame.loc[(frame['基金代码'].astype(str) == code)
                               & (frame['统计日期'].astype(str) == day), '基金份额']
             if len(match) == 1:
@@ -128,7 +139,7 @@ def refresh_sse50_etf(payload, target):
         incoming = [{'date': day, 'value': round((shares[day] - shares[prev]) * closes[day] / 1e8, 3)}
                     for prev, day in zip(dates, dates[1:]) if prev in shares and day in shares]
         if not incoming or (last_date and incoming[-1]['date'] <= last_date):
-            print('AkShare 510050: no new consecutive share observations', flush=True)
+            print(f'AkShare {code}: no new consecutive share observations', flush=True)
             return False
 
         history = merge_points(existing, incoming)[-FIVE_YEAR_TRADING_DAYS:]
@@ -140,14 +151,14 @@ def refresh_sse50_etf(payload, target):
         for key, count in [('flow5D', 5), ('flow20D', 20)]:
             if len(trading_days) < count or not flow_days.issuperset(trading_days[-count:]):
                 totals[key] = None
-        detail = dict(code=code, orderBookId='510050.XSHG', name='上证50ETF华夏',
-                      index='上证50', group='大盘压舱石', source='AkShare',
+        detail = dict(code=code, orderBookId=f'{code}.XSHG', name=name,
+                      index=index, group=group, source='AkShare',
                       asOf=as_of, close=closes[as_of], points=history, **totals)
         payload['etfDetails'] = [item for item in details if str(item.get('code')) != code] + [detail]
-        print(f'AkShare 510050: {as_of}, {len(history)} flow observations', flush=True)
+        print(f'AkShare {code}: {as_of}, {len(history)} flow observations', flush=True)
         return True
     except Exception as exc:
-        print(f'AkShare 510050 retained prior data: {safe_error(exc)}', flush=True)
+        print(f'AkShare {code} retained prior data: {safe_error(exc)}', flush=True)
         return False
 
 
@@ -160,7 +171,9 @@ def main():
     initialize_rqdata()
     target = completed_trading_date(rq)
     etf_changed = retry_etf(payload, target)
-    etf_changed = refresh_sse50_etf(payload, target) or etf_changed
+    share_cache = {}
+    for code, metadata in SSE_AKSHARE_ETFS.items():
+        etf_changed = refresh_sse_etf(payload, target, code, metadata, share_cache) or etf_changed
     series = {item["id"]: item for item in payload.get("series", [])}
     def current(sid):
         points = series.get(sid, {}).get("points", [])
