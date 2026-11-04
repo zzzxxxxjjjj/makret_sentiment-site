@@ -13,7 +13,7 @@ from rqdata_connection import initialize_rqdata, safe_error
 from rqdata_trading_day import completed_trading_date
 from rqdata_refresh import (fetch_financing, fetch_index_ma_history, fetch_land_connect_flow, fetch_etf_flows,
                             build_index_financing_activity_series, recent_trading_dates,
-                            INDEX_FINANCING_ACTIVITY_DEFINITIONS, FIVE_YEAR_TRADING_DAYS)
+                            INDEX_FINANCING_ACTIVITY_DEFINITIONS, FIVE_YEAR_TRADING_DAYS, FOCUS_ETFS)
 
 
 def valid_points(points, limit=None):
@@ -42,8 +42,10 @@ def retry_etf(payload, target):
     series = {item['id']: item for item in payload.get('series', [])}
     previous = series.get('broad-etf-flow', {})
     old_details = payload.get('etfDetails', [])
-    details_current = bool(old_details) and all(
-        latest_point_date(item.get('points', [])) == target_date for item in old_details)
+    detail_dates = {str(item.get('code')): latest_point_date(item.get('points', []))
+                    for item in old_details}
+    details_current = all(
+        detail_dates.get(item['code']) == target_date for item in FOCUS_ETFS.values())
     if latest_point_date(previous.get('points', [])) == target_date and details_current:
         return False
     try:
