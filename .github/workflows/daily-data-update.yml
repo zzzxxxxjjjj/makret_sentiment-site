@@ -8,6 +8,7 @@ on:
       - cloud_display.py
       - broad_sentiment.py
       - rqdata_style_returns_refresh.py
+      - position_advice_refresh.py
       - cloud_daily_update.py
       - rqdata_daily_update.py
       - rqdata_history_cache.py
@@ -97,6 +98,9 @@ jobs:
           path: .rqdata-cache
           key: rqdata-v2-${{ github.run_id }}-${{ github.run_attempt }}
 
+      - name: Rebuild timing observations
+        run: python position_advice_refresh.py
+
       - name: Validate static build
         run: python build_static_site.py
 
@@ -104,7 +108,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in style-factor-returns.json rqdata-broad-sentiment.json rqdata-breadth-sentiment.json rqdata-industry-sentiment.json rqdata-fund-stock-position-history.json rqdata-fund-exposure.json rqdata-options-pcr.json broad-sentiment-page-cache.json rqdata-industry-rotation.json data-freshness.json cloud-market-inputs.json; do
+          for file in position-advice.json style-factor-returns.json rqdata-broad-sentiment.json rqdata-breadth-sentiment.json rqdata-industry-sentiment.json rqdata-fund-stock-position-history.json rqdata-fund-exposure.json rqdata-options-pcr.json broad-sentiment-page-cache.json rqdata-industry-rotation.json data-freshness.json cloud-market-inputs.json; do
             if [ -f "$file" ]; then git add -- "$file"; fi
           done
           if git diff --cached --quiet; then
