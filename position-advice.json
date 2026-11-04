@@ -1,116 +1,224 @@
 {
   "available": true,
-  "version": "observations-v2",
-  "asOf": "2026-11-02",
-  "generatedAt": "2026-11-04T02:42:30.036364+00:00",
-  "lastDecisionDate": "2026-10-30",
+  "asOf": "2026-10-14",
+  "generatedAt": "2026-10-16T06:53:10+00:00",
+  "mode": "research-snapshot",
+  "lastDecisionDate": "2026-10-09",
+  "signalScope": "以中证全指为研究基准的全市场权益参与信号",
+  "source": "真实RQData行情与基金数据；沿用已核验的多维度择时研究输入",
+  "styles": [
+    {
+      "id": "value",
+      "name": "价值代理",
+      "proxy": "中证红利",
+      "rank": 1,
+      "score": 59.8015873015873,
+      "momentum": 91.66666666666666,
+      "valuation": 4.894179894179896,
+      "flow": 62.5,
+      "momentum120": 0.02294500026548052,
+      "vol60": 0.14352896104448756
+    },
+    {
+      "id": "growth",
+      "name": "成长",
+      "proxy": "科创50＋创业板",
+      "rank": 2,
+      "score": 57.767857142857146,
+      "momentum": 66.66666666666666,
+      "valuation": 31.448412698412696,
+      "flow": 75.0,
+      "momentum120": -0.09535667351215826,
+      "vol60": 0.4425333825331767
+    },
+    {
+      "id": "small",
+      "name": "中小盘",
+      "proxy": "中证1000",
+      "rank": 3,
+      "score": 49.1468253968254,
+      "momentum": 41.66666666666667,
+      "valuation": 36.044973544973544,
+      "flow": 87.5,
+      "momentum120": -0.13431916204559435,
+      "vol60": 0.3124110845695373
+    },
+    {
+      "id": "large",
+      "name": "大盘",
+      "proxy": "沪深300",
+      "rank": 4,
+      "score": 49.107142857142854,
+      "momentum": 50.0,
+      "valuation": 38.69047619047619,
+      "flow": 62.5,
+      "momentum120": -0.08521516829995612,
+      "vol60": 0.17743154505160114
+    }
+  ],
+  "models": [
+    {
+      "id": "multidimensional",
+      "name": "多维度风险平价",
+      "posture": "主研究方案",
+      "signal": -1.0,
+      "equity": 0.0,
+      "credit": 0.8,
+      "cash": 0.19999999999999996,
+      "assets": [
+        {
+          "name": "沪深300",
+          "etf": "510300",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "中证1000",
+          "etf": "512100",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "科创50",
+          "etf": "588000",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "创业板",
+          "etf": "159915",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "中证红利",
+          "etf": "515080",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "短融信用债",
+          "etf": "511360",
+          "kind": "credit",
+          "weight": 0.8,
+          "riskShare": 1.0
+        },
+        {
+          "name": "现金",
+          "etf": null,
+          "kind": "cash",
+          "weight": 0.19999999999999996,
+          "riskShare": null
+        }
+      ],
+      "selectedStyles": [],
+      "riskRule": "五只权益ETF与信用债同池等风险分配；总信号非多头时，权益不参与。"
+    },
+    {
+      "id": "rotation",
+      "name": "多维度＋风格轮动",
+      "posture": "轮动观察方案",
+      "signal": -1.0,
+      "equity": 0.0,
+      "credit": 0.8,
+      "cash": 0.19999999999999996,
+      "assets": [
+        {
+          "name": "沪深300",
+          "etf": "510300",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "中证1000",
+          "etf": "512100",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "科创50",
+          "etf": "588000",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "创业板",
+          "etf": "159915",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "中证红利",
+          "etf": "515080",
+          "kind": "equity",
+          "weight": 0.0,
+          "riskShare": 0.0
+        },
+        {
+          "name": "短融信用债",
+          "etf": "511360",
+          "kind": "credit",
+          "weight": 0.8,
+          "riskShare": 1.0
+        },
+        {
+          "name": "现金",
+          "etf": null,
+          "kind": "cash",
+          "weight": 0.19999999999999996,
+          "riskShare": null
+        }
+      ],
+      "selectedStyles": [],
+      "riskRule": "选择评分前两组风格，与信用债按组等风险分配；成长组内共享该组风险预算。"
+    }
+  ],
   "moduleVotes": [
     {
       "name": "情绪",
-      "vote": -1,
-      "factors": [
-        {
-          "id": "rqdata-above-ma20-breadth",
-          "name": "20日均线上方广度",
-          "asOf": "2026-11-02",
-          "score": -0.58826,
-          "vote": -1
-        },
-        {
-          "id": "market-turnover",
-          "name": "全A换手率（反向拥挤观察）",
-          "asOf": "2026-11-02",
-          "score": -0.041005291005290934,
-          "vote": 0
-        }
-      ],
-      "reason": ""
+      "vote": -1.0
     },
     {
       "name": "资金流",
-      "vote": null,
-      "factors": [
-        {
-          "id": "broad-etf-flow",
-          "name": "宽基ETF净流入",
-          "asOf": "2026-11-02",
-          "score": 0.9563492063492063,
-          "vote": 1
-        },
-        {
-          "id": "financing-net",
-          "name": "融资净流入",
-          "asOf": "2026-10-30",
-          "score": null,
-          "vote": null,
-          "reason": "数据尚未到核验日"
-        }
-      ],
-      "reason": "独立信号族或数据覆盖不足；暂不投票"
+      "vote": -1.0
     },
     {
       "name": "风格",
-      "vote": null,
-      "factors": [],
-      "reason": "独立信号族或数据覆盖不足；暂不投票"
+      "vote": -1.0
     },
     {
       "name": "期权波动率",
-      "vote": null,
-      "factors": [],
-      "reason": "独立信号族或数据覆盖不足；暂不投票"
+      "vote": 1.0
     },
     {
       "name": "期货期权持仓",
-      "vote": null,
-      "factors": [
-        {
-          "id": "pcr-oi-ma3-sz50",
-          "name": "50ETF持仓PCR",
-          "asOf": "2026-11-02",
-          "score": -0.3928571428571428,
-          "vote": 0
-        },
-        {
-          "id": "pcr-oi-ma3-hs300",
-          "name": "300ETF持仓PCR",
-          "asOf": "2026-11-02",
-          "score": -0.8531746031746031,
-          "vote": -1
-        }
-      ],
-      "reason": "独立信号族或数据覆盖不足；暂不投票"
+      "vote": -1.0
     }
   ],
-  "styles": [
-    {
-      "name": "大盘 · 沪深300",
-      "asOf": "2026-11-02",
-      "momentum120": -0.18030613140264995
-    },
-    {
-      "name": "中小盘 · 中证1000",
-      "asOf": "2026-11-02",
-      "momentum120": -0.27370075884932143
-    },
-    {
-      "name": "成长代理 · 科创50",
-      "asOf": "2026-11-02",
-      "momentum120": -0.28706577631490393
-    },
-    {
-      "name": "价值代理 · 红利",
-      "asOf": null,
-      "momentum120": null
-    }
-  ],
-  "compositeMean": null,
+  "compositeMean": -0.6,
+  "limits": {
+    "equity": 0.2,
+    "credit": 0.8
+  },
+  "scoringWeights": {
+    "momentum": 0.5,
+    "valuation": 0.3,
+    "flow": 0.2
+  },
   "notes": [
-    "v2重建于2026-11-04，与旧快照不拼接；每日更新实际观察值。",
-    "方向阈值沿用研究规则：标准分≥0.4为+1、≤−0.4为−1；模块均值阈值±0.25，至少两个独立信号族且覆盖60%。",
-    "历史分位使用最近最多756个观测，至少252个；不同ETF的PCR属于同一信号族。",
-    "风格仅展示120日实际涨跌；缺少估值及风格资金流时不生成原50/30/20综合分。成长代理未包含创业板。",
-    "当前研究没有正式准入的方向信号；观察票不代表经过验证的买卖信号，暂不生成总方向及仓位。",
-    "周度日期取已有下一周行情确认的上周最后交易日；不代表成交或已执行调仓。"
+    "风格评分表示相对强弱，不是上涨概率；领先方向仍须等待总择时放行。",
+    "价值方向由中证红利代理；中证1000偏小盘，四个代理组合并非互斥的纯风格因子。",
+    "信用债上限80%、权益上限20%，其余留现金；现金不参与风险平价。",
+    "每周最后交易日决策，下一交易日收盘执行；上限约束调仓目标，价格变化可能造成被动偏离。",
+    "轮动尚未提高多维度版历史收益，因此轮动方案仅作观察，不自动替代主研究方案。"
   ]
 }
