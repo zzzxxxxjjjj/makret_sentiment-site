@@ -42,6 +42,8 @@ LAND_CONNECT_LOOKBACK_DAYS = FIVE_YEAR_TRADING_DAYS
 PRICE_HISTORY_DAYS = 2500
 NEW_FUND_LOOKBACK_DAYS = FIVE_YEAR_TRADING_DAYS
 INDEX_TURNOVER_DEFINITIONS = (
+    ("000985.XSHG", "allshare-turnover", "中证全指换手率"),
+    ("000016.XSHG", "sse50-turnover", "上证50换手率"),
     ("000300.XSHG", "hs300-turnover", "沪深300换手率"),
     ("000852.XSHG", "csi1000-turnover", "中证1000换手率"),
     ("000688.XSHG", "star50-turnover", "科创50换手率"),
@@ -211,7 +213,7 @@ def fetch_market_turnover_history(target_dates, as_of):
 
 
 def build_index_turnover_series(previous, window_dates):
-    """Calculate daily constituent-weighted turnover for three broad indices."""
+    """Calculate daily constituent-weighted turnover for the configured broad indices."""
     series_ids = {definition[1] for definition in INDEX_TURNOVER_DEFINITIONS}
     previous_series = {
         item.get("id"): item
