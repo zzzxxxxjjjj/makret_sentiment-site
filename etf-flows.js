@@ -1,11 +1,8 @@
 const focusEtfs=[
   {code:'510300',name:'沪深300ETF华泰柏瑞',index:'沪深300',group:'大盘压舱石'},
-  {code:'515390',name:'沪深300ETF华安',index:'沪深300',group:'大盘压舱石'},
   {code:'510210',name:'上证指数ETF富国',index:'上证指数',group:'大盘压舱石'},
-  {code:'159949',name:'创业板50ETF华安',index:'创业板50',group:'科技成长主线'},
   {code:'159915',name:'创业板ETF易方达',index:'创业板指',group:'科技成长主线'},
   {code:'588000',name:'科创50ETF华夏',index:'科创50',group:'科技成长主线'},
-  {code:'588290',name:'科创芯片ETF华安',index:'科创芯片',group:'科技成长主线'},
   {code:'510500',name:'中证500ETF南方',index:'中证500',group:'中小市值流动性托底'},
   {code:'512100',name:'中证1000ETF南方',index:'中证1000',group:'中小市值流动性托底'}
 ];
@@ -20,7 +17,7 @@ function mergeDetails(details){
 }
 
 function renderSummary(items){
-  const periods=[['flow1D','9只ETF当日合计'],['flow5D','近5日合计'],['flow20D','近20日合计']];
+  const periods=[['flow1D',`${focusEtfs.length}只ETF当日合计`],['flow5D','近5日合计'],['flow20D','近20日合计']];
   el('flowSummary').innerHTML=periods.map(([field,label])=>{
     const valid=items.map(item=>Number(item[field])).filter(Number.isFinite);
     const value=valid.length?valid.reduce((sum,current)=>sum+current,0):null;
@@ -67,9 +64,9 @@ async function loadData(){
     const response=await fetch('/api/broad-sentiment',{cache:'no-store'});
     if(!response.ok)throw new Error(`HTTP ${response.status}`);
     const data=await response.json(),items=mergeDetails(data.etfDetails);
-    el('asOf').textContent=data.etfDetails?.map(item=>item.asOf).filter(Boolean).sort().at(-1)||data.asOf||'—';
+    el('asOf').textContent=items.map(item=>item.asOf).filter(Boolean).sort().at(-1)||data.asOf||'—';
     renderSummary(items);renderRows(items);
-    el('statusText').textContent=data.etfDetails?.length?'数据已更新':'等待ETF明细更新';el('statusDot').className='dot';
+    el('statusText').textContent=items.some(item=>item.asOf)?'数据已更新':'等待ETF明细更新';el('statusDot').className='dot';
     window.currentEtfItems=items;
   }catch(error){
     const items=mergeDetails([]);renderSummary(items);renderRows(items);
