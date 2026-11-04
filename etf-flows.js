@@ -1,6 +1,6 @@
 const focusEtfs=[
   {code:'510300',name:'沪深300ETF华泰柏瑞',index:'沪深300',group:'大盘压舱石'},
-  {code:'510210',name:'上证指数ETF富国',index:'上证指数',group:'大盘压舱石'},
+  {code:'510050',name:'上证50ETF华夏',index:'上证50',group:'大盘压舱石'},
   {code:'159915',name:'创业板ETF易方达',index:'创业板指',group:'科技成长主线'},
   {code:'588000',name:'科创50ETF华夏',index:'科创50',group:'科技成长主线'},
   {code:'510500',name:'中证500ETF南方',index:'中证500',group:'中小市值流动性托底'},
