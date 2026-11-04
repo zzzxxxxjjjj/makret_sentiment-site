@@ -25,14 +25,10 @@ EXCLUDE_KEYWORDS = (
     "纳斯达克", "标普", "德国", "法国", "日本", "印度", "东南亚", "债", "黄金", "商品", "货币",
 )
 FOCUS_ETFS = {
-    "510300.XSHG": {"code": "510300", "name": "沪深300ETF华泰柏瑞", "index": "沪深300", "group": "大盘压舱石"},
     "515390.XSHG": {"code": "515390", "name": "沪深300ETF华安", "index": "沪深300", "group": "大盘压舱石"},
     "159949.XSHE": {"code": "159949", "name": "创业板50ETF华安", "index": "创业板50", "group": "科技成长主线"},
     "159915.XSHE": {"code": "159915", "name": "创业板ETF易方达", "index": "创业板指", "group": "科技成长主线"},
-    "588000.XSHG": {"code": "588000", "name": "科创50ETF华夏", "index": "科创50", "group": "科技成长主线"},
     "588290.XSHG": {"code": "588290", "name": "科创芯片ETF华安", "index": "科创芯片", "group": "科技成长主线"},
-    "510500.XSHG": {"code": "510500", "name": "中证500ETF南方", "index": "中证500", "group": "中小市值流动性托底"},
-    "512100.XSHG": {"code": "512100", "name": "中证1000ETF南方", "index": "中证1000", "group": "中小市值流动性托底"},
 }
 FIVE_YEAR_TRADING_DAYS = 1260
 FIVE_YEAR_CALENDAR_DAYS = 366 * 5
