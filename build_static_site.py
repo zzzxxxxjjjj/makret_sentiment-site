@@ -30,6 +30,7 @@ WEB_FILES = (
 )
 REQUIRED_DATA = ("rqdata-broad-sentiment.json", "rqdata-industry-sentiment.json")
 OPTIONAL_DATA = {
+    "position-update-status.json": {"ok": None},
     "style-factor-returns.json": {"available": False, "asOf": None},
     "style-crowding.json": {"available": False, "asOf": None, "factors": []},
     "position-advice.json": {
