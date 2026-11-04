@@ -12,7 +12,7 @@ from market_data_sync import merge_points
 from rqdata_connection import initialize_rqdata, safe_error
 from rqdata_trading_day import completed_trading_date
 from rqdata_refresh import (fetch_financing, fetch_index_ma_history, fetch_land_connect_flow, fetch_etf_flows,
-                            build_index_financing_activity_series, recent_trading_dates,
+                            build_index_financing_activity_series, build_index_turnover_series, recent_trading_dates,
                             INDEX_FINANCING_ACTIVITY_DEFINITIONS, FIVE_YEAR_TRADING_DAYS, FOCUS_ETFS)
 
 
@@ -179,6 +179,10 @@ def main():
         points = series.get(sid, {}).get("points", [])
         return latest_point_date(points) == target.isoformat()
     updates = []
+    try:
+        updates.extend(build_index_turnover_series(payload, recent_trading_dates(target, 260)))
+    except Exception as exc:
+        print(f'Index turnover retry retained prior data: {safe_error(exc)}', flush=True)
     if not current('star50-close'):
         try:
             _,_,index_series=fetch_index_ma_history(target)
