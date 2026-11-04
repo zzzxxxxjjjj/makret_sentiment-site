@@ -64,6 +64,8 @@ def main():
                                ('rqdata_fund_exposure_refresh.py','rqdata-fund-exposure.json')]:
             stage(script, [sys.executable, '-X', 'utf8', str(BASE_DIR/script), '--output', output], required=False)
         report['synthesis'] = rebuild(target)
+        from position_advice_refresh import refresh as refresh_position_advice
+        refresh_position_advice()
         stage('Static build', [sys.executable, '-X', 'utf8', str(BASE_DIR/'build_static_site.py')])
         report['ok'] = all(s['ok'] for s in report['stages'] if s['required'])
     except Exception as exc:
