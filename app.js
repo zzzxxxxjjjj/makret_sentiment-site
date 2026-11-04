@@ -94,6 +94,7 @@ function withAmountBands(series){
 }
 
 const chartDefinitions=[
+  {group:'momentum',key:'indexTurnover',title:'宽基指数换手率',description:'对比中证全指、上证50、沪深300、中证1000及科创50的日换手率（%）',series:['allshare-turnover','sse50-turnover','hs300-turnover','csi1000-turnover','star50-turnover'],seriesLabels:['中证全指','上证50','沪深300','中证1000','科创50'],colors:['#46d6b2','#ff6b78','#5aa7ff','#9d8cff','#f5bd5c'],unit:'%',type:'line'},
   {group:'momentum',key:'marketAmount',title:'两市成交额',description:'中证全指口径全A成交额；120个交易日均线及滚动标准差（总体）',series:['alla-turnover-amount',...amountBandLines.map(line=>line.key)],colors:['#46d6b2',...amountBandLines.map(line=>line.color)],dashes:[false,...amountBandLines.map(line=>line.dashed)],unit:'万亿元',type:'line',valueDivisor:10000,currentMetrics:[{series:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000}]},
   {group:'momentum',key:'concentration',title:'成交额拥挤度',description:'成交额前5%个股占全市场成交额比例；分位按近5个自然年滚动计算',series:['top5-concentration'],card:'top5-concentration',colors:['#f5bd5c'],unit:'%',type:'line',snapshotDomain:[0,100]},
   {group:'funds',key:'margin',title:'融资活跃度',description:'融资活跃度与全A融资买入额（亿元）',series:['financing-activity','alla-financing-buy'],card:'margin-financing',colors:['#46d6b2','#f5bd5c'],unit:'%',type:'line',dualAxis:true,href:'/financing-activity.html?v=20260806',linkLabel:'查看各指数融资明细 →',clickableCard:true,currentMetrics:[{series:'financing-activity',label:'融资活跃度',unit:'%'},{series:'alla-financing-buy',label:'融资买入额',unit:'亿元'}]},
@@ -169,6 +170,11 @@ function renderIndicatorCharts(series,cards){
     const unit=latestSeries?.unit||definition.unit||card?.unit||'';
     const asOf=latestPoint?.date||card?.asOf||'';
     const legend=selected.map((item,seriesIndex)=>`<span><i class="${definition.dashes?.[seriesIndex]?'dashed':''}" style="--legend-color:${MC(definition.colors[seriesIndex]||'#46d6b2')}"></i>${escapeHtml(item.name)}</span>`).join('');
+    const seriesLegend=definition.seriesLabels?definition.series.map((id,i)=>{
+      const point=(seriesMap.get(id)?.points||[]).filter(item=>hasNumber(item.value)).at(-1);
+      const reading=point?`${fmt(point.value)}% · ${fmtDate(point.date)}`:'待更新';
+      return `<span><i style="--legend-color:${MC(definition.colors[i])}"></i>${escapeHtml(definition.seriesLabels[i])} ${escapeHtml(reading)}</span>`;
+    }).join(''):legend;
     const detailsLink=definition.href?`<a class="chart-detail-link" href="${definition.href}">${escapeHtml(definition.linkLabel||'查看明细 →')}</a>`:'';
     const cardLink=definition.clickableCard?` is-clickable" data-chart-href="${definition.href}" role="link" tabindex="0"`:'"';
     const currentMarkup=definition.currentMetrics
@@ -182,10 +188,10 @@ function renderIndicatorCharts(series,cards){
     return {group:definition.group,html:`<article class="indicator-chart-card${cardLink}>
       <div class="indicator-chart-head">
         <div><h3>${escapeHtml(definition.title)}</h3><p>${escapeHtml(definition.description)}</p>${detailsLink}</div>
-        ${currentMarkup}
+        ${definition.seriesLabels?'':currentMarkup}
       </div>
       <div class="mini-chart-wrap"><canvas id="metricChart${index}"></canvas><div id="metricEmpty${index}" class="mini-chart-empty"></div></div>
-      <div class="mini-chart-legend">${legend}<span class="chart-note">${selected.some(item=>(item.points||[]).length>1)?'近260个交易日':'当前快照'}</span></div>
+      <div class="mini-chart-legend">${seriesLegend}<span class="chart-note">${selected.some(item=>(item.points||[]).length>1)?'近260个交易日':'当前快照'}</span></div>
     </article>`};
   });
   el('momentumChartGrid').innerHTML=markup.filter(item=>item.group==='momentum').map(item=>item.html).join('');
@@ -250,7 +256,7 @@ function drawIndicatorChart(definition,index,seriesMap,cardMap){
   const secondaryScale=definition.dualAxis&&active[1]?chartScale(active[1].points.map(point=>Number(point.value)),false):primaryScale;
   const plotH=h-pad.t-pad.b,plotW=w-pad.l-pad.r;
   const y=(value,scale)=>pad.t+(scale.max-value)/scale.range*plotH;
-  const baseDates=active[0].points.map(point=>point.date);
+  const baseDates=definition.seriesLabels?[...new Set(active.flatMap(item=>item.points.map(point=>point.date)))].sort():active[0].points.map(point=>point.date);
   const datePositions=new Map(baseDates.map((date,i)=>[date,i]));
   const xDate=date=>pad.l+plotW*(datePositions.get(date)||0)/Math.max(baseDates.length-1,1);
   ctx.font='10px Segoe UI';ctx.lineWidth=1;
@@ -271,11 +277,11 @@ function drawIndicatorChart(definition,index,seriesMap,cardMap){
       points.forEach((point,pointIndex)=>{const py=y(Number(point.value),scale);const PP=PAL();ctx.fillStyle=Number(point.value)>=0?MA(PP.red,.82):MA(PP.green,.82);ctx.fillRect(x(pointIndex)-barWidth/2,Math.min(py,zeroY),barWidth,Math.max(1,Math.abs(zeroY-py)))});
     }else{
       let started=false;ctx.beginPath();points.forEach((point,pointIndex)=>{if(!datePositions.has(point.date)){started=false;return}if(started)ctx.lineTo(x(pointIndex),y(Number(point.value),scale));else{ctx.moveTo(x(pointIndex),y(Number(point.value),scale));started=true}});
-      ctx.strokeStyle=MC(definition.colors[seriesIndex]||'#46d6b2');ctx.lineWidth=1.8;ctx.setLineDash(definition.dashes?.[seriesIndex]?[5,4]:[]);ctx.stroke();ctx.setLineDash([]);
+      ctx.strokeStyle=MC(definition.colors[definition.seriesLabels?definition.series.indexOf(item.id):seriesIndex]||'#46d6b2');ctx.lineWidth=1.8;ctx.setLineDash(definition.dashes?.[seriesIndex]?[5,4]:[]);ctx.stroke();ctx.setLineDash([]);
     }
   });
   const longest=active.reduce((best,item)=>item.points.length>best.points.length?item:best,active[0]);
-  ctx.fillStyle=PAL().axisDim;ctx.fillText(longest.points[0].date,pad.l,h-7);ctx.fillText(longest.points.at(-1).date,w-pad.r-62,h-7);
+  ctx.fillStyle=PAL().axisDim;ctx.fillText(definition.seriesLabels?baseDates[0]:longest.points[0].date,pad.l,h-7);ctx.fillText(definition.seriesLabels?baseDates.at(-1):longest.points.at(-1).date,w-pad.r-62,h-7);
 }
 
 function pcrLine(seriesMap,metric,indexKey){
