@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from position_refresh import ETFS, INDICES, build, rank, risk_weights
+from position_refresh import ETFS, INDICES, build, dated, rank, risk_weights
 
 
 class PositionTest(unittest.TestCase):
@@ -59,3 +59,9 @@ class PositionTest(unittest.TestCase):
     def test_rank_ties_and_insufficient_history(self):
         self.assertEqual(rank([1]*126), 50)
         with self.assertRaises(ValueError): rank([1]*10)
+
+    def test_valuation_trade_date_and_unnamed_datetime_index(self):
+        day = pd.to_datetime(['2026-11-03'])
+        for name in ['trade_date', None]:
+            raw = pd.DataFrame({'pe_ttm': [15.]}, index=pd.DatetimeIndex(day, name=name))
+            self.assertEqual(dated(raw, 'pe_ttm').index[-1], day[0])
