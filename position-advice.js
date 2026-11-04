@@ -26,18 +26,41 @@
     return data;
   }
 
-  function renderVotes() {
-    el('moduleVotes').replaceChildren();
-    for (const row of state.data.moduleVotes) {
+  function renderVotes(macro) {
+    const data = state.data;
+    const legacyVote = name => data.moduleVotes.find(row => row.name === name)?.vote;
+    const vote = score => score >= 70 ? 1 : score <= 30 ? -1 : 0;
+    const average = values => values.every(Number.isFinite)
+      ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+    const macroSeries = ['credit-pulse', 'china-ppi-yoy'].map(id =>
+      macro?.series?.find(series => series.id === id)?.points?.slice(-4));
+    const macroScore = average(macroSeries.map(points =>
+      points?.length === 4 && points.every(point => Number.isFinite(point.value))
+        ? Math.sign(points[3].value - points[0].value) : null));
+    const rows = [
+      ['宏观', macroScore, '信用脉冲与PPI同比的三个月变化方向，各占一半'],
+      ['估值', average(data.styles.map(style => vote(style.valuation))), '四组风格的PE反向历史分位投票，等权平均'],
+      ['资金', legacyVote('资金流'), '20日融资净流入与权益ETF净流入'],
+      ['价量', average([legacyVote('风格'), legacyVote('情绪')]), '120日价格动量与广度、换手信号各占一半'],
+      ['情绪', average([legacyVote('期权波动率'), legacyVote('期货期权持仓')]), '期权隐波与期货期权持仓信号各占一半'],
+    ];
+    const format = value => Number.isFinite(value)
+      ? `${value > 0 ? '+' : ''}${value.toFixed(2)} · ${labels(value)}` : '待补数据';
+    const container = el('moduleVotes');
+    container.replaceChildren();
+    for (const [label, value, method] of rows) {
       const item = document.createElement('div'); item.className = 'module-row';
-      const name = document.createElement('span'); name.textContent = row.name;
-      const scale = document.createElement('div'); scale.className = 'module-scale'; scale.setAttribute('aria-hidden', 'true');
-      for (const value of [-1, 0, 1]) { const mark = document.createElement('span'); mark.className = `${value === row.vote ? 'active ' : ''}${tone(value)}`; scale.append(mark); }
-      const vote = document.createElement('span'); vote.className = `module-value ${tone(row.vote)}`; vote.textContent = `${row.vote > 0 ? '+' : ''}${row.vote} · ${labels(row.vote)}`; item.append(name, scale, vote); el('moduleVotes').append(item);
+      const name = document.createElement('span'); name.textContent = label;
+      const detail = document.createElement('small'); detail.textContent = method;
+      const score = document.createElement('span');
+      score.className = `module-value ${tone(value)}`;
+      score.textContent = format(value);
+      item.append(name, detail, score); container.append(item);
     }
-    el('compositeMean').textContent = state.data.compositeMean.toFixed(2);
-    el('compositeLabel').textContent = `五个维度等权平均 → ${labels(state.data.models[0].signal)}信号`;
-    el('signalScope').textContent = state.data.signalScope + '；期权主要参考50ETF、期货持仓参考IF。';
+    const mean = average(rows.map(row => row[1]));
+    el('compositeMean').textContent = Number.isFinite(mean) ? mean.toFixed(2) : '—';
+    el('compositeLabel').textContent = Number.isFinite(mean) ? labels(mean) : '等待五维数据齐备';
+    el('signalScope').textContent = `市场快照 ${data.asOf} · 原交易信号决策日 ${data.lastDecisionDate} · 宏观数据 ${macro?.asOf || '暂缺'}`;
   }
 
   function renderStyleDetail() {
@@ -100,6 +123,11 @@
       const response = await fetch(`/position-advice.json?t=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error('仓位快照暂时无法读取，请稍后重试。');
       const data = validate(await response.json()); if (request !== state.request) return; render(data);
+      const macro = await fetch('/macro-tracking.json', { cache: 'no-store' })
+        .then(response => response.ok ? response.json() : null)
+        .catch(() => null);
+      if (request !== state.request) return;
+      renderVotes(macro);
       try {
         const statusResponse = await fetch(`/position-update-status.json?t=${Date.now()}`, { cache: 'no-store' });
         if (statusResponse.ok) {
