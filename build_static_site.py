@@ -26,7 +26,7 @@ WEB_FILES = (
     "etf-flows.html", "etf-flows.js", "etf-flows.css",
     "financing-activity.html", "financing-activity.js", "financing-activity.css",
     "macro-tracking.html", "macro-tracking.js", "macro-tracking.css",
-    "position-advice.html", "position-observations.js", "position-advice.js", "position-advice.css",
+    "position-advice.html", "position-advice.js", "position-advice.css",
 )
 REQUIRED_DATA = ("rqdata-broad-sentiment.json", "rqdata-industry-sentiment.json")
 OPTIONAL_DATA = {
