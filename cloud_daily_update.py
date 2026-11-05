@@ -88,6 +88,15 @@ def verify_core_dates(trade_date):
 
 
 def main():
+    from akshare_public_refresh import main as refresh_public
+    try:
+        refresh_public()
+    except Exception as exc:
+        print("Public source refresh failed: " + safe_error(exc), flush=True)
+        if os.environ.get("MARKET_DATA_PROVIDER") == "akshare":
+            raise
+    if os.environ.get("MARKET_DATA_PROVIDER", "hybrid") == "akshare":
+        return
     import rqdatac as rq
 
     print("Stage: initialize RQData connection", flush=True)

@@ -1,4 +1,4 @@
-name: Daily RQData update
+name: Daily market data update
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
       - broad_sentiment.py
       - rqdata_style_returns_refresh.py
       - cloud_daily_update.py
+      - akshare_public_refresh.py
       - rqdata_daily_update.py
       - rqdata_history_cache.py
       - rqdata_breadth_refresh.py
@@ -48,6 +49,7 @@ jobs:
     env:
       TZ: Asia/Shanghai
       ENABLE_RQDATA_REFRESH: '0'
+      MARKET_DATA_PROVIDER: 'hybrid'
       PYTHONUNBUFFERED: '1'
     steps:
       - name: Check out production branch
@@ -76,6 +78,7 @@ jobs:
           node tests/style-factor-returns.test.cjs
 
       - name: Check required authentication
+        if: env.MARKET_DATA_PROVIDER == 'rqdata'
         env:
           RQDATAC_CONF: ${{ secrets.RQDATAC_CONF }}
         run: |
@@ -104,7 +107,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in style-factor-returns.json rqdata-broad-sentiment.json rqdata-breadth-sentiment.json rqdata-industry-sentiment.json rqdata-fund-stock-position-history.json rqdata-fund-exposure.json rqdata-options-pcr.json broad-sentiment-page-cache.json rqdata-industry-rotation.json data-freshness.json cloud-market-inputs.json; do
+          for file in akshare-public-inputs.json style-factor-returns.json rqdata-broad-sentiment.json rqdata-breadth-sentiment.json rqdata-industry-sentiment.json rqdata-fund-stock-position-history.json rqdata-fund-exposure.json rqdata-options-pcr.json broad-sentiment-page-cache.json rqdata-industry-rotation.json data-freshness.json cloud-market-inputs.json; do
             if [ -f "$file" ]; then git add -- "$file"; fi
           done
           if git diff --cached --quiet; then

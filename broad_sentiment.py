@@ -62,6 +62,7 @@ def source_signature():
         BASE_DIR / "wind-market-supplement.json",
         BASE_DIR / "wind-synthesis-inputs.json",
         BASE_DIR / "cloud-market-inputs.json",
+        BASE_DIR / "akshare-public-inputs.json",
     ]
     signature = [["pageCacheVersion", 56, "completedDateAndVerifiedSynthesis"]]
     for path in paths:
@@ -3239,6 +3240,8 @@ def _build_payload(*, force=False):
         "notes": notes,
     }
     payload = apply_market_data_sync(payload, BASE_DIR)
+    from akshare_public_refresh import apply_public_inputs
+    payload = apply_public_inputs(payload, BASE_DIR)
     save_page_cache(payload)
     return payload
 

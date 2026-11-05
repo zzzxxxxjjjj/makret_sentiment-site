@@ -113,6 +113,8 @@ def build():
                 payload["series"].append(incoming)
     exported_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     payload = apply_market_data_sync(public_data(payload), BASE_DIR)
+    from akshare_public_refresh import apply_public_inputs
+    payload = apply_public_inputs(payload, BASE_DIR)
     payload["publication"] = {"mode": "snapshot", "exportedAt": exported_at}
     output = {"broad-sentiment.json": json.dumps(payload, ensure_ascii=False, allow_nan=False)}
     missing = []
