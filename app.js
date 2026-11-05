@@ -94,7 +94,7 @@ function withAmountBands(series){
 }
 
 const chartDefinitions=[
-  {group:'momentum',key:'indexTurnover',title:'宽基指数换手率',description:'对比中证全指、上证50、沪深300、中证1000及科创50的日换手率（%）',series:['allshare-turnover','sse50-turnover','hs300-turnover','csi1000-turnover','star50-turnover'],seriesLabels:['中证全指','上证50','沪深300','中证1000','科创50'],colors:['#46d6b2','#ff6b78','#5aa7ff','#9d8cff','#f5bd5c'],unit:'%',type:'line'},
+  {group:'momentum',key:'indexTurnover',title:'宽基指数换手率',description:'与市场情绪指标使用同一换手率序列，单位%',series:['market-turnover','hs300-turnover','csi1000-turnover','star50-turnover'],seriesLabels:['中证全指','上证50','沪深300','中证1000','科创50'],colors:['#46d6b2','#5aa7ff','#9d8cff','#f5bd5c'],unit:'%',type:'line'},
   {group:'momentum',key:'marketAmount',title:'两市成交额',description:'中证全指口径全A成交额；120个交易日均线及滚动标准差（总体）',series:['alla-turnover-amount',...amountBandLines.map(line=>line.key)],colors:['#46d6b2',...amountBandLines.map(line=>line.color)],dashes:[false,...amountBandLines.map(line=>line.dashed)],unit:'万亿元',type:'line',valueDivisor:10000,currentMetrics:[{series:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000}]},
   {group:'momentum',key:'concentration',title:'成交额拥挤度',description:'成交额前5%个股占全市场成交额比例；分位按近5个自然年滚动计算',series:['top5-concentration'],card:'top5-concentration',colors:['#f5bd5c'],unit:'%',type:'line',snapshotDomain:[0,100]},
   {group:'funds',key:'margin',title:'融资活跃度',description:'融资活跃度与全A融资买入额（亿元）',series:['financing-activity','alla-financing-buy'],card:'margin-financing',colors:['#46d6b2','#f5bd5c'],unit:'%',type:'line',dualAxis:true,href:'/financing-activity.html?v=20260806',linkLabel:'查看各指数融资明细 →',clickableCard:true,currentMetrics:[{series:'financing-activity',label:'融资活跃度',unit:'%'},{series:'alla-financing-buy',label:'融资买入额',unit:'亿元'}]},
@@ -108,7 +108,6 @@ const comparisonGroups={
     {key:'sentiment',label:'短期情绪指标',unit:'分',description:'左轴为0–100短期情绪指标；右轴可叠加宽基指数，指数按当前区间起点归一至100。',sentiment:true},
     {key:'medium-term-sentiment',label:'中期情绪指标',unit:'分',description:'ERP、股债收益差、股债位置差、融资活跃度、20日融资净流入、60日融资余额变化、60日市场广度确认七项子指标等权平均',score:true,plainDescription:true},
     {key:'market-turnover',label:'全A等权换手率（RQData）',unit:'%'},
-    {key:'windall-turnover',label:'全A等权换手率（云端）',unit:'%'},
     {key:'hs300-turnover',label:'沪深300换手率',unit:'%'},
     {key:'csi1000-turnover',label:'中证1000换手率',unit:'%'},
     {key:'star50-turnover',label:'科创50换手率',unit:'%'}
