@@ -1,9 +1,7 @@
 {
-  "ok": false,
-  "checkedAt": "2026-11-04T18:12:42.500449+00:00",
+  "ok": true,
+  "checkedAt": "2026-11-05T01:37:49.776254+00:00",
   "targetDate": "2026-11-04",
-  "asOf": "2026-11-03",
-  "modelVersion": "reconstructed-v3",
-  "message": "数据获取或校验失败；已保留上一次有效结果及其实际日期。",
-  "errorType": "ValueError"
+  "asOf": "2026-11-04",
+  "modelVersion": "reconstructed-v3"
 }
