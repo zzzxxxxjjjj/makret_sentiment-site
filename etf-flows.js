@@ -15,6 +15,6 @@ async function load(){el('refreshButton').disabled=true;try{
  const r=await fetch('/etf-market.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('东方财富成交额快照尚未生成，请稍后重试');const d=await r.json();if(!d.available||!Array.isArray(d.rows)||!d.rows.length)throw Error('暂无完整ETF成交额快照');
  rows=d.rows.filter(x=>x.asOf===d.asOf);let details=[];try{const b=await fetch('/broad-sentiment.json',{cache:'no-store'});if(b.ok)details=(await b.json()).etfDetails||[];}catch(_){}
  const map=new Map(details.map(x=>[String(x.code),x]));rows=rows.map(x=>{const f=map.get(x.code);return {...x,flow1D:f?.asOf===x.asOf?f.flow1D:null,flow5D:f?.asOf===x.asOf?f.flow5D:null};});
- el('asOf').textContent=d.asOf;render();el('emptyHint').textContent='';el('statusText').textContent='东方财富成交额已读取';el('statusDot').className='dot';
+ el('asOf').textContent=d.asOf+' · '+new Date(d.generatedAt).toLocaleTimeString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false});render();el('emptyHint').textContent='';el('statusText').textContent='东方财富成交额已读取';el('statusDot').className='dot';
  }catch(e){el('emptyHint').textContent=e.message;el('statusText').textContent='数据读取失败';el('statusDot').className='dot error';}finally{el('refreshButton').disabled=false;}}
 el('amountSort').addEventListener('click',()=>{direction=direction==='desc'?'asc':'desc';render();});el('refreshButton').addEventListener('click',load);load();
