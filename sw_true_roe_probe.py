@@ -20,10 +20,17 @@ def column(frame,names):
     raise ValueError('Required parent-company field missing; candidates='+str([str(c) for c in frame if '母公司' in str(c)]))
 
 
+def fetch_report(code,symbol):
+    for attempt in range(3):
+        try:return ak.stock_financial_report_sina(stock=code,symbol=symbol)
+        except requests.exceptions.RequestException:
+            if attempt==2:raise
+
+
 def probe(code):
     try:
-        profit=ak.stock_financial_report_sina(stock=code,symbol='利润表')
-        balance=ak.stock_financial_report_sina(stock=code,symbol='资产负债表')
+        profit=fetch_report(code,'利润表')
+        balance=fetch_report(code,'资产负债表')
         pc=column(profit,['归属于母公司所有者的净利润','归属于母公司股东的净利润','归属于母公司的净利润'])
         ec=column(balance,['归属于母公司所有者权益合计','归属于母公司股东权益合计','归属于母公司所有者权益','归属于母公司股东权益','归属于母公司股东的权益'])
         for frame in [profit,balance]:
@@ -40,8 +47,10 @@ def probe(code):
         print(json.dumps(dict(code=code,status='numeric_inputs_available',report=str(current.date()),profitField=pc,equityField=ec,
             ordinaryRoeTtmPercent=ttm*2/(e0+e1)*100,profitRows=len(profit),balanceRows=len(balance),
             disclosureDates=('公告日期' in profit and '公告日期' in balance)),ensure_ascii=True),flush=True)
+        return True
     except Exception as exc:
         print(json.dumps(dict(code=code,status='failed',errorType=type(exc).__name__,message=str(exc)[:500]),ensure_ascii=True),flush=True)
+        return False
 
 
 if __name__=='__main__':
@@ -51,4 +60,6 @@ if __name__=='__main__':
         code=industry['stocks'][0]
         codes.append(('sh' if code.startswith('6') else 'sz')+code)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        list(pool.map(probe,dict.fromkeys(codes)))
+        results=list(pool.map(probe,dict.fromkeys(codes)))
+    print(json.dumps(dict(sampled=len(results),passed=sum(results),productionApproved=False)),flush=True)
+    if not all(results):raise SystemExit('Financial input sample verification incomplete')
