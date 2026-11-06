@@ -60,7 +60,7 @@ def main():
     payload=dict(asOf=target,generatedAt=now.isoformat(),source='AKShare / 申万2021一级行业指数（剔除综合） / 中证全指',industryCount=30,
         classification='SW2021',benchmark=dict(code='000985',name='中证全指',unit='点'),points=points,
         method='固定30个申万一级行业；按近5交易日涨跌幅降序排名，与上一交易日排名比较，绝对名次变动加总；并列用平均名次。只有前后两日30行业均完整的观察才计算。页面取每周最后观测，再算4周移动平均。历史从官方实际共同可用日期起，不拼接中信口径。')
-    path=ROOT/'sw-industry-rotation.json';tmp=path.with_suffix('.tmp')
+    path=ROOT/'akshare-sw-industry-rotation.json';tmp=path.with_suffix('.tmp')
     tmp.write_text(json.dumps(payload,ensure_ascii=False,allow_nan=False),encoding='utf-8');tmp.replace(path)
     print(json.dumps(dict(asOf=target,first=points[0]['date'],points=len(points),industries=30)))
 
