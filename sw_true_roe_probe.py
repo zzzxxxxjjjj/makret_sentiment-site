@@ -63,3 +63,16 @@ if __name__=='__main__':
         results=list(pool.map(probe,dict.fromkeys(codes)))
     print(json.dumps(dict(sampled=len(results),passed=sum(results),productionApproved=False)),flush=True)
     if not all(results):raise SystemExit('Financial input sample verification incomplete')
+
+    try:
+        dates=ak.index_analysis_week_month_sw(symbol='month')['date'].tolist()
+        selected=dates[-1]
+        pb=ak.index_analysis_monthly_sw(symbol='一级行业',date=selected.strftime('%Y%m%d'))
+        expected={m['code'] for m in members}
+        pb['code']=pb['指数代码'].astype(str).str.replace(r'\\.0$','',regex=True).str.zfill(6)
+        valid=pb[pb['code'].isin(expected)&(pd.to_numeric(pb['市净率'],errors='coerce')>0)]
+        print(json.dumps(dict(pbMonthlyDate=str(selected),pbIndustries=valid['code'].nunique(),monthlyDates=len(dates),productionApproved=False)),flush=True)
+        if valid['code'].nunique()!=30:raise ValueError('Incomplete SW PB universe')
+    except Exception as exc:
+        print(json.dumps(dict(pbProbe='failed',errorType=type(exc).__name__,message=str(exc)[:300])),flush=True)
+        raise
