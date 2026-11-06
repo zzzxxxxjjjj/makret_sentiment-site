@@ -1,0 +1,161 @@
+{
+  "checkedAt": "2026-11-06T14:29:53.288168+08:00",
+  "source": "AKShare / 东方财富原始财务报表",
+  "status": "sample_audit_only_not_production_approved",
+  "samples": [
+    {
+      "code": "SH600519",
+      "profit": {
+        "rows": 104,
+        "fields": [
+          "REPORT_DATE",
+          "NOTICE_DATE",
+          "PARENT_NETPROFIT",
+          "PARENT_NETPROFIT_YOY",
+          "DEDUCT_PARENT_NETPROFIT",
+          "DEDUCT_PARENT_NETPROFIT_YOY"
+        ],
+        "reports": [
+          "2024-12-31",
+          "2025-03-31",
+          "2025-06-30",
+          "2025-09-30",
+          "2025-12-31",
+          "2026-03-31",
+          "2026-06-30",
+          "2026-09-30"
+        ],
+        "hasDisclosureDate": true
+      },
+      "balance": {
+        "rows": 104,
+        "fields": [
+          "REPORT_DATE",
+          "NOTICE_DATE",
+          "PARENT_EQUITY_BALANCE",
+          "PARENT_EQUITY_OTHER",
+          "TOTAL_PARENT_EQUITY",
+          "PARENT_EQUITY_BALANCE_YOY",
+          "PARENT_EQUITY_OTHER_YOY",
+          "TOTAL_PARENT_EQUITY_YOY"
+        ],
+        "reports": [
+          "2024-12-31",
+          "2025-03-31",
+          "2025-06-30",
+          "2025-09-30",
+          "2025-12-31",
+          "2026-03-31",
+          "2026-06-30",
+          "2026-09-30"
+        ],
+        "hasDisclosureDate": true
+      }
+    },
+    {
+      "code": "SH600036",
+      "profit": {
+        "rows": 103,
+        "fields": [
+          "REPORT_DATE",
+          "NOTICE_DATE",
+          "PARENT_NETPROFIT",
+          "PARENT_NETPROFIT_YOY",
+          "DEDUCT_PARENT_NETPROFIT",
+          "DEDUCT_PARENT_NETPROFIT_YOY"
+        ],
+        "reports": [
+          "2024-12-31",
+          "2025-03-31",
+          "2025-06-30",
+          "2025-09-30",
+          "2025-12-31",
+          "2026-03-31",
+          "2026-06-30",
+          "2026-09-30"
+        ],
+        "hasDisclosureDate": true
+      },
+      "balance": {
+        "rows": 102,
+        "fields": [
+          "REPORT_DATE",
+          "NOTICE_DATE",
+          "PARENT_EQUITY_OTHER",
+          "PARENT_EQUITY_BALANCE",
+          "TOTAL_PARENT_EQUITY",
+          "PARENT_EQUITY_OTHER_YOY",
+          "PARENT_EQUITY_BALANCE_YOY",
+          "TOTAL_PARENT_EQUITY_YOY"
+        ],
+        "reports": [
+          "2024-12-31",
+          "2025-03-31",
+          "2025-06-30",
+          "2025-09-30",
+          "2025-12-31",
+          "2026-03-31",
+          "2026-06-30",
+          "2026-09-30"
+        ],
+        "hasDisclosureDate": true
+      }
+    },
+    {
+      "code": "SZ300750",
+      "profit": {
+        "rows": 42,
+        "fields": [
+          "REPORT_DATE",
+          "NOTICE_DATE",
+          "PARENT_NETPROFIT",
+          "PARENT_NETPROFIT_YOY",
+          "DEDUCT_PARENT_NETPROFIT",
+          "DEDUCT_PARENT_NETPROFIT_YOY"
+        ],
+        "reports": [
+          "2024-12-31",
+          "2025-03-31",
+          "2025-06-30",
+          "2025-09-30",
+          "2025-12-31",
+          "2026-03-31",
+          "2026-06-30",
+          "2026-09-30"
+        ],
+        "hasDisclosureDate": true
+      },
+      "balance": {
+        "rows": 40,
+        "fields": [
+          "REPORT_DATE",
+          "NOTICE_DATE",
+          "PARENT_EQUITY_BALANCE",
+          "PARENT_EQUITY_OTHER",
+          "TOTAL_PARENT_EQUITY",
+          "PARENT_EQUITY_BALANCE_YOY",
+          "PARENT_EQUITY_OTHER_YOY",
+          "TOTAL_PARENT_EQUITY_YOY"
+        ],
+        "reports": [
+          "2024-12-31",
+          "2025-03-31",
+          "2025-06-30",
+          "2025-09-30",
+          "2025-12-31",
+          "2026-03-31",
+          "2026-06-30",
+          "2026-09-30"
+        ],
+        "hasDisclosureDate": true
+      }
+    }
+  ],
+  "requirements": [
+    "普通归母净利润TTM，非扣非、非加权累计年化ROE",
+    "归母权益及原ROE平均权益定义",
+    "历史披露时间与修订版本",
+    "原行业账面净资产加权口径、足够历史样本及30行业覆盖"
+  ],
+  "note": "抽样字段可用不等于全市场历史口径已通过核验；没有使用PB/PE代理值，未替换原PB-ROE图。"
+}
