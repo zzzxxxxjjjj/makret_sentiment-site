@@ -261,6 +261,7 @@ def build_pb_roe_percentiles(ids, industry, as_of, industry_source="citics_2019"
             "roePercentile": finite_round(percentile_last(part["roe"]), 1),
             "valuationAsOf": latest["date"].isoformat(),
             "valuationSamples": int(len(part)),
+            "industryName": str(latest["industryName"]),
         }
     return result, status
 
