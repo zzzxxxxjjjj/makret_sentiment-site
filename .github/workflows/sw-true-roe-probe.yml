@@ -1,0 +1,19 @@
+name: Retry AKShare true ROE numeric inputs
+on:
+  push:
+    branches: [main]
+    paths: [sw_true_roe_probe.py, .github/workflows/sw-true-roe-probe.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install akshare
+      - run: python sw_true_roe_probe.py
