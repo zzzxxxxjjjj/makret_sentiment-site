@@ -1,0 +1,41 @@
+name: Recompute SW valuation and rotation
+on:
+  push:
+    branches: [main]
+    paths: [sw_valuation_rotation.py, .github/workflows/sw-valuation-rotation.yml]
+  schedule:
+    - cron: '55 10 * * 1-5'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: sw-valuation-rotation
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: .rqdata-cache
+          key: sw-valuation-${{ github.run_id }}
+          restore-keys: sw-valuation-
+      - run: python -m pip install -r requirements-cloud.txt
+      - run: python sw_valuation_rotation.py
+        env:
+          RQDATAC_CONF: ${{ secrets.RQDATAC_CONF }}
+          PYTHONUNBUFFERED: '1'
+      - name: Publish validated SW datasets only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- sw-industry-valuation.json sw-industry-rotation.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Recompute valuation and rotation using SW2021 industries'
+          git pull --rebase origin main
+          git push origin HEAD:main
