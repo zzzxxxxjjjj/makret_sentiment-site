@@ -28,7 +28,7 @@ def aggregate(members, stocks):
         if not codes or seen & codes: raise ValueError('Empty or overlapping SW membership')
         seen |= codes
         valid = [values[c] for c in codes if c in values]
-        if len(valid)/len(codes) < .95: raise ValueError('Insufficient stock coverage: '+m['name'])
+        if len(valid)/len(codes) < .95: raise ValueError('Insufficient stock coverage: '+m['name']+' '+str(len(valid))+'/'+str(len(codes))+' missing='+','.join(sorted(codes-values.keys())))
         output.append(dict(code=m['code'], name=m['name'], value=sum(valid)/1e8,
                            covered=len(valid), total=len(codes)))
     return output
@@ -66,7 +66,29 @@ def main():
     provider_day = max(str(d)[:10] for d in quote['数据日期'])
     if provider_day != day: raise ValueError('Provider trading date not current')
     if now.date().isoformat() == day and now.hour < 9: raise ValueError('Before current trading session')
-    rows = aggregate(members, ak.stock_individual_fund_flow_rank(indicator='今日'))
+    stocks = ak.stock_individual_fund_flow_rank(indicator='今日')
+    import pandas as pd
+    numeric = pd.to_numeric(stocks['今日主力净流入-净额'], errors='coerce')
+    available = set(stocks.loc[numeric.notna(), '代码'].astype(str).str.zfill(6))
+    missing = set()
+    for m in members:
+        codes = set(m['stocks'])
+        if len(codes & available)/len(codes) < .95:
+            missing |= codes-available
+    if len(missing) > 100: raise ValueError('Bulk stock source incomplete; retry later')
+    def supplement(code):
+        market = 'sh' if code.startswith('6') else 'bj' if code.startswith(('4','8','9')) else 'sz'
+        try:
+            history = ak.stock_individual_fund_flow(stock=code, market=market)
+            current = history[history['日期'].astype(str).str[:10] == day]
+            value = float(current.iloc[-1]['主力净流入-净额']) if len(current) else float('nan')
+            if math.isfinite(value): return {'代码': code, '今日主力净流入-净额': value}
+        except Exception: pass
+        return None
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        extra = [r for r in pool.map(supplement, sorted(missing)) if r is not None]
+    if extra: stocks = pd.concat([stocks, pd.DataFrame(extra)], ignore_index=True)
+    rows = aggregate(members, stocks)
     stamp = now.strftime('%H:%M') if now.date().isoformat() == day else '收盘快照'
     points = old.get('snapshots', [])
     points = [p for p in points if not (p['date'] == day and p['time'] == stamp)]
