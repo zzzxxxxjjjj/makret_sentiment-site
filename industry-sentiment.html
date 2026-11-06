@@ -31,12 +31,12 @@
 
     <section class="panel rotation-history-panel" id="rotationHistoryPanel">
       <div class="panel-head">
-        <div><p class="eyebrow">INDUSTRY ROTATION / CSI ALL SHARE</p><h2>行业轮动强度与中证全指（周度）</h2></div>
+        <div><p class="eyebrow">INDUSTRY ROTATION / CSI ALL SHARE</p><h2>申万行业轮动强度与中证全指（周度）</h2></div>
 
       </div>
       <div class="rotation-history-stats"><div><span>最新轮动强度 MA4</span><strong id="rotationHistoryValue">—</strong></div><div><span>近52周分位（MA4）</span><strong id="rotationHistoryPercentile">—</strong></div><div><span>中证全指</span><strong id="rotationHistoryIndex">—</strong></div><small id="rotationHistoryDate">等待数据</small></div>
       <div class="rotation-history-legend"><span>轮动强度MA4（左轴）</span><span>中证全指点位（右轴）</span></div>
-      <div class="rotation-history-chart-wrap"><canvas id="rotationHistoryChart" role="img" aria-label="近十年行业轮动强度与中证全指双轴周度图，轮动强度采用4周移动平均"></canvas><div id="rotationHistoryTooltip" class="rotation-history-tooltip" hidden></div><div id="rotationHistoryEmpty" class="empty-state">正在读取行业轮动数据</div></div>
+      <div class="rotation-history-chart-wrap"><canvas id="rotationHistoryChart" role="img" aria-label="实际可用历史申万行业轮动强度与中证全指双轴周度图，轮动强度采用4周移动平均"></canvas><div id="rotationHistoryTooltip" class="rotation-history-tooltip" hidden></div><div id="rotationHistoryEmpty" class="empty-state">正在读取行业轮动数据</div></div>
       <div id="rotationHistoryRange" class="rotation-history-range"></div>
       <div class="rotation-time-slider" role="group" aria-label="轮动图时间区间">
         <div class="rotation-slider-caption"><span>拖动两端选择周度区间</span><output id="rotationHistorySliderDates">正在读取时间区间</output></div>
@@ -47,7 +47,7 @@
         </div>
         <div class="rotation-slider-bounds"><span id="rotationHistoryFirstDate">—</span><span id="rotationHistoryLastDate">—</span></div>
       </div>
-      <p class="flow-trend-note">范围：申万2021一级行业，剔除综合，共30个，不含概念指数。本图通过AKShare获取申万成分股，汇总东方财富个股主力净流入。覆盖率至少90%，非全覆盖为已覆盖股票小计，以*标注；悬停可查看覆盖股票数，不将缺失数值当成零。仅显示真实采样；近20日历史使用个股日频主力净流入，按当前申万成分股重构，不代表历史时点成分。逐日净额从区间首日累计；缺失行业日留空且不跨缺口继续累计。仅展示近20日累计净额排名前5和后5；前5表示相对排名，不保证净额为正。数据源独立，不与下方原行业面板混合联动。</p>
+      <p class="flow-trend-note">AKShare口径：申万2021一级行业，剔除综合，固定30个。每日按近5个交易日涨跌幅排名，比较上一交易日名次，绝对名次变动加总；并列用平均名次，缺行业行情的观察不计算。按周取最后观察后计算4周移动平均。中证全指来自AKShare中证指数接口。仅展示官方实际共同可用历史，不拼接中信数据。</p>
     </section>
 
     <section class="panel valuation-panel">
@@ -66,7 +66,7 @@
       <div class="valuation-axis-note">
         <span>横轴：ROE历史分位</span>
         <span>纵轴：PB历史分位</span>
-      </div>
+      </div><p class="flow-trend-note">本图暂保留原中信行业口径。申万迁移需先核验真实普通ROE(TTM)、归母净资产、披露日期及历史聚合覆盖；不使用PB÷PE代理值，不混入加权或扣非ROE。</p>
     </section>
 
     <section id="flowTrendPanel" class="panel flow-trend-panel">
@@ -98,11 +98,7 @@
         <div id="flowTrendEmpty" class="empty-state" hidden>暂无资金流向数据，请运行 rqdata_industry_refresh.py 更新数据。</div>
       </div>
 
-      <p class="flow-trend-note">
-        点击资金类别和时间维度切换排行榜，每次仅显示所选时间维度，按对应指标值从高到低排名；日度为当日，周度为近5个交易日，月度为近20个交易日（均含当日）。横条长度仅在同一时间维度内比较。主力资金为期间累计净流入；比例指标为期间日均值。缺失或不足完整窗口显示「—」。
-        主力资金＝成分股主动买入额－主动卖出额（亿元，可为负，零点左侧表示净流出）；杠杆资金＝融资买入额÷行业成交额（%）；成交额占比＝行业成交额÷全市场成交额（%）。
-        点击行业行可联动下方二级行业面板。数据源：RQData，日频，中信2019一级行业。
-      </p>
+      <p class="flow-trend-note">申万2021一级行业（剔除综合，共30个），按当前成分股重构近20个完整交易日主力净流入，每日净额从区间首日累计。仅显示累计前五名和后五名。成分股覆盖率至少90%，未全覆盖的小计以*标注，悬停可查看覆盖数。缺失行业日不补零，也不跨缺口累计。不包含概念指数，不与原中信行业面板混合联动。</p>
     </section>
 
     <section class="industry-lower">
@@ -157,7 +153,7 @@
   </main>
   <script src="/industry-sentiment.js?v=20261019-fund-change-only" defer></script>
   <script src="/industry-flow-trend.js?v=sw-history20-top-bottom-2" defer></script>
-  <script src="/industry-rotation-history.js?v=20261016-4" defer></script>
+  <script src="/industry-rotation-history.js?v=sw-akshare-1" defer></script>
   <script src="/data-health.js?v=20261016-1" defer></script>
 </body>
 </html>
