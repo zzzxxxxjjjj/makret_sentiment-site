@@ -20,7 +20,10 @@ def main():
     members=json.loads((ROOT/'sw-flow-members.json').read_text(encoding='utf-8'))['members']
     if len(members)!=30 or any(m['name']=='综合' for m in members):raise ValueError('Expected 30 SW first-level industries')
     ids,industry=valuation.valuation_universe_and_industry(target,source='sws_2021')
+    print(json.dumps(dict(universe=len(ids),mapped=len(industry),columns=list(industry.columns),
+        names=industry[['industryCode','industryName']].drop_duplicates().head(5).to_dict('records') if len(industry) else [])),flush=True)
     values,status=valuation.build_pb_roe_percentiles(ids,industry,target,industry_source='sws_2021')
+    print(json.dumps(dict(factorStatus=status,groups=len(values),examples=list(values.items())[:5]),ensure_ascii=True),flush=True)
     rows=[]
     for m in members:
         value=values.get(m['code']) or values.get(m['code']+'.SI')
