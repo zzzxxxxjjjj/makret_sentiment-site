@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>重点ETF资金流向｜A股市场情绪</title>
+  <title>所有ETF明细｜A股市场情绪</title>
   <link rel="stylesheet" href="/styles.css?v=20261016-position">
   <link rel="stylesheet" href="/etf-flows.css">
 </head>
@@ -21,27 +21,23 @@
     <section class="etf-hero">
       <div>
         <p class="eyebrow">FOCUS ETF / DAILY FLOW</p>
-        <h1>重点ETF资金流向</h1>
-        <p class="summary">跟踪大盘核心、科技成长和中小市值方向的6只代表性ETF。净流量按“份额变化 × 当日收盘价”估算。</p>
+        <h1>所有ETF明细</h1>
+        <p class="summary">成交额来自东方财富；按成交额排序查看全部ETF，净申赎数据按实际覆盖显示。</p>
       </div>
       <div class="etf-meta">
         <div><span>数据日期</span><strong id="asOf">—</strong></div>
-        <div><span>跟踪标的</span><strong>6只</strong></div>
+        <div><span>跟踪标的</span><strong id="etfCount">—</strong></div>
         <button id="refreshButton" type="button">刷新数据</button>
       </div>
     </section>
 
-    <section id="flowSummary" class="flow-summary" aria-live="polite">
-      <article><span>6只ETF当日合计</span><strong>—</strong><em>亿元</em></article>
-      <article><span>近5日合计</span><strong>—</strong><em>亿元</em></article>
-      <article><span>近20日合计</span><strong>—</strong><em>亿元</em></article>
-    </section>
+    <p id="flowSummary" class="method-note"></p>
 
     <section class="panel etf-table-panel">
       <div class="panel-head">
         <div>
           <p class="eyebrow">CAPITAL FLOW DETAIL</p>
-          <h2>ETF资金流向明细</h2>
+          <h2>单只ETF当日表现</h2>
           <p class="section-description">红色表示净流入，绿色表示净流出；可结合不同期限判断资金是单日脉冲还是持续配置。</p>
         </div>
         <div class="flow-legend"><span><i class="inflow"></i>净流入</span><span><i class="outflow"></i>净流出</span></div>
@@ -49,7 +45,7 @@
       <div class="etf-table-wrap">
         <table class="etf-flow-table">
           <thead>
-            <tr><th>类别</th><th>指数 / ETF</th><th>当日</th><th>近5日</th><th>近20日</th><th>近期日流量</th></tr>
+            <tr><th>代码</th><th>名称</th><th id="amountHeader" aria-sort="descending"><button id="amountSort" type="button">当日成交额（亿） ↓</button></th><th>占比</th><th>涨跌幅</th><th>当日净申赎（亿）</th><th>近5日净申赎（亿）</th></tr>
           </thead>
           <tbody id="etfRows"></tbody>
         </table>
@@ -57,9 +53,9 @@
       <div id="emptyHint" class="etf-empty"></div>
     </section>
 
-    <p class="method-note">数据来源：RQData。资金净流量为估算口径，不等同于交易所披露的申赎现金，不构成投资建议。</p>
+    <p class="method-note">成交额与涨跌幅：东方财富免费行情快照，非实时推送。底色条表示成交额相对本表最大值；默认降序，点击成交额表头切换升序。净申赎沿用既有“份额变化 × 收盘价”估算，仅显示与行情同日且已覆盖的ETF，缺失显示“—”，不以主力净流入替代。各项日期以页面标示为准。</p>
   </main>
 
-  <script src="/etf-flows.js?v=focus-6-sse50" defer></script>
+  <script src="/etf-flows.js?v=all-eastmoney-1" defer></script>
 </body>
 </html>
