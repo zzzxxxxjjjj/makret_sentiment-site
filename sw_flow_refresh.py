@@ -39,7 +39,7 @@ def main():
     import requests
     original = requests.sessions.Session.request
     def bounded(self, method, url, **kwargs):
-        kwargs.setdefault('timeout', 25)
+        kwargs['timeout'] = 25
         return original(self, method, url, **kwargs)
     requests.sessions.Session.request = bounded
     now = datetime.now(ZoneInfo('Asia/Shanghai'))
@@ -57,10 +57,28 @@ def main():
         if len(listing) != 30: raise ValueError('Incomplete SW industry classification')
         def one(r):
             code = str(r['行业代码']).split('.')[0]
-            frame = ak.index_component_sw(symbol=code)
-            return dict(code=code, name=str(r['行业名称']), stocks=[str(c).split('.')[0].zfill(6) for c in frame['证券代码']])
+            last = None
+            for attempt in range(2):
+                try:
+                    frame = ak.index_component_sw(symbol=code)
+                    if frame.empty: raise ValueError('Empty SW constituent response')
+                    return dict(code=code, name=str(r['行业名称']), stocks=[str(c).split('.')[0].zfill(6) for c in frame['证券代码']])
+                except Exception as exc: last = exc
+            # AKShare's Legulegu composition endpoint also accepts first-level
+            # .SI index codes; same SW code, never an Eastmoney sector mapping.
+            frame = ak.sw_index_third_cons(symbol=code+'.SI')
+            column = next((c for c in frame if '代码' in str(c)), None)
+            if frame.empty or column is None: raise ValueError('Missing SW constituents: '+code) from last
+            return dict(code=code, name=str(r['行业名称']), stocks=[str(c).split('.')[0].zfill(6) for c in frame[column]])
         with ThreadPoolExecutor(max_workers=4) as pool:
             members = list(pool.map(one, listing.to_dict('records')))
+        # Retain validated public classification for future retries even if the
+        # separate stock-flow service is unavailable during this run.
+        if len(members) != 30 or any(not m['stocks'] for m in members):
+            raise ValueError('Incomplete SW membership cache')
+        temporary = membership_path.with_suffix('.tmp')
+        temporary.write_text(json.dumps(dict(date=day, members=members), ensure_ascii=False), encoding='utf-8')
+        temporary.replace(membership_path)
     # ETF spot provides a provider-stamped trading date; do not date old flow as today.
     quote = ak.fund_etf_spot_em()
     provider_day = max(str(d)[:10] for d in quote['数据日期'])
