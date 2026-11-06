@@ -9,7 +9,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: sw-valuation-rotation
+  group: daily-rqdata-update
   cancel-in-progress: false
 jobs:
   update:
