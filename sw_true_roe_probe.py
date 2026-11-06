@@ -22,8 +22,8 @@ for code in ['sh600519','sh600036','sz300750']:
     try:
         profit=ak.stock_financial_report_sina(stock=code,symbol='利润表')
         balance=ak.stock_financial_report_sina(stock=code,symbol='资产负债表')
-        pc=column(profit,['归属于母公司所有者的净利润','归属于母公司股东的净利润'])
-        ec=column(balance,['归属于母公司所有者权益合计','归属于母公司股东权益合计'])
+        pc=column(profit,['归属于母公司所有者的净利润','归属于母公司股东的净利润','归属于母公司的净利润'])
+        ec=column(balance,['归属于母公司所有者权益合计','归属于母公司股东权益合计','归属于母公司所有者权益','归属于母公司股东权益'])
         for frame in [profit,balance]:
             frame['_date']=pd.to_datetime(frame['报告日'].astype(str),errors='coerce')
             frame.set_index('_date',inplace=True)
