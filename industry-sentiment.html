@@ -47,7 +47,7 @@
         </div>
         <div class="rotation-slider-bounds"><span id="rotationHistoryFirstDate">—</span><span id="rotationHistoryLastDate">—</span></div>
       </div>
-      <p class="flow-trend-note">范围：申万2021一级行业，剔除综合，共30个，不含概念指数。本图通过AKShare获取申万成分股，汇总东方财富个股主力净流入。覆盖率至少90%，非全覆盖为已覆盖股票小计，以*标注；悬停可查看覆盖股票数，不将缺失数值当成零。仅显示真实采样；近20日历史使用个股日频主力净流入，按当前申万成分股重构，不代表历史时点成分。逐日净额从区间首日累计；缺失行业日留空且不跨缺口继续累计。盘中采样与历史日频独立，不混用。数据源独立，不与下方原行业面板混合联动。</p>
+      <p class="flow-trend-note">范围：申万2021一级行业，剔除综合，共30个，不含概念指数。本图通过AKShare获取申万成分股，汇总东方财富个股主力净流入。覆盖率至少90%，非全覆盖为已覆盖股票小计，以*标注；悬停可查看覆盖股票数，不将缺失数值当成零。仅显示真实采样；近20日历史使用个股日频主力净流入，按当前申万成分股重构，不代表历史时点成分。逐日净额从区间首日累计；缺失行业日留空且不跨缺口继续累计。仅展示近20日累计净额排名前5和后5；前5表示相对排名，不保证净额为正。数据源独立，不与下方原行业面板混合联动。</p>
     </section>
 
     <section class="panel valuation-panel">
@@ -72,7 +72,7 @@
     <section id="flowTrendPanel" class="panel flow-trend-panel">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">SW2021 INDUSTRY FLOW · 实际采样 / 多日累计</p>
+          <p class="eyebrow">SW2021 INDUSTRY FLOW · 近20日累计</p>
           <h2>申万一级行业资金流向</h2>
         </div>
         <div class="flow-metric-tabs" id="flowMetricTabs" role="tablist" aria-label="资金指标">
@@ -156,7 +156,7 @@
     <p class="industry-note">行业口径：中信2019行业。主动资金净额＝成分股主动买入额－主动卖出额；拥挤度采用近250日滚动分位，数值越高表示交易和价格动量越集中。</p>
   </main>
   <script src="/industry-sentiment.js?v=20261019-fund-change-only" defer></script>
-  <script src="/industry-flow-trend.js?v=sw-history20-1" defer></script>
+  <script src="/industry-flow-trend.js?v=sw-history20-top-bottom-2" defer></script>
   <script src="/industry-rotation-history.js?v=20261016-4" defer></script>
   <script src="/data-health.js?v=20261016-1" defer></script>
 </body>
