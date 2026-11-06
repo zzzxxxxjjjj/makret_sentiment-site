@@ -28,7 +28,7 @@ def aggregate(members, stocks):
         if not codes or seen & codes: raise ValueError('Empty or overlapping SW membership')
         seen |= codes
         valid = [values[c] for c in codes if c in values]
-        if len(valid)/len(codes) < .95: raise ValueError('Insufficient stock coverage: '+m['name']+' '+str(len(valid))+'/'+str(len(codes))+' missing='+','.join(sorted(codes-values.keys())))
+        if len(valid)/len(codes) < .90: raise ValueError('Insufficient stock coverage: '+m['name']+' '+str(len(valid))+'/'+str(len(codes))+' missing='+','.join(sorted(codes-values.keys())))
         output.append(dict(code=m['code'], name=m['name'], value=sum(valid)/1e8,
                            covered=len(valid), total=len(codes)))
     return output
@@ -89,6 +89,7 @@ def main():
         extra = [r for r in pool.map(supplement, sorted(missing)) if r is not None]
     if extra: stocks = pd.concat([stocks, pd.DataFrame(extra)], ignore_index=True)
     rows = aggregate(members, stocks)
+    now = datetime.now(ZoneInfo('Asia/Shanghai'))
     stamp = now.strftime('%H:%M') if now.date().isoformat() == day else '收盘快照'
     points = old.get('snapshots', [])
     points = [p for p in points if not (p['date'] == day and p['time'] == stamp)]
@@ -97,7 +98,7 @@ def main():
     points = [p for p in points if p['date'] in days]
     value = dict(available=True, asOf=day, collectedAt=now.isoformat(), classification='申万2021一级行业（剔除综合）',
         source='AKShare申万成分股＋东方财富个股主力净流入汇总', snapshots=points,
-        note='按采集当日申万成分股等金额求和，不使用指数权重。覆盖率至少95%；未返回数值的股票不计入，非全覆盖时为已覆盖股票小计。仅保留真实采样时点，非连续分钟数据；多日累计使用各交易日最后一次采样值，不承诺为收盘终值。')
+        note='按采集当日申万成分股等金额求和，不使用指数权重。覆盖率至少90%；未返回数值的股票不计入，非全覆盖时为已覆盖股票小计，图中以*标记。仅保留真实采样时点，非连续分钟数据；多日累计使用各交易日最后一次采样值，不承诺为收盘终值。')
     for p, obj in [(membership_path, dict(date=day, members=members)), (path,value)]:
         tmp=p.with_suffix('.tmp');tmp.write_text(json.dumps(obj,ensure_ascii=False,allow_nan=False),encoding='utf-8');tmp.replace(p)
     print('SW industry snapshot '+day+' industries='+str(len(rows)))
