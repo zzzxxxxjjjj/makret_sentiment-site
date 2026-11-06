@@ -30,6 +30,7 @@ WEB_FILES = (
 )
 REQUIRED_DATA = ("rqdata-broad-sentiment.json", "rqdata-industry-sentiment.json")
 OPTIONAL_DATA = {
+    "sw-industry-history.json": {"available": False, "days": []},
     "sw-industry-flow.json": {"available": False, "snapshots": []},
     "etf-market.json": {"available": False, "rows": []},
     "position-update-status.json": {"ok": None},
