@@ -94,9 +94,10 @@
   }
   async function load(){
     try{
-      const response=await fetch('/rqdata-industry-rotation.json',{cache:'no-store'});
+      const response=await fetch('/akshare-sw-industry-rotation.json',{cache:'no-store'});
       if(!response.ok)throw new Error('missing');
       const data=await response.json();
+      if(data.industryCount!==30 || !String(data.source||'').startsWith('AKShare'))throw new Error('wrong SW data source');
       if(!Array.isArray(data.points)||data.points.length<2)throw new Error('empty');
       data.points=weeklyPoints(data.points);
       if(data.points.length<2)throw new Error('insufficient weekly history');
