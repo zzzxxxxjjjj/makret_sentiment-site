@@ -119,7 +119,7 @@ def valuation_sample_dates(as_of):
     return sorted(set(monthly))
 
 
-def valuation_universe_and_industry(sample_date):
+def valuation_universe_and_industry(sample_date, source="citics_2019"):
     instruments = rq.all_instruments(type="CS", date=sample_date)
     if instruments is None or instruments.empty or "order_book_id" not in instruments.columns:
         return [], pd.DataFrame()
@@ -135,7 +135,7 @@ def valuation_universe_and_industry(sample_date):
                 frame(
                     cached_snapshot(rq, "get_instrument_industry",
                         ids_batch,
-                        source="citics_2019",
+                        source=source,
                         level=1,
                         date=sample_date,
                     )
@@ -160,7 +160,7 @@ def valuation_universe_and_industry(sample_date):
     return sample_ids, industry
 
 
-def build_pb_roe_percentiles(ids, industry, as_of):
+def build_pb_roe_percentiles(ids, industry, as_of, industry_source="citics_2019"):
     pb_factor = resolve_factor_name(ids, PB_FACTOR_CANDIDATES, as_of)
     roe_factor = resolve_factor_name(ids, ROE_FACTOR_CANDIDATES, as_of)
     cap_factor = resolve_factor_name(ids, MARKET_CAP_FACTOR_CANDIDATES, as_of)
@@ -169,7 +169,7 @@ def build_pb_roe_percentiles(ids, industry, as_of):
         "roeFactor": roe_factor,
         "weightFactor": cap_factor,
         "aggregationMethod": "aggregate_fundamentals",
-        "membershipMethod": "quarterly_historical_citics_constituents",
+        "membershipMethod": f"quarterly_historical_{industry_source}_constituents",
     }
     if not pb_factor or not roe_factor or not cap_factor:
         return {}, status
@@ -185,7 +185,7 @@ def build_pb_roe_percentiles(ids, industry, as_of):
             membership_key = (sample_date.year, (sample_date.month - 1) // 3)
             if membership_key not in membership_cache:
                 membership_cache[membership_key] = valuation_universe_and_industry(
-                    sample_date
+                    sample_date, source=industry_source
                 )
             sample_ids, sample_industry = membership_cache[membership_key]
         if not sample_ids or sample_industry.empty:
