@@ -46,11 +46,11 @@ def calculate(prices, calendar, as_of):
         raise ValueError('Rotation or CSI All Share did not reach target trading date')
     return points
 
-def refresh(output, as_of=None):
+def refresh(output, as_of=None, cache_name="rotation-prices.pkl.gz"):
     import rqdatac as rq
     initialize_rqdata()
     as_of = as_of or completed_trading_date(rq)
-    cache = BASE_DIR/'.rqdata-cache/rotation-prices.pkl.gz'
+    cache = BASE_DIR/'.rqdata-cache'/cache_name
     cache.parent.mkdir(exist_ok=True)
     first = ten_year_start(as_of) - timedelta(days=30)
     prior = pd.DataFrame()
