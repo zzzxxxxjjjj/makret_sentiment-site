@@ -20,30 +20,15 @@
       const risks = m.assets.filter(a => a.kind !== 'cash');
       if (risks.some(a => !Number.isFinite(a.riskShare) || a.riskShare < 0) || Math.abs(risks.reduce((sum, a) => sum + a.riskShare, 0) - 1) > 1e-7) throw new Error('风险贡献数据不完整。');
     }
-    if (!Array.isArray(data.moduleVotes) || data.moduleVotes.length !== 5 || data.moduleVotes.some(v => ![-1, 0, 1].includes(v.vote))) throw new Error('多维度投票数据不完整。');
+    if (data.mode !== 'five-dimensions-v4' || !Array.isArray(data.moduleVotes) || data.moduleVotes.length !== 5 || data.moduleVotes.some((v, i) => v.name !== ['宏观', '估值', '资金', '价量', '情绪'][i] || !Number.isFinite(v.vote) || Math.abs(v.vote) > 1)) throw new Error('等待统一五维仓位快照。');
     const mean = data.moduleVotes.reduce((sum, row) => sum + row.vote, 0) / 5;
-    if (!Number.isFinite(data.compositeMean) || Math.abs(mean - data.compositeMean) > 1e-8 || Math.sign(mean) !== data.models.find(m => m.id === 'multidimensional').signal) throw new Error('多维度总信号未通过复核。');
+    if (!Number.isFinite(data.compositeMean) || Math.abs(mean - data.compositeMean) > 1e-8 || data.models.some(m => Math.sign(mean) !== m.signal)) throw new Error('多维度总信号未通过复核。');
     return data;
   }
 
-  function renderVotes(macro) {
+  function renderVotes() {
     const data = state.data;
-    const legacyVote = name => data.moduleVotes.find(row => row.name === name)?.vote;
-    const vote = score => score >= 70 ? 1 : score <= 30 ? -1 : 0;
-    const average = values => values.every(Number.isFinite)
-      ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
-    const macroSeries = ['credit-pulse', 'china-ppi-yoy'].map(id =>
-      macro?.series?.find(series => series.id === id)?.points?.slice(-4));
-    const macroScore = average(macroSeries.map(points =>
-      points?.length === 4 && points.every(point => Number.isFinite(point.value))
-        ? Math.sign(points[3].value - points[0].value) : null));
-    const rows = [
-      ['宏观', macroScore, '信用脉冲与PPI同比的三个月变化方向，各占一半'],
-      ['估值', average(data.styles.map(style => vote(style.valuation))), '四组风格的PE反向历史分位投票，等权平均'],
-      ['资金', legacyVote('资金流'), '20日融资净流入与权益ETF净流入'],
-      ['价量', average([legacyVote('风格'), legacyVote('情绪')]), '120日价格动量与广度、换手信号各占一半'],
-      ['情绪', average([legacyVote('期权波动率'), legacyVote('期货期权持仓')]), '期权隐波与期货期权持仓信号各占一半'],
-    ];
+    const rows = data.moduleVotes.map(({name, vote}) => [name, vote]);
     const format = value => Number.isFinite(value)
       ? `${value > 0 ? '+' : ''}${value.toFixed(2)} · ${labels(value)}` : '待补数据';
     const container = el('moduleVotes');
@@ -65,20 +50,14 @@
     }
     const notes = el('methodNotes');
     notes.replaceChildren();
-    const rules = [
-      '右侧择时评分：宏观、估值、资金、价量、情绪各占20%，单项分数范围为 −1 至 +1，数据齐备时取五项算术平均。',
-      ...rows.map(([label, , method]) => `${label}：${method}。`),
-      '估值采用反向历史分位，达到70投 +1，低至30投 −1，其余投 0。',
-      '以下为原研究快照的评分与定仓规则，供核对原始信号来源。',
-      ...data.notes,
-    ];
+    const rules = data.notes;
     for (const rule of rules) {
       const note = document.createElement('li'); note.textContent = rule; notes.append(note);
     }
-    const mean = average(rows.map(row => row[1]));
+    const mean = data.compositeMean;
     el('compositeMean').textContent = Number.isFinite(mean) ? mean.toFixed(2) : '—';
     el('compositeLabel').textContent = Number.isFinite(mean) ? labels(mean) : '等待五维数据齐备';
-    el('signalScope').textContent = `市场快照 ${data.asOf} · 原交易信号决策日 ${data.lastDecisionDate} · 宏观数据 ${macro?.asOf || '暂缺'}`;
+    el('signalScope').textContent = `市场快照 ${data.asOf} · 五维与仓位决策日 ${data.lastDecisionDate}`;
   }
 
   function renderStyleDetail() {
@@ -131,6 +110,25 @@
     }
     el('sourceNote').textContent = data.source;
     const generated = new Date(data.generatedAt); el('generatedAt').textContent = Number.isNaN(generated.valueOf()) ? '' : `快照导出 ${generated.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })}`;
+    const cards = el('allocationModels');
+    cards.replaceChildren();
+    for (const model of data.models) {
+      const title = document.createElement('h3');
+      title.textContent = `${model.name} · ${labels(model.signal)}`;
+      const metrics = document.createElement('div');
+      metrics.className = 'position-metrics';
+      for (const [key, label] of [['equity', '权益'], ['credit', '信用债'], ['cash', '现金']]) {
+        const card = document.createElement('div');
+        card.className = 'position-metric';
+        const caption = document.createElement('span');
+        caption.textContent = label;
+        const weight = document.createElement('strong');
+        weight.textContent = percent(model[key]);
+        card.append(caption, weight);
+        metrics.append(card);
+      }
+      cards.append(title, metrics);
+    }
     renderVotes(); renderStyleDetail(); el('statusDot').className = 'dot'; el('statusText').textContent = '已读取数据';
   }
 
@@ -140,11 +138,6 @@
       const response = await fetch(`/position-advice.json?t=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error('仓位快照暂时无法读取，请稍后重试。');
       const data = validate(await response.json()); if (request !== state.request) return; render(data);
-      const macro = await fetch('/macro-tracking.json', { cache: 'no-store' })
-        .then(response => response.ok ? response.json() : null)
-        .catch(() => null);
-      if (request !== state.request) return;
-      renderVotes(macro);
       try {
         const statusResponse = await fetch(`/position-update-status.json?t=${Date.now()}`, { cache: 'no-store' });
         if (statusResponse.ok) {
