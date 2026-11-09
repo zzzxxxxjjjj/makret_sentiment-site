@@ -2,7 +2,7 @@ name: Refresh free Eastmoney ETF turnover
 on:
   push:
     branches: [main]
-    paths: [etf_market_refresh.py, .github/workflows/etf-market.yml]
+    paths: [etf_market_refresh.py, etf_net_subscription_refresh.py, .github/workflows/etf-market.yml]
   schedule:
     - cron: '45 10,14,22,0 * * *'
   workflow_dispatch:
@@ -22,12 +22,13 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install akshare
       - run: python etf_market_refresh.py
-      - name: Publish ETF turnover snapshot only
+      - run: python etf_net_subscription_refresh.py
+      - name: Publish ETF turnover & net-subscription snapshot
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- etf-market.json
+          git add -- etf-market.json etf-shares-history.json etf-net-subscription.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Update Eastmoney ETF turnover snapshot'
+          git commit -m 'Update Eastmoney ETF turnover & net-subscription snapshot'
           git pull --rebase origin main
           git push origin HEAD:main

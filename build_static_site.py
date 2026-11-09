@@ -34,6 +34,7 @@ OPTIONAL_DATA = {
     "sw-industry-history.json": {"available": False, "days": []},
     "sw-industry-flow.json": {"available": False, "snapshots": []},
     "etf-market.json": {"available": False, "rows": []},
+    "etf-net-subscription.json": {"available": False, "asOf": None, "rows": []},
     "position-update-status.json": {"ok": None},
     "style-factor-returns.json": {"available": False, "asOf": None},
     "style-crowding.json": {"available": False, "asOf": None, "factors": []},
