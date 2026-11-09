@@ -20,15 +20,24 @@ class PositionTest(unittest.TestCase):
                     pcr=s(rng.uniform(.7, 1.4, 650)), etf50=prices.iloc[:, 0],
                     iv=s(np.full(650, .2)), positions=s(np.full(650, -.03)))
 
+    def macro(self):
+        return {'series': [
+            {'id': sid, 'points': [{'date': f'2023-{i:02d}-01', 'value': i}
+                                    for i in range(1, 5)]}
+            for sid in ('credit-pulse', 'china-ppi-yoy')
+        ]}
+
     def template(self):
         return json.loads((Path(__file__).resolve().parents[1]/'position-advice.json').read_text(encoding='utf-8'))
 
     def test_original_contract_and_limits(self):
         d = self.inputs(); day = str(d['prices'].index[-1].date())
-        out = build(self.template(), d, day, day)
+        out = build(self.template(), d, day, day, macro=self.macro())
         self.assertEqual(len(out['styles']), 4)
         self.assertEqual(len(out['moduleVotes']), 5)
+        self.assertEqual([v['name'] for v in out['moduleVotes']], ['宏观', '估值', '资金', '价量', '情绪'])
         for m in out['models']:
+            self.assertEqual(m['signal'], int(np.sign(out['compositeMean'])))
             self.assertEqual(len(m['assets']), 7)
             self.assertAlmostEqual(sum(a['weight'] for a in m['assets']), 1)
             self.assertLessEqual(m['equity'], .20000001)
@@ -39,13 +48,13 @@ class PositionTest(unittest.TestCase):
     def test_missing_latest_never_forward_filled(self):
         d = self.inputs(); day = str(d['prices'].index[-1].date())
         d['prices'].iloc[-1, 0] = np.nan
-        with self.assertRaises(ValueError): build(self.template(), d, day, day)
+        with self.assertRaises(ValueError): build(self.template(), d, day, day, macro=self.macro())
 
     def test_weekly_decision_not_changed_by_later_prices(self):
         d = self.inputs(); day = str(d['prices'].index[-1].date()); decision = str(d['prices'].index[-6].date())
-        first = build(self.template(), d, day, decision)
+        first = build(self.template(), d, day, decision, macro=self.macro())
         d['prices'].iloc[-5:, :5] *= 1.5
-        second = build(self.template(), d, day, decision)
+        second = build(self.template(), d, day, decision, macro=self.macro())
         self.assertEqual(first['models'], second['models'])
         self.assertEqual(first['moduleVotes'], second['moduleVotes'])
         self.assertNotEqual(first['styles'], second['styles'])
