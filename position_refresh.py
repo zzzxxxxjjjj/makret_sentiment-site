@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
-VERSION = 'reconstructed-v3'
+VERSION = 'five-dimensions-v4'
 ETFS = ['510300.XSHG', '512100.XSHG', '588000.XSHG', '159915.XSHE', '515080.XSHG', '511360.XSHG']
 INDICES = ['000300.XSHG', '000852.XSHG', '000688.XSHG', '399006.XSHE', '000922.XSHG']
 GROUPS = [('large', '大盘', '沪深300', [0]), ('small', '中小盘', '中证1000', [1]),
@@ -61,7 +61,20 @@ def risk_weights(cov, budgets):
     return w
 
 
-def build(template, data, target, decision, *, reuse_weekly=False):
+def macro_vote(macro, decision):
+    directions = []
+    for series_id in ('credit-pulse', 'china-ppi-yoy'):
+        series = next((item for item in macro.get('series', []) if item['id'] == series_id), {})
+        points = sorted((p for p in series.get('points', [])
+                         if p['date'] <= decision), key=lambda p: p['date'])[-4:]
+        if len(points) != 4 or any(not isinstance(p['value'], (int, float))
+                                   or not math.isfinite(p['value']) for p in points):
+            raise ValueError('宏观数据: missing observations')
+        directions.append(int(np.sign(points[-1]['value'] - points[0]['value'])))
+    return sum(directions) / 2
+
+
+def build(template, data, target, decision, *, reuse_weekly=False, macro=None):
     p = require(data['prices'], target, 253, label='ETF收盘价')
     pe = require(data['pe'], target, 126, label='指数市盈率')
     flows = require(data['flows'], target, 146, label='ETF申赎资金流')
@@ -103,7 +116,18 @@ def build(template, data, target, decision, *, reuse_weekly=False):
             dict(name='期权波动率', vote=iv_vote),
             dict(name='期货期权持仓', vote=vote([rank(pcr, True), float(np.clip(50+float(positions.iloc[-1])*1000, 0, 100))])),
         ]
-        mean = sum(m['vote'] for m in modules)/5
+        raw = {row['name']: row['vote'] for row in modules}
+        decision_pe = require(pe, decision, 126)
+        valuations = [np.mean([rank(decision_pe[INDICES[i]].where(decision_pe[INDICES[i]] > 0), True)
+                               for i in indices]) for _, _, _, indices in GROUPS]
+        modules = [
+            dict(name='宏观', vote=macro_vote(macro or {}, decision)),
+            dict(name='估值', vote=sum(discrete(value) for value in valuations) / 4),
+            dict(name='资金', vote=raw['资金流']),
+            dict(name='价量', vote=(raw['风格'] + raw['情绪']) / 2),
+            dict(name='情绪', vote=(raw['期权波动率'] + raw['期货期权持仓']) / 2),
+        ]
+        mean = sum(m['vote'] for m in modules) / 5
         signal = int(np.sign(mean))
         returns = dp[ETFS].pct_change().tail(126).dropna()
         if len(returns) != 126:
@@ -143,10 +167,9 @@ def build(template, data, target, decision, *, reuse_weekly=False):
                moduleVotes=modules, compositeMean=mean,
                source='RQData行情、指数PE、ETF份额、50ETF期权隐波、IF会员持仓；重建研究版，非旧模型原样复算')
     out['notes'] = [
-        '重建研究版v3（2026-11-04）：旧计算程序缺失；保持原页面和50/30/20评分结构，以下规则为公开固定的新实现，未宣称已通过收益有效性验证。',
         '风格：120日动量历史分位50%＋指数PE正值历史反向分位30%＋代理ETF20日净申赎流历史分位20%；分位回看最多756日，至少126个有效观测。成长组两只ETF分项等权。',
-        '情绪=20日均线上方广度与反向换手拥挤；资金=20日融资净流入与五只代理ETF净流入；风格=五只ETF绝对动量历史分位等权。',
-        '普通因子分数≥70投+1、≤30投−1，否则0；模块票均值≥0.25为+1、≤−0.25为−1，否则0。五维等权，总均值大于0才允许权益参与。',
+        '宏观采用信用脉冲和PPI同比三个月变化方向；估值为四组反向PE分位投票；资金为融资和ETF流入；价量为动量及广度换手；情绪为隐波及衍生品持仓。',
+        '普通因子分数≥70投+1、≤30投−1，否则0；模块票均值≥0.25为+1、≤−0.25为−1，否则0。页面五维分数与仓位共用同一周度决策快照，五维等权，总均值大于0才允许权益参与。',
         '波动率为50ETF近月平值认购和认沽隐波均值，对比60日实现波动：高于1.2倍为−1、低于0.8倍为+1，其余0；属于风险预算规则，不是经验证的方向预测因子。',
         '持仓：50ETF持仓PCR反向历史分位，与IF主力前20会员净多持仓/全合约持仓强度（50＋1000×比值，截断0—100）合成；持仓不等于新增资金。',
         '最近完整周最后交易日形成研究目标；风格轮盘每日重算。轮动目标使用决策日评分前两组，不使用其后的评分选组。',
@@ -251,7 +274,8 @@ def main():
         reuse_weekly = (template.get('available') is True and template.get('mode') == VERSION
                         and template.get('lastDecisionDate') == decision)
         inputs = fetch(rq, target, decision, reuse_weekly=reuse_weekly)
-        value = build(template, inputs, target, decision, reuse_weekly=reuse_weekly)
+        macro = json.loads((ROOT/'macro-tracking.json').read_text(encoding='utf-8-sig')) if not reuse_weekly else None
+        value = build(template, inputs, target, decision, reuse_weekly=reuse_weekly, macro=macro)
         if value['asOf'] < template['asOf']:
             raise ValueError('Snapshot date rollback refused')
         atomic(ROOT/'position-advice.json', value)
@@ -261,7 +285,7 @@ def main():
         # Expose known validation labels without publishing raw provider errors.
         reason = str(exc).split(':', 1)[0] if type(exc) is ValueError else ''
         known = {'ETF收盘价', '指数市盈率', 'ETF申赎资金流', '市场广度', '市场换手率',
-                 '融资净流入', '50ETF持仓PCR', '50ETF期权隐波', 'IF会员持仓', '50ETF收盘价'}
+                 '宏观数据', '融资净流入', '50ETF持仓PCR', '50ETF期权隐波', 'IF会员持仓', '50ETF收盘价'}
         detail = f'未通过校验的数据项：{reason}。' if reason in known else ''
         previous = json.loads((ROOT/'position-advice.json').read_text(encoding='utf-8-sig'))
         atomic(ROOT/'position-update-status.json', dict(ok=False, checkedAt=checked, targetDate=target,
