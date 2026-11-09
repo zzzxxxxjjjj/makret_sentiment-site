@@ -12,7 +12,7 @@ def main():
     publisher.FILES = ('position-update-status.json',)
     if status.get('ok') is True:
         snapshot = json.loads((ROOT/'position-advice.json').read_text(encoding='utf-8'))
-        if snapshot.get('asOf') != status.get('targetDate') or snapshot.get('mode') != 'reconstructed-v3':
+        if snapshot.get('asOf') != status.get('targetDate') or snapshot.get('mode') != status.get('modelVersion'):
             raise ValueError('Timing date/version mismatch')
         publisher.FILES += ('position-advice.json',)
     # Existing publisher creates a tree on the latest main; no unrelated files.
