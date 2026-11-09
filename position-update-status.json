@@ -1,9 +1,7 @@
 {
-  "ok": false,
-  "checkedAt": "2026-11-09T00:41:12.053936+00:00",
+  "ok": true,
+  "checkedAt": "2026-11-09T01:55:53.265954+00:00",
   "targetDate": "2026-11-06",
-  "asOf": "2026-11-05",
-  "modelVersion": "five-dimensions-v4",
-  "message": "数据获取或校验失败；已保留上一次有效结果及其实际日期。未通过校验的数据项：融资净流入。",
-  "errorType": "ValueError"
+  "asOf": "2026-11-06",
+  "modelVersion": "five-dimensions-v4"
 }
