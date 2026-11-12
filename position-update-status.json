@@ -1,7 +1,9 @@
 {
-  "ok": true,
-  "checkedAt": "2026-11-12T03:18:45.414459+00:00",
-  "targetDate": "2026-11-11",
+  "ok": false,
+  "checkedAt": "2026-11-12T18:34:14.792528+00:00",
+  "targetDate": "2026-11-12",
   "asOf": "2026-11-11",
-  "modelVersion": "five-dimensions-v4"
+  "modelVersion": "five-dimensions-v4",
+  "message": "数据获取或校验失败；已保留上一次有效结果及其实际日期。未通过校验的数据项：ETF申赎资金流。",
+  "errorType": "ValueError"
 }
