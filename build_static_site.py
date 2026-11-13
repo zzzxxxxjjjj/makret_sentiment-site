@@ -142,6 +142,19 @@ def build():
     for name, fallback in OPTIONAL_DATA.items():
         if (BASE_DIR / name).is_file():
             data = read_json(name)
+            if name == "data-freshness.json" and turnover_path.exists():
+                target = data.get("targetDate")
+                entries = data.get("entries", [])
+                for entry in entries:
+                    series = turnover.get(entry["id"])
+                    if series and series["points"]:
+                        day = max(point["date"] for point in series["points"])
+                        entry.update(asOf=day, source=series["source"],
+                                     current=bool(target and day >= target))
+                daily = [entry for entry in entries if entry["frequency"] == "daily"]
+                lagging = [entry for entry in daily if not entry["current"]]
+                data.update(dailyCount=len(daily), currentDailyCount=len(daily)-len(lagging),
+                            laggingDaily=lagging, allDailyCurrent=bool(daily) and not lagging)
             output[name] = json.dumps(public_data(data), ensure_ascii=False, allow_nan=False)
             dates[name] = data.get("asOf")
         else:
