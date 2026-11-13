@@ -119,7 +119,7 @@
 
   function render(data) {
     state.data = data; el('positionContent').hidden = false; el('loadError').hidden = true;
-    el('asOf').textContent = data.asOf; el('decisionDate').textContent = state.weekly?.decisionDate || '—';
+    el('asOf').textContent = state.weekly?.decisionDate || '—'; el('decisionDate').textContent = state.weekly?.decisionDate || '—';
     el('styleButtons').replaceChildren();
     for (const style of data.styles) {
       const button = document.createElement('button'); button.type = 'button'; button.dataset.style = style.id; button.setAttribute('aria-label', `查看${style.name}评分构成`); const label = document.createElement('span'); label.textContent = style.name; const value = document.createElement('strong'); value.textContent = number(style.score); button.append(label, value); button.addEventListener('click', () => { state.styleId = style.id; renderStyleDetail(); }); el('styleButtons').append(button);
