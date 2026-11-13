@@ -1,0 +1,54 @@
+name: Verify iFinD turnover access
+on:
+  push:
+    paths: [.github/workflows/ifind-probe.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check historical index turnover
+        env:
+          IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          from datetime import date, timedelta
+          def post(endpoint, headers, body):
+              request = urllib.request.Request(
+                  'https://quantapi.51ifind.com/api/v1/' + endpoint,
+                  data=json.dumps(body).encode(),
+                  headers={'Content-Type': 'application/json', **headers},
+                  method='POST')
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  return json.load(response)
+          secret = os.environ.get('IFIND_REFRESH_TOKEN')
+          if not secret:
+              raise SystemExit('Secret unavailable')
+          auth = post('get_access_token', {'refresh_token': secret}, {})
+          token = auth.get('data', {}).get('access_token') if isinstance(auth.get('data'), dict) else None
+          if not token:
+              raise SystemExit(f"Authentication failed, code {auth.get('errorcode')}")
+          end = date.today()
+          result = post('cmd_history_quotation', {'access_token': token}, {
+              'codes': '000300.SH,000852.SH,000688.SH',
+              'indicators': 'turnoverRatio',
+              'startdate': str(end - timedelta(days=40)),
+              'enddate': str(end),
+              'functionpara': {'Fill': 'Omit'},
+          })
+          print('Provider status:', result.get('errorcode'))
+          covered = set()
+          for table in result.get('tables') or []:
+              values = (table.get('table') or {}).get('turnoverRatio') or []
+              dates = table.get('time') or []
+              valid = [d for d, v in zip(dates, values) if isinstance(v, (float, int))]
+              print(table.get('thscode'), 'valid days:', len(valid), 'latest:', max(valid, default='none'))
+              if len(valid) >= 20:
+                  covered.add(table.get('thscode'))
+          if len(covered) != 3:
+              raise SystemExit('Incomplete index turnover coverage')
+          PY
