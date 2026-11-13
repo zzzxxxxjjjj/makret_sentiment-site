@@ -1,22 +1,27 @@
-name: Verify iFinD turnover access
+name: Refresh iFinD index turnover
 on:
   push:
     paths: [.github/workflows/ifind-probe.yml]
+  schedule:
+    - cron: '25 11,14 * * 1-5'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
+      - uses: actions/checkout@v4
       - name: Check historical index turnover
         env:
           IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
         run: |
           python3 - <<'PY'
-          import json, os, urllib.request
-          from datetime import date, timedelta
+          import json, math, os, urllib.request
+          from pathlib import Path
+          from datetime import datetime, timedelta
+          from zoneinfo import ZoneInfo
           def post(endpoint, headers, body):
               request = urllib.request.Request(
                   'https://quantapi.51ifind.com/api/v1/' + endpoint,
@@ -32,23 +37,45 @@ jobs:
           token = auth.get('data', {}).get('access_token') if isinstance(auth.get('data'), dict) else None
           if not token:
               raise SystemExit(f"Authentication failed, code {auth.get('errorcode')}")
-          end = date.today()
+          now = datetime.now(ZoneInfo('Asia/Shanghai'))
+          end = now.date() - timedelta(days=int(now.hour < 18))
           result = post('cmd_history_quotation', {'access_token': token}, {
               'codes': '000300.SH,000852.SH,000688.SH',
               'indicators': 'turnoverRatio',
-              'startdate': str(end - timedelta(days=40)),
+              'startdate': str(end - timedelta(days=1825)),
               'enddate': str(end),
               'functionpara': {'Fill': 'Omit'},
           })
           print('Provider status:', result.get('errorcode'))
-          covered = set()
+          series = {}
+          names = {'000300.SH': ('hs300-turnover', '沪深300换手率'), '000852.SH': ('csi1000-turnover', '中证1000换手率'), '000688.SH': ('star50-turnover', '科创50换手率')}
+          if result.get('errorcode') != 0:
+              raise SystemExit('iFinD request failed')
           for table in result.get('tables') or []:
               values = (table.get('table') or {}).get('turnoverRatio') or []
               dates = table.get('time') or []
-              valid = [d for d, v in zip(dates, values) if isinstance(v, (float, int))]
-              print(table.get('thscode'), 'valid days:', len(valid), 'latest:', max(valid, default='none'))
-              if len(valid) >= 20:
-                  covered.add(table.get('thscode'))
-          if len(covered) != 3:
-              raise SystemExit('Incomplete index turnover coverage')
+              code = table.get('thscode')
+              if code not in names:
+                  continue
+              observations = {d[:10]: v for d, v in zip(dates, values)
+                              if type(v) in (float, int) and math.isfinite(v) and 0 <= v <= 100}
+              if len(observations) < 126 or not any(observations.values()):
+                  raise SystemExit('Incomplete turnover history: ' + code)
+              sid, name = names[code]
+              series[code] = dict(id=sid, name=name, unit='%', source='iFinD / 历史日换手率',
+                                  points=[dict(date=d, value=v) for d,v in sorted(observations.items())])
+              print(code, len(observations), max(observations), observations[max(observations)])
+          if series.keys() != names.keys() or len({s['points'][-1]['date'] for s in series.values()}) != 1:
+              raise SystemExit('Incomplete or mismatched index turnover coverage')
+          path = Path('ifind-index-turnover.json')
+          if path.exists():
+              previous = {s['id']: s['points'][-1]['date'] for s in json.loads(path.read_text(encoding='utf-8'))['series']}
+              if any(s['points'][-1]['date'] < previous.get(s['id'], '') for s in series.values()):
+                  raise SystemExit('Refusing date rollback')
+          path.write_text(json.dumps(dict(series=list(series.values())), ensure_ascii=False), encoding='utf-8')
           PY
+      - name: Publish index turnover snapshot
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python -c "import os, pathlib, publish_daily_snapshot as p; p.FILES=('ifind-index-turnover.json',); print(p.GitHub(os.environ['GITHUB_TOKEN']).publish(pathlib.Path.cwd(), 'iFinD index turnover'))"
+
