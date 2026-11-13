@@ -139,14 +139,23 @@ def build():
             raise ValueError("Industry snapshot has no industries")
         output[name] = json.dumps(public_data(data), ensure_ascii=False, allow_nan=False)
         dates[name] = data.get("asOf")
+    published_series = dict(turnover) if turnover_path.exists() else {}
+    margin_path = BASE_DIR / "akshare-margin-risk.json"
+    if margin_path.is_file():
+        margin = read_json(margin_path.name)
+        for series in margin.get("series", []):
+            if series["id"] in {"margin-guarantee-ratio", "margin-investor-participation-ratio"}:
+                published_series[series["id"]] = {
+                    **series, "source": series.get("source") or margin.get("source", "")
+                }
     for name, fallback in OPTIONAL_DATA.items():
         if (BASE_DIR / name).is_file():
             data = read_json(name)
-            if name == "data-freshness.json" and turnover_path.exists():
+            if name == "data-freshness.json" and published_series:
                 target = data.get("targetDate")
                 entries = data.get("entries", [])
                 for entry in entries:
-                    series = turnover.get(entry["id"])
+                    series = published_series.get(entry["id"])
                     if series and series["points"]:
                         day = max(point["date"] for point in series["points"])
                         entry.update(asOf=day, source=series["source"],
