@@ -120,6 +120,11 @@ def build():
     payload = apply_market_data_sync(public_data(payload), BASE_DIR)
     from akshare_public_refresh import apply_public_inputs
     payload = apply_public_inputs(payload, BASE_DIR)
+    turnover_path = BASE_DIR / "ifind-index-turnover.json"
+    if turnover_path.exists():
+        turnover = {item["id"]: item for item in read_json(turnover_path.name)["series"]}
+        payload["series"] = [item for item in payload["series"] if item["id"] not in turnover]
+        payload["series"].extend(turnover.values())
     payload["publication"] = {"mode": "snapshot", "exportedAt": exported_at}
     output = {"broad-sentiment.json": json.dumps(payload, ensure_ascii=False, allow_nan=False)}
     missing = []
