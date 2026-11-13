@@ -28,15 +28,15 @@
 
   function renderVotes() {
     const data = state.data;
-    const rows = [
-      ['宏观', -1 / 2],
-      ['估值', 1 / 3],
-      ['资金', 0],
-      ['价量趋势', -1 / 3],
-      ['情绪', 1 / 2],
-    ];
-    const decisionDate = '2026-10-23';
-    const mean = Number((rows.reduce((sum, [, value]) => sum + value, 0) / 5).toFixed(12));
+    const snapshot = state.weekly;
+    const names = ['宏观', '估值', '资金', '价量趋势', '情绪'];
+    const values = snapshot?.dimensions;
+    const valid = Array.isArray(values) && values.length === 5 &&
+      values.every(v => v === null || (Number.isFinite(v) && Math.abs(v) <= 1)) &&
+      values.filter(Number.isFinite).length >= 4;
+    const rows = names.map((name, i) => [name, valid ? values[i] : null]);
+    const decisionDate = valid ? snapshot.decisionDate : '—';
+    const mean = valid ? Number((rows.reduce((sum, [, value]) => sum + value, 0) / 5).toFixed(12)) : NaN;
     const equity = mean >= 0.30 ? 20 : mean > 0 ? 10 : 0;
     const format = value => Number.isFinite(value)
       ? `${value > 0 ? '+' : ''}${value.toFixed(2)} · ${labels(value)}` : '待补数据';
@@ -72,8 +72,8 @@
       const note = document.createElement('li'); note.textContent = rule; notes.append(note);
     }
     el('compositeMean').textContent = Number.isFinite(mean) ? mean.toFixed(2) : '—';
-    el('compositeLabel').textContent = (equity === 20 ? '高档' : equity === 10 ? '中档' : '低档') + ' · 历史回放';
-    el('signalScope').textContent = `五维综合回放决策日 ${decisionDate} · 后续周度数据待补齐`;
+    el('compositeLabel').textContent = valid ? (equity === 20 ? '高档' : equity === 10 ? '中档' : '低档') + (snapshot.historical ? ' · 历史回放' : '') : '等待有效周度信号';
+    el('signalScope').textContent = `五维综合回放决策日 ${decisionDate} · ${snapshot?.historical ? '后续周度数据待补齐' : '周度更新'}`;
   }
 
   function renderStyleDetail() {
@@ -119,7 +119,7 @@
 
   function render(data) {
     state.data = data; el('positionContent').hidden = false; el('loadError').hidden = true;
-    el('asOf').textContent = data.asOf; el('decisionDate').textContent = '2026-10-23';
+    el('asOf').textContent = data.asOf; el('decisionDate').textContent = state.weekly?.decisionDate || '—';
     el('styleButtons').replaceChildren();
     for (const style of data.styles) {
       const button = document.createElement('button'); button.type = 'button'; button.dataset.style = style.id; button.setAttribute('aria-label', `查看${style.name}评分构成`); const label = document.createElement('span'); label.textContent = style.name; const value = document.createElement('strong'); value.textContent = number(style.score); button.append(label, value); button.addEventListener('click', () => { state.styleId = style.id; renderStyleDetail(); }); el('styleButtons').append(button);
@@ -153,7 +153,11 @@
     try {
       const response = await fetch(`/position-advice.json?t=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error('仓位快照暂时无法读取，请稍后重试。');
-      const data = validate(await response.json()); if (request !== state.request) return; render(data);
+      const data = validate(await response.json()); const weekly = await fetch('/weekly-timing-signal.json', {cache:'no-store'})
+        .then(r => r.ok ? r.json() : null).catch(() => null);
+      if (request !== state.request) return;
+      state.weekly = weekly;
+      render(data);
       try {
         const statusResponse = await fetch(`/position-update-status.json?t=${Date.now()}`, { cache: 'no-store' });
         if (statusResponse.ok) {
