@@ -22275,6 +22275,17 @@
       "newHigh60": 67,
       "newLow60": 149,
       "aboveMa60": 1195
+    },
+    {
+      "date": "2026-11-13",
+      "eligible": 5213,
+      "newHigh": 188,
+      "newLow": 664,
+      "aboveMa20": 1481,
+      "eligible60": 5195,
+      "newHigh60": 85,
+      "newLow60": 581,
+      "aboveMa60": 1008
     }
   ],
   "methodology": {
@@ -22286,35 +22297,35 @@
     "smoothing": "3日指数平滑",
     "phase": "顶部沿用高位回落规则；底部要求近10日曾低于25分、5日回升至少5分，并由净新高广度、均线上方广度或新低收缩至少一项确认"
   },
-  "generatedAt": "2026-11-13T02:22:18",
-  "asOf": "2026-11-12",
-  "score": 54.73,
+  "generatedAt": "2026-11-14T01:47:18",
+  "asOf": "2026-11-13",
+  "score": 41.68,
   "phase": "rising",
   "phaseLabel": "上行",
   "components": {
-    "nhnlBreadth": 43.5,
-    "aboveMaBreadth": 47.4,
-    "nhnlChange": 30.1,
-    "aboveMaChange": 53.0,
-    "nhnlBreadth60": 31.7,
-    "aboveMaBreadth60": 17.9,
-    "breadth60Confirmation": 24.8
+    "nhnlBreadth": 26.5,
+    "aboveMaBreadth": 26.6,
+    "nhnlChange": 28.5,
+    "aboveMaChange": 38.6,
+    "nhnlBreadth60": 15.4,
+    "aboveMaBreadth60": 13.0,
+    "breadth60Confirmation": 14.2
   },
   "metrics": {
-    "eligible": 5215,
-    "newHigh": 181,
-    "newLow": 177,
-    "aboveMa20": 2250,
-    "nhnlBreadth": 0.077,
-    "newHighBreadth": 3.471,
-    "newLowBreadth": 3.394,
-    "aboveMaBreadth": 43.145,
-    "eligible60": 5197,
-    "newHigh60": 67,
-    "newLow60": 149,
-    "aboveMa60": 1195,
-    "nhnlBreadth60": -1.578,
-    "aboveMaBreadth60": 22.994
+    "eligible": 5213,
+    "newHigh": 188,
+    "newLow": 664,
+    "aboveMa20": 1481,
+    "nhnlBreadth": -9.131,
+    "newHighBreadth": 3.606,
+    "newLowBreadth": 12.737,
+    "aboveMaBreadth": 28.41,
+    "eligible60": 5195,
+    "newHigh60": 85,
+    "newLow60": 581,
+    "aboveMa60": 1008,
+    "nhnlBreadth60": -9.548,
+    "aboveMaBreadth60": 19.403
   },
   "weights": {
     "nhnlBreadth": 35,
@@ -81254,6 +81265,37 @@
       },
       "phase": "rising",
       "phaseLabel": "上行"
+    },
+    {
+      "date": "2026-11-13",
+      "sentiment": 41.68,
+      "metrics": {
+        "eligible": 5213,
+        "newHigh": 188,
+        "newLow": 664,
+        "aboveMa20": 1481,
+        "nhnlBreadth": -9.131,
+        "newHighBreadth": 3.606,
+        "newLowBreadth": 12.737,
+        "aboveMaBreadth": 28.41,
+        "eligible60": 5195,
+        "newHigh60": 85,
+        "newLow60": 581,
+        "aboveMa60": 1008,
+        "nhnlBreadth60": -9.548,
+        "aboveMaBreadth60": 19.403
+      },
+      "components": {
+        "nhnlBreadth": 26.5,
+        "aboveMaBreadth": 26.6,
+        "nhnlChange": 28.5,
+        "aboveMaChange": 38.6,
+        "nhnlBreadth60": 15.4,
+        "aboveMaBreadth60": 13.0,
+        "breadth60Confirmation": 14.2
+      },
+      "phase": "rising",
+      "phaseLabel": "上行"
     }
   ],
   "series": [
@@ -88865,6 +88907,10 @@
         {
           "date": "2026-11-12",
           "value": 0.077
+        },
+        {
+          "date": "2026-11-13",
+          "value": -9.131
         }
       ]
     },
@@ -96476,6 +96522,10 @@
         {
           "date": "2026-11-12",
           "value": 43.145
+        },
+        {
+          "date": "2026-11-13",
+          "value": 28.41
         }
       ]
     },
@@ -104087,6 +104137,10 @@
         {
           "date": "2026-11-12",
           "value": -1.578
+        },
+        {
+          "date": "2026-11-13",
+          "value": -9.548
         }
       ]
     },
@@ -111698,6 +111752,10 @@
         {
           "date": "2026-11-12",
           "value": 22.994
+        },
+        {
+          "date": "2026-11-13",
+          "value": 19.403
         }
       ]
     },
@@ -119309,6 +119367,10 @@
         {
           "date": "2026-11-12",
           "value": 24.8
+        },
+        {
+          "date": "2026-11-13",
+          "value": 14.2
         }
       ]
     },
@@ -126920,6 +126982,10 @@
         {
           "date": "2026-11-12",
           "value": 54.73
+        },
+        {
+          "date": "2026-11-13",
+          "value": 41.68
         }
       ]
     }
