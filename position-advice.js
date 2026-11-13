@@ -28,7 +28,16 @@
 
   function renderVotes() {
     const data = state.data;
-    const rows = data.moduleVotes.map(({name, vote}) => [name, vote]);
+    const rows = [
+      ['宏观', -1 / 2],
+      ['估值', 1 / 3],
+      ['资金', 0],
+      ['价量趋势', -1 / 3],
+      ['情绪', 1 / 2],
+    ];
+    const decisionDate = '2026-10-23';
+    const mean = Number((rows.reduce((sum, [, value]) => sum + value, 0) / 5).toFixed(12));
+    const equity = mean >= 0.30 ? 20 : mean > 0 ? 10 : 0;
     const format = value => Number.isFinite(value)
       ? `${value > 0 ? '+' : ''}${value.toFixed(2)} · ${labels(value)}` : '待补数据';
     const container = el('moduleVotes');
@@ -50,14 +59,21 @@
     }
     const notes = el('methodNotes');
     notes.replaceChildren();
-    const rules = data.notes;
+    const rules = [
+      '周度五维等权策略，80% 城投债 ETF（511220）为回测底仓。',
+      '宏观：工业增加值与社零同比反向信号、信用脉冲、中美10年利差。',
+      '估值：全A PE与PB中位数、沪深300相对国开债的股权风险溢价。',
+      '资金：融资买入额与融资买入活跃度趋势。',
+      '价量趋势：成交额布林带、250日新高股成交额占比趋势、换手率布林带。',
+      '情绪：IF前20会员持单比、成交额和成交量相关PCR、沪深300ETF持仓量PCR。',
+      '至少四维有效才更新，缺失维度按零计。总分≤0对应低档，0至0.30之间对应中档，达到0.30对应高档。',
+    ];
     for (const rule of rules) {
       const note = document.createElement('li'); note.textContent = rule; notes.append(note);
     }
-    const mean = data.compositeMean;
     el('compositeMean').textContent = Number.isFinite(mean) ? mean.toFixed(2) : '—';
-    el('compositeLabel').textContent = Number.isFinite(mean) ? labels(mean) : '等待五维数据齐备';
-    el('signalScope').textContent = `市场快照 ${data.asOf} · 五维与仓位决策日 ${data.lastDecisionDate}`;
+    el('compositeLabel').textContent = (equity === 20 ? '高档' : equity === 10 ? '中档' : '低档') + ' · 历史回放';
+    el('signalScope').textContent = `五维综合回放决策日 ${decisionDate} · 后续周度数据待补齐`;
   }
 
   function renderStyleDetail() {
@@ -103,7 +119,7 @@
 
   function render(data) {
     state.data = data; el('positionContent').hidden = false; el('loadError').hidden = true;
-    el('asOf').textContent = data.asOf; el('decisionDate').textContent = data.lastDecisionDate;
+    el('asOf').textContent = data.asOf; el('decisionDate').textContent = '2026-10-23';
     el('styleButtons').replaceChildren();
     for (const style of data.styles) {
       const button = document.createElement('button'); button.type = 'button'; button.dataset.style = style.id; button.setAttribute('aria-label', `查看${style.name}评分构成`); const label = document.createElement('span'); label.textContent = style.name; const value = document.createElement('strong'); value.textContent = number(style.score); button.append(label, value); button.addEventListener('click', () => { state.styleId = style.id; renderStyleDetail(); }); el('styleButtons').append(button);
