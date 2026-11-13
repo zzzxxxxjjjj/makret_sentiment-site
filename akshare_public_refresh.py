@@ -76,6 +76,23 @@ def collect(ak, target):
         except Exception as exc:
             errors.append({"source": f"index-{code}", "error": str(exc)[:240]})
 
+    for code, sid, name in (
+        ("000300", "hs300-turnover", "沪深300换手率"),
+        ("000852", "csi1000-turnover", "中证1000换手率"),
+        ("000688", "star50-turnover", "科创50换手率"),
+    ):
+        try:
+            frame = ak.index_zh_a_hist(
+                symbol=code, period="daily", start_date="20150101",
+                end_date=target.replace("-", ""))
+            history = points(frame, "换手率", target)
+            history = [p for p in history if 0 <= p["value"] <= 100]
+            if len(history) < 126 or history[-1]["date"] != target or not any(p["value"] for p in history[-20:]):
+                raise ValueError("Incomplete index turnover history through " + target)
+            put(sid, name, "%", history, "AKShare / 东方财富指数换手率")
+        except Exception as exc:
+            errors.append({"source": sid, "error": str(exc)[:240]})
+
     # The public spot feed has no reliable historical-date selector. Only use
     # it after the close of today's confirmed trading session.
     now = datetime.now(ZoneInfo("Asia/Shanghai"))
