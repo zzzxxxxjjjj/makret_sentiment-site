@@ -1,0 +1,21 @@
+name: Check iFind connection
+on:
+  push:
+    branches: [main]
+    paths: [ifind_client.py, .github/workflows/ifind-connection.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Authenticate and query iFind
+        env:
+          IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+        run: python ifind_client.py
