@@ -1,9 +1,7 @@
 name: Diagnose AKShare historical flow sample
 on:
-  push:
-    branches: [main]
-    paths: [sw_history_probe.py, .github/workflows/sw-history-probe.yml]
   workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

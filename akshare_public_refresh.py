@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -59,11 +60,20 @@ def collect(ak, target):
             raise ValueError(f"Refusing date rollback for {sid}")
         series[sid] = dict(id=sid, name=name, unit=unit, points=incoming, source=source)
 
+    def tail(sid):
+        old = series.get(sid, {}).get("points", [])
+        return (pd.Timestamp(old[-1]["date"]) + timedelta(days=1)).strftime("%Y%m%d") if old else "20150101"
+
+    def merged(sid, incoming):
+        values = {p["date"]: p for p in series.get(sid, {}).get("points", [])}
+        values.update({p["date"]: p for p in incoming})
+        return [values[d] for d in sorted(values)]
+
     for code, sid, distance, name in INDEXES:
         try:
             frame = ak.stock_zh_index_hist_csindex(
-                symbol=code, start_date="20150101", end_date=target.replace("-", ""))
-            close = points(frame, "收盘", target)
+                symbol=code, start_date=tail(sid), end_date=target.replace("-", ""))
+            close = merged(sid, points(frame, "收盘", target))
             if len(close) < 100:
                 raise ValueError(f"Insufficient price history for {code}")
             put(sid, name, "点", close, f"AKShare / 中证指数 {code} 收盘价")
@@ -83,9 +93,9 @@ def collect(ak, target):
     ):
         try:
             frame = ak.index_zh_a_hist(
-                symbol=code, period="daily", start_date="20150101",
+                symbol=code, period="daily", start_date=tail(sid),
                 end_date=target.replace("-", ""))
-            history = points(frame, "换手率", target)
+            history = merged(sid, points(frame, "换手率", target))
             history = [p for p in history if 0 <= p["value"] <= 100]
             if len(history) < 126 or history[-1]["date"] != target or not any(p["value"] for p in history[-20:]):
                 raise ValueError("Incomplete index turnover history through " + target)
@@ -228,6 +238,10 @@ def main():
     except Exception as exc:
         output["errors"].append({"source": "sse-etf", "error": str(exc)[:240]})
         save("akshare-public-inputs.json", output)
+    if os.environ.get("DEFER_DASHBOARD_BUILD") == "1":
+        if output["errors"]:
+            raise RuntimeError("Public sources incomplete")
+        return
     import broad_sentiment as broad
     broad.ENABLE_RQDATA_REFRESH = False
     payload = broad._build_payload(force=True)

@@ -1,16 +1,6 @@
 name: Update public margin-risk history
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - akshare_margin_risk.py
-      - tests/test_akshare_margin_risk.py
-      - .github/workflows/akshare-margin-risk.yml
-  schedule:
-    # Beijing 18:35, 21:35, 06:35, 08:35, 09:05 and 09:20.
-    - cron: '35 10,13,22,0 * * *'
-    - cron: '5,20 1 * * *'
   workflow_dispatch:
 
 permissions:

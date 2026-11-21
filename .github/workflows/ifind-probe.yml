@@ -1,10 +1,7 @@
 name: Refresh iFinD index turnover
 on:
-  push:
-    paths: [.github/workflows/ifind-probe.yml]
-  schedule:
-    - cron: '25 11,14 * * 1-5'
   workflow_dispatch:
+
 permissions:
   contents: write
 jobs:
@@ -78,4 +75,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python -c "import os, pathlib, publish_daily_snapshot as p; p.FILES=('ifind-index-turnover.json',); print(p.GitHub(os.environ['GITHUB_TOKEN']).publish(pathlib.Path.cwd(), 'iFinD index turnover'))"
-

@@ -1,11 +1,7 @@
 name: Refresh free Eastmoney ETF turnover
 on:
-  push:
-    branches: [main]
-    paths: [etf_market_refresh.py, etf_net_subscription_refresh.py, .github/workflows/etf-market.yml]
-  schedule:
-    - cron: '45 10,14,22,0 * * *'
   workflow_dispatch:
+
 permissions:
   contents: write
 concurrency:

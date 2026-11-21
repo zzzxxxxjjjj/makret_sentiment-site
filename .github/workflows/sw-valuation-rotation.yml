@@ -1,11 +1,7 @@
 name: Recompute SW valuation and rotation
 on:
-  push:
-    branches: [main]
-    paths: [sw_valuation_rotation.py, .github/workflows/sw-valuation-rotation.yml]
-  schedule:
-    - cron: '55 10 * * 1-5'
   workflow_dispatch:
+
 permissions:
   contents: write
 concurrency:

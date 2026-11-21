@@ -1,11 +1,7 @@
 name: Backfill 20 daily SW industry flow sessions
 on:
-  push:
-    branches: [main]
-    paths: [sw_history.py, .github/workflows/sw-history.yml]
-  schedule:
-    - cron: '45 10 * * 1-5'
   workflow_dispatch:
+
 permissions:
   contents: write
 concurrency:

@@ -1,11 +1,7 @@
 name: Refresh AKShare SW industry rotation
 on:
-  push:
-    branches: [main]
-    paths: [sw_rotation_refresh.py, .github/workflows/sw-rotation.yml]
-  schedule:
-    - cron: '15 11 * * 1-5'
   workflow_dispatch:
+
 permissions:
   contents: write
 concurrency:

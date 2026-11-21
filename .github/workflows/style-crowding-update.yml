@@ -1,20 +1,7 @@
 name: Morning style crowding update
 
 on:
-  schedule:
-    # Beijing Monday-Saturday, before the morning session.
-    - cron: '17,47 22,23 * * 0-5'
-    - cron: '17,47 0 * * 1-6'
-    - cron: '7,17 1 * * 1-6'
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/style-crowding-update.yml
-      - aido_style_crowding_refresh.py
-      - aido_crowding_cloud_sync.py
-      - tests/test_style_crowding.py
-      - tests/style-crowding.test.cjs
 
 permissions:
   contents: write

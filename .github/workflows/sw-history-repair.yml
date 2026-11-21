@@ -1,9 +1,7 @@
 name: Repair affected SW history batch only
 on:
-  push:
-    branches: [main]
-    paths: [sw_history_repair.py, .github/workflows/sw-history-repair.yml]
   workflow_dispatch:
+
 permissions:
   contents: write
   actions: read

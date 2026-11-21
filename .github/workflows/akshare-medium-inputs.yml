@@ -1,15 +1,6 @@
 name: Collect AKShare medium-term inputs
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - akshare_medium_inputs.py
-      - tests/test_akshare_medium_inputs.py
-      - .github/workflows/akshare-medium-inputs.yml
-  schedule:
-    # Beijing 06:25/08:25/18:25; refresh public inputs before the morning deadline.
-    - cron: '25 22,0,10 * * *'
   workflow_dispatch:
 
 permissions:

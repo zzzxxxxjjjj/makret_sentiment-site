@@ -1,9 +1,7 @@
 name: Audit AKShare ordinary ROE financial fields
 on:
-  push:
-    branches: [main]
-    paths: [sw_financial_audit.py, .github/workflows/sw-financial-audit.yml]
   workflow_dispatch:
+
 permissions:
   contents: write
 jobs:

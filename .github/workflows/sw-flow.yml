@@ -1,12 +1,7 @@
 name: Collect SW first-level industry flow
 on:
-  push:
-    branches: [main]
-    paths: [sw_flow_refresh.py, .github/workflows/sw-flow.yml]
-  schedule:
-    - cron: '40 7 * * 1-5'
-    - cron: '20 9 * * 1-5'
   workflow_dispatch:
+
 permissions:
   contents: write
 concurrency:

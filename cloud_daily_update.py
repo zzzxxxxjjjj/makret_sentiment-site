@@ -88,7 +88,8 @@ def verify_core_dates(trade_date):
 
 
 def main():
-    from akshare_public_refresh import main as refresh_public
+    from akshare_public_refresh import main as public_main
+    refresh_public = (lambda: None) if os.environ.get("DEFER_DASHBOARD_BUILD") == "1" else public_main
     try:
         refresh_public()
     except Exception as exc:
@@ -115,6 +116,8 @@ def main():
         if "login machine num exceeds" in detail: detail += "（云端登录机器数超过账户限制，需要调整授权）"
         write_report(target,errors=[{'source':'RQData','error':detail}],calendar=previous.get('tradingCalendar',[]))
         print('Cloud source unavailable; publish actual dates and failure report: '+detail,flush=True)
+        if os.environ.get('DEFER_DASHBOARD_BUILD') == '1':
+            raise RuntimeError('Core authentication failed') from None
         return
     print("Stage: read completed trading date", flush=True)
     trade_date = completed_trading_date(rq).isoformat()
@@ -146,12 +149,16 @@ def main():
     run_stage("rqdata_fund_position_refresh.py",
               ("--cloud-universe", "--output", "rqdata-fund-stock-position-history.json", "--start", "2021-07-01"),
               required=False)
-    if os.environ.get("AIDO_API_KEY", "").strip():
+    if os.environ.get("AIDO_API_KEY", "").strip() and os.environ.get("DEFER_DASHBOARD_BUILD") != "1":
         run_stage("rqdata_fund_exposure_refresh.py",
                   ("--output", "rqdata-fund-exposure.json"), required=False)
     else:
         print("AIDO_API_KEY not configured; fund exposure retains its actual prior date", flush=True)
 
+    if os.environ.get("DEFER_DASHBOARD_BUILD") == "1":
+        if errors:
+            raise RuntimeError("Core sources incomplete")
+        return
     import broad_sentiment
     broad_sentiment.ENABLE_RQDATA_REFRESH = False
     # Synchronous generation avoids publishing an old payload while background

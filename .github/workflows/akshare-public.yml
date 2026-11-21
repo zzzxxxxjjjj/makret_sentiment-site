@@ -1,11 +1,7 @@
 name: Refresh AKShare public market data
 on:
-  push:
-    branches: [main]
-    paths: [akshare_public_refresh.py, .github/workflows/akshare-public.yml]
-  schedule:
-    - cron: '55 10,14 * * 1-5'
   workflow_dispatch:
+
 permissions:
   contents: write
 concurrency:

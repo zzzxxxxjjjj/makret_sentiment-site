@@ -1,9 +1,7 @@
 name: Check iFind connection
 on:
-  push:
-    branches: [main]
-    paths: [ifind_client.py, .github/workflows/ifind-connection.yml]
   workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

@@ -1,9 +1,7 @@
 name: Retry AKShare true ROE numeric inputs
 on:
-  push:
-    branches: [main]
-    paths: [sw_true_roe_probe.py, .github/workflows/sw-true-roe-probe.yml]
   workflow_dispatch:
+
 permissions:
   contents: read
 jobs:

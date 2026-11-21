@@ -1,125 +1,82 @@
-name: Daily market data update
-
+name: Daily post-close market update
 on:
-  push:
-    branches: [main]
-    paths:
-      - cloud_market_refresh.py
-      - cloud_display.py
-      - broad_sentiment.py
-      - rqdata_style_returns_refresh.py
-      - cloud_daily_update.py
-      - akshare_public_refresh.py
-      - rqdata_daily_update.py
-      - rqdata_history_cache.py
-      - rqdata_breadth_refresh.py
-      - rqdata_industry_refresh.py
-      - rotation_history_refresh.py
-      - data_freshness.py
-      - verify_publication.py
-      - rqdata_options_refresh.py
-      - rqdata_late_market_refresh.py
-      - market_data_sync.py
-      - sentiment_update.py
-      - wind_synthesis_refresh.py
-      - wind-synthesis-inputs.json
-      - wind_market_refresh.py
-      - wind-market-supplement.json
-      - broad-market-excel-source.xlsx
-      - .github/workflows/daily-data-update.yml
   schedule:
-    # Beijing 18:17/22:17, next-day 01:17/06:17/07:17, 08:17/08:47 and 09:07/09:17.
-    # Retry every calendar day, covering Friday data and holiday boundaries.
-    - cron: '17 10,14,17,22,23 * * *'
-    - cron: '17,47 0 * * *'
-    - cron: '7,17 1 * * *'
+    # Beijing 18:45, weekdays. The script checks the exchange calendar.
+    - cron: '45 10 * * 1-5'
   workflow_dispatch:
-
 permissions:
   contents: write
-
 concurrency:
-  group: daily-rqdata-update
+  group: daily-market-update
   cancel-in-progress: false
-
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 55
     env:
       TZ: Asia/Shanghai
-      ENABLE_RQDATA_REFRESH: '0'
-      MARKET_DATA_PROVIDER: 'hybrid'
       PYTHONUNBUFFERED: '1'
+      ENABLE_RQDATA_REFRESH: '0'
+      IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+      RQDATAC_CONF: ${{ secrets.RQDATAC_CONF }}
+      AIDO_API_KEY: ${{ secrets.AIDO_API_KEY }}
     steps:
-      - name: Check out production branch
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - name: Skip already successful date
+        id: plan
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          now = datetime.now(ZoneInfo('Asia/Shanghai'))
+          p = Path('daily-update-status.json')
+          state = json.loads(p.read_text()) if p.exists() else {}
+          skip = now.weekday() > 4 or now.hour < 18 or (state.get('targetDate') == now.date().isoformat() and state.get('ok') is True)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('run=' + str(not skip).lower() + '\n')
+          PY
+      - uses: actions/setup-python@v5
+        if: steps.plan.outputs.run == 'true'
         with:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: requirements-cloud.txt
-
-      - name: Restore successful provider responses
-        uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v4
+        if: steps.plan.outputs.run == 'true'
         with:
-          path: .rqdata-cache
-          key: rqdata-v2-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: rqdata-v2-
-
-      - name: Install data dependencies
+          path: |
+            .daily-cache
+            .rqdata-cache
+          key: daily-v3-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: daily-v3-
+      - name: Install dependencies once
+        if: steps.plan.outputs.run == 'true'
         run: python -m pip install -r requirements-cloud.txt
-
-      - name: Test update and synthesis logic
-        run: |
-          python -m unittest discover -s tests
-          node tests/style-factor-returns.test.cjs
-
-      - name: Check required authentication
-        if: env.MARKET_DATA_PROVIDER == 'rqdata'
-        env:
-          RQDATAC_CONF: ${{ secrets.RQDATAC_CONF }}
-        run: |
-          if [ -z "$RQDATAC_CONF" ]; then
-            echo 'Add the RQDATAC_CONF secret in Settings > Secrets and variables > Actions.'
-            exit 1
-          fi
-
-      - name: Refresh RQData and regenerate dashboard
-        env:
-          RQDATAC_CONF: ${{ secrets.RQDATAC_CONF }}
-          AIDO_API_KEY: ${{ secrets.AIDO_API_KEY }}
-        run: python cloud_daily_update.py
-
-      - name: Persist successful source responses even after a failed run
-        if: always()
-        uses: actions/cache/save@v4
+      - name: Update each stage with at most one retry
+        id: update
+        if: steps.plan.outputs.run == 'true'
+        continue-on-error: true
+        run: python daily_batch.py
+      - uses: actions/cache/save@v4
+        if: always() && steps.plan.outputs.run == 'true'
         with:
-          path: .rqdata-cache
-          key: rqdata-v2-${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Validate static build
-        run: python build_static_site.py
-
-      - name: Commit only refreshed data
+          path: |
+            .daily-cache
+            .rqdata-cache
+          key: daily-v3-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Publish collected data and retain actual source dates
+        if: always() && steps.plan.outputs.run == 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in akshare-public-inputs.json style-factor-returns.json rqdata-broad-sentiment.json rqdata-breadth-sentiment.json rqdata-industry-sentiment.json rqdata-fund-stock-position-history.json rqdata-fund-exposure.json rqdata-options-pcr.json broad-sentiment-page-cache.json rqdata-industry-rotation.json data-freshness.json cloud-market-inputs.json; do
-            if [ -f "$file" ]; then git add -- "$file"; fi
-          done
-          if git diff --cached --quiet; then
-            echo 'No data changes to publish.'
-            exit 0
-          fi
-          git commit -m 'Update published market data'
+          git add --update -- '*.json'
+          if [ -f daily-update-status.json ]; then git add -- daily-update-status.json; fi
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Update daily closing data and stage status'
           git pull --rebase origin main
           git push origin HEAD:main
-
-      - name: Verify public website received this data report
-        run: python verify_publication.py
-
-      - name: Check every daily indicator date
-        run: python data_freshness.py --check
+      - name: Report incomplete update
+        if: steps.update.outcome == 'failure'
+        run: exit 1
