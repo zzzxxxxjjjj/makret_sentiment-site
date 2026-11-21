@@ -31,6 +31,12 @@
       </div>
     </section>
 
+    <section class="panel etf-table-panel">
+      <div class="panel-head"><div><p class="eyebrow">WEEKLY RELATIVE CAPITAL FLOW</p><h2>2024年9月20日以来每周累计相对净流入</h2><p>基准为0% · 累计净流入金额 ÷ 基准日规模</p></div></div>
+      <div id="weeklyFlowControls" style="padding:16px"></div>
+      <div id="weeklyFlowChart" style="padding:16px;min-height:120px" aria-live="polite">正在读取周度历史</div>
+      <p id="weeklyFlowNote" class="method-note"></p>
+    </section>
     <p id="flowSummary" class="method-note"></p>
 
     <section class="panel etf-table-panel">
@@ -57,5 +63,6 @@
   </main>
 
   <script src="/etf-flows.js?v=all-eastmoney-1" defer></script>
+  <script src="/etf-weekly-relative-flow.js?v=1" defer></script>
 </body>
 </html>

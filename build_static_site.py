@@ -23,13 +23,14 @@ WEB_FILES = (
     "index.html", "app.js", "styles.css", "cycle.css", "theme.js",
     "industry-sentiment.html", "industry-sentiment.js",
     "industry-flow-trend.js", "industry-sentiment.css", "industry-rotation-history.js", "data-health.js",
-    "etf-flows.html", "etf-flows.js", "etf-flows.css",
+    "etf-flows.html", "etf-flows.js", "etf-flows.css", "etf-weekly-relative-flow.js",
     "financing-activity.html", "financing-activity.js", "financing-activity.css",
     "macro-tracking.html", "macro-tracking.js", "macro-tracking.css",
     "position-advice.html", "position-advice.js", "position-advice.css",
 )
 REQUIRED_DATA = ("rqdata-broad-sentiment.json", "rqdata-industry-sentiment.json")
 OPTIONAL_DATA = {
+    "etf-weekly-relative-flow.json": {"baseDate": "2024-09-20", "series": []},
     "weekly-timing-signal.json": None,
     "akshare-sw-industry-rotation.json": {"available": False, "points": []},
     "sw-industry-history.json": {"available": False, "days": []},
