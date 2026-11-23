@@ -2,8 +2,6 @@ name: Refresh AKShare SW industry rotation
 # Verify bounded historical fallback after provider timeout.
 on:
   workflow_dispatch:
-  push:
-    paths: ['.github/workflows/sw-rotation.yml']
 
 permissions:
   contents: write
