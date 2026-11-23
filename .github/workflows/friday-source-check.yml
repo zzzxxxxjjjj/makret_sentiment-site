@@ -2,8 +2,6 @@ name: Publish approved 2026-11-20 observations
 # Recheck confirmed yield rename and verified iFind turnover fallback.
 on:
   workflow_dispatch:
-  push:
-    paths: ['.github/workflows/friday-source-check.yml']
 permissions:
   contents: write
 jobs:
