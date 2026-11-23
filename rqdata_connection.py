@@ -34,12 +34,8 @@ def credential_value():
 
 
 def initialize_rqdata():
-    import rqdatac as rq
-    value = credential_value()
-    if value:
-        rq.init(**connection_parameters(value))
-    else:
-        rq.init()
+    from retired_provider import unavailable
+    unavailable()
 
 
 def safe_error(error):

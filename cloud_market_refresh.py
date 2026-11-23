@@ -4,8 +4,8 @@ import json, os, ssl, urllib.request
 from datetime import date,datetime,timedelta
 from pathlib import Path
 import pandas as pd
-import rqdatac as rq
-from rqdatac_fund import fund
+from retired_provider import client as rq
+from retired_provider import client as fund
 from rqdata_connection import initialize_rqdata
 from rqdata_trading_day import completed_trading_date
 BASE=Path(__file__).resolve().parent

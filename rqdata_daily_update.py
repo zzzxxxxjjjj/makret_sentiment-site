@@ -139,7 +139,7 @@ def refresh_core_snapshots(trade_date, *, directory=BASE_DIR, allow_partial=Fals
 
 
 def main():
-    import rqdatac as rq
+    from retired_provider import client as rq
     initialize_rqdata()
     target = completed_trading_date(rq).isoformat()
     refresh_core_snapshots(target)

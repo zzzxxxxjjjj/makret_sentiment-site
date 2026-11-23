@@ -8,7 +8,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
-import rqdatac as rq
+from retired_provider import client as rq
 from openpyxl import load_workbook
 
 

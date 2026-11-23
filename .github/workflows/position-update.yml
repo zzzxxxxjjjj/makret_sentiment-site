@@ -24,7 +24,6 @@ jobs:
         id: update
         continue-on-error: true
         env:
-          RQDATAC_CONF: ${{ secrets.RQDATAC_CONF }}
           PYTHONUNBUFFERED: '1'
         run: python position_refresh.py
       - name: Validate and publish only timing result and status

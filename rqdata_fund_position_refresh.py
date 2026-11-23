@@ -6,11 +6,11 @@ from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
-import rqdatac as rq
+from retired_provider import client as rq
 
 from rqdata_connection import initialize_rqdata
 from openpyxl import load_workbook
-from rqdatac_fund import fund
+from retired_provider import client as fund
 
 
 BASE_DIR = Path(__file__).resolve().parent

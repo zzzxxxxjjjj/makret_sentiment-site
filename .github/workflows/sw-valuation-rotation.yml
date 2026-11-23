@@ -24,7 +24,6 @@ jobs:
       - run: python -m pip install -r requirements-cloud.txt
       - run: python sw_valuation_rotation.py
         env:
-          RQDATAC_CONF: ${{ secrets.RQDATAC_CONF }}
           PYTHONUNBUFFERED: '1'
       - name: Publish validated SW datasets only
         run: |

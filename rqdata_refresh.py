@@ -8,7 +8,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
-import rqdatac as rq
+from retired_provider import client as rq
 
 from rqdata_connection import initialize_rqdata
 from rqdata_institutional_flow import fetch_institutional_buy, SERIES_IDS as INSTITUTIONAL_SERIES_IDS

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import rqdatac as rq
+from retired_provider import client as rq
 
 from rqdata_connection import initialize_rqdata
 from rqdata_trading_day import completed_trading_date

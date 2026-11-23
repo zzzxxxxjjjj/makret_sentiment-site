@@ -6,7 +6,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
-import rqdatac as rq
+from retired_provider import client as rq
 
 
 CATEGORY = "标准股票型"

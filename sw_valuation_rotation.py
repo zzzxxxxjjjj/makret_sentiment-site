@@ -15,7 +15,7 @@ def save(name,data):
 
 
 def main():
-    import rqdatac as rq
+    from retired_provider import client as rq
     initialize_rqdata();target=completed_trading_date(rq)
     members=json.loads((ROOT/'sw-flow-members.json').read_text(encoding='utf-8'))['members']
     if len(members)!=30 or any(m['name']=='综合' for m in members):raise ValueError('Expected 30 SW first-level industries')

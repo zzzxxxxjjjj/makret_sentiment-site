@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
-import rqdatac as rq
+from retired_provider import client as rq
 
 from rqdata_connection import initialize_rqdata, safe_error
 from rqdata_trading_day import CHINA_TIME, completed_trading_date

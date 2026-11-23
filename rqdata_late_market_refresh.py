@@ -7,7 +7,7 @@ import math
 from datetime import timedelta
 from pathlib import Path
 
-import rqdatac as rq
+from retired_provider import client as rq
 from market_data_sync import merge_points
 from rqdata_connection import initialize_rqdata, safe_error
 from rqdata_trading_day import completed_trading_date

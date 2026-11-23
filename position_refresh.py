@@ -263,7 +263,7 @@ def main():
     checked = datetime.now(timezone.utc).isoformat()
     target = None
     try:
-        import rqdatac as rq
+        from retired_provider import client as rq
         initialize_rqdata()
         target = completed_trading_date(rq).isoformat()
         days = rq.get_trading_dates(pd.Timestamp(target)-pd.Timedelta(days=25), pd.Timestamp(target)+pd.Timedelta(days=10))

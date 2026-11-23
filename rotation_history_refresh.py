@@ -47,7 +47,7 @@ def calculate(prices, calendar, as_of):
     return points
 
 def refresh(output, as_of=None, cache_name="rotation-prices.pkl.gz"):
-    import rqdatac as rq
+    from retired_provider import client as rq
     initialize_rqdata()
     as_of = as_of or completed_trading_date(rq)
     cache = BASE_DIR/'.rqdata-cache'/cache_name

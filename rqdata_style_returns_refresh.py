@@ -33,7 +33,7 @@ def build_snapshot(frame, sessions):
 def main():
     import warnings
     warnings.filterwarnings('ignore',message='Your account will be expired')
-    import rqdatac as rq
+    from retired_provider import client as rq
     from rqdata_connection import initialize_rqdata
     from rqdata_trading_day import completed_trading_date
     initialize_rqdata()

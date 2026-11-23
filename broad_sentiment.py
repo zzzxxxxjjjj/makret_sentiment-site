@@ -34,7 +34,7 @@ PAYLOAD_CACHE = BASE_DIR / "broad-sentiment-page-cache.json"
 RQDATA_PYTHON = Path(os.environ.get("RQDATA_PYTHON", r"C:\Users\DELL\anaconda3\envs\rqsdk\python.exe"))
 RQDATA_REFRESH_SECONDS = int(os.environ.get("RQDATA_REFRESH_SECONDS", "1800"))
 RQDATA_REFRESH_TIMEOUT = int(os.environ.get("RQDATA_REFRESH_TIMEOUT", "45"))
-ENABLE_RQDATA_REFRESH = os.environ.get("ENABLE_RQDATA_REFRESH", "0") == "1"
+ENABLE_RQDATA_REFRESH = False  # Provider permanently retired.
 NODE_EXE = Path(
     os.environ.get(
         "NODE_EXE",

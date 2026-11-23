@@ -35,7 +35,7 @@ def _month_end_trading_dates(start="2016-01", end="2026-09"):
     """优先取每月【最后一个交易日】（保证 Wind 在该日必有值，消除周末/节假日缺口）；
     若 rqdata 不可用则退回日历月末。"""
     try:
-        import rqdatac as rq
+        from retired_provider import client as rq
         rq.init()
         tds = rq.get_trading_dates(f"{start}-01", f"{end}-30")
         ts = pd.to_datetime(list(tds))
