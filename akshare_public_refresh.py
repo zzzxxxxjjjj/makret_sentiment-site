@@ -1,6 +1,7 @@
 """Refresh public replacements without requiring an RQData login."""
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import os
@@ -71,7 +72,7 @@ def collect(ak, target):
 
     for code, sid, distance, name in INDEXES:
         try:
-            frame = ak.stock_zh_index_hist_csindex(
+            frame = (getattr(ak, "index_hist_csindex", None) or ak.stock_zh_index_hist_csindex)(
                 symbol=code, start_date=tail(sid), end_date=target.replace("-", ""))
             close = merged(sid, points(frame, "收盘", target))
             if len(close) < 100:
@@ -209,6 +210,9 @@ def apply_public_inputs(payload, directory):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--sources-only", action="store_true")
+    args = parser.parse_args()
     import akshare as ak
     import pandas as pd
     import requests
@@ -219,11 +223,16 @@ def main():
     requests.sessions.Session.request = bounded
     now = datetime.now(ZoneInfo("Asia/Shanghai"))
     limit = now.date() if now.hour >= 18 else now.date() - timedelta(days=1)
-    dates = pd.to_datetime(ak.tool_trade_date_hist_sina()["trade_date"]).dt.date
+    dates = pd.to_datetime((getattr(ak, "calendar_trade_date_hist_sina", None) or ak.tool_trade_date_hist_sina)()["trade_date"]).dt.date
     target = max(day for day in dates if day <= limit).isoformat()
     output = collect(ak, target)
     if not output["series"]:
         raise ValueError("No public observations available")
+    if args.sources_only:
+        print(json.dumps({"targetDate": target, "errors": output["errors"]}, ensure_ascii=False))
+        if output["errors"]:
+            raise RuntimeError("Public sources incomplete; existing data retained")
+        return
     # Reuse the already validated public SSE share-count collector. Importing
     # the SDK used by the legacy module does not initialize an RQData session.
     try:
