@@ -44,14 +44,11 @@ def update_history(value):
     }
     history = {'entries': []}
     if HISTORY_FILE.exists():
-        try:
-            history = json.loads(HISTORY_FILE.read_text(encoding='utf-8'))
-        except (OSError, ValueError):
-            history = {'entries': []}
+        history = json.loads(HISTORY_FILE.read_text(encoding='utf-8'))
     history.setdefault('entries', [])
     history['entries'] = [e for e in history['entries'] if e.get('date') != as_of]
     history['entries'].append(entry)
-    history['entries'] = history['entries'][-HISTORY_KEEP:]
+    history['entries'].sort(key=lambda entry: entry['date'])
     tmp = HISTORY_FILE.with_suffix('.tmp')
     tmp.write_text(json.dumps(history, ensure_ascii=False, allow_nan=False), encoding='utf-8')
     tmp.replace(HISTORY_FILE)
