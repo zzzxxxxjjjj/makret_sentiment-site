@@ -1,8 +1,6 @@
 name: Diagnose SW2021 history sources
 on:
   workflow_dispatch:
-  push:
-    paths: ['.github/workflows/sw-source-check.yml']
 permissions:
   contents: read
 jobs:
