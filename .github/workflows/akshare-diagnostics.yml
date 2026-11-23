@@ -13,6 +13,8 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install akshare pandas tzdata
+      - name: Validate Python syntax
+        run: python -m py_compile akshare_public_refresh.py akshare_medium_inputs.py akshare_margin_risk.py etf_market_refresh.py
       - name: Existing mapping tests
         run: python -m unittest discover -s tests -p 'test_akshare_*.py'
       - name: Margin source
@@ -33,12 +35,12 @@ jobs:
           p.ROOT.mkdir()
           for name in ('akshare-public-inputs.json', 'rqdata-broad-sentiment.json'):
               if pathlib.Path(name).exists(): shutil.copy(name, p.ROOT / name)
-          target = str(ak.tool_trade_date_hist_sina()['trade_date'].max())[:10]
+          target = str(ak.calendar_trade_date_hist_sina()['trade_date'].max())[:10]
           from datetime import datetime, timedelta
           from zoneinfo import ZoneInfo
           now = datetime.now(ZoneInfo('Asia/Shanghai'))
           limit = now.date() if now.hour >= 18 else now.date()-timedelta(days=1)
-          target = max(str(x)[:10] for x in ak.tool_trade_date_hist_sina()['trade_date'] if str(x)[:10] <= str(limit))
+          target = max(str(x)[:10] for x in ak.calendar_trade_date_hist_sina()['trade_date'] if str(x)[:10] <= str(limit))
           result = p.collect(ak, target)
           print(json.dumps({'target': target, 'errors': result['errors'], 'series': {s['id']: s['points'][-1]['date'] for s in result['series'] if s.get('points')}}, ensure_ascii=False))
           PY
