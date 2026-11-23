@@ -50,7 +50,24 @@ def main():
     fallback=Client()
     fallback_lock=Lock()
     provenance={}
+    cache_dir=ROOT/'.daily-cache'/'sw-rotation-prices'
+    cache_dir.mkdir(parents=True,exist_ok=True)
+    def cache_series(code,series,source):
+        path=cache_dir/(code+'.json')
+        temporary=path.with_suffix('.tmp')
+        temporary.write_text(json.dumps({'code':code,'target':target,'source':source,'points':[{'date':str(d)[:10],'value':float(v)} for d,v in series.items()]},allow_nan=False),encoding='utf-8')
+        temporary.replace(path)
     def one(m):
+        cached_path=cache_dir/(m['code']+'.json')
+        if cached_path.exists():
+            cached=json.loads(cached_path.read_text(encoding='utf-8'))
+            points=cached.get('points',[])
+            if cached.get('code')==m['code'] and cached.get('target')==target and len(points)>56:
+                series=pd.Series([p['value'] for p in points],index=pd.to_datetime([p['date'] for p in points])).sort_index()
+                if str(series.index[-1])[:10]==target and not series.index.duplicated().any() and series.notna().all() and (series>0).all():
+                    provenance[m['code']]=cached['source']
+                    print('Validated cache '+m['code']+' '+target,flush=True)
+                    return m['code'],series
         last=None
         for _ in range(1):
             try:
@@ -60,6 +77,7 @@ def main():
                 s=s.sort_index().loc[:target]
                 if str(s.index[-1])[:10]!=target:raise ValueError('Stale SW close: '+m['name'])
                 provenance[m['code']]='AKShare / 申万'
+                cache_series(m['code'],s,provenance[m['code']])
                 print('AKShare verified '+m['code']+' '+str(s.index[-1])[:10],flush=True)
                 return m['code'],s
             except Exception as exc:
@@ -73,9 +91,18 @@ def main():
         for year in range(max(2015,limit.year-5),limit.year+1):
             first=str(date(year,1,1))
             last_day=min(target,str(date(year,12,31)))
-            with fallback_lock:
-                data=fallback.post('cmd_history_quotation',{'codes':m['code']+'.SL','indicators':'close',
-                    'startdate':first,'enddate':last_day,'functionpara':{'Fill':'Omit'}})
+            for attempt in range(2):
+                try:
+                    with fallback_lock:
+                        data=fallback.post('cmd_history_quotation',{'codes':m['code']+'.SL','indicators':'close',
+                            'startdate':first,'enddate':last_day,'functionpara':{'Fill':'Omit'}})
+                    break
+                except Exception as exc:
+                    if attempt or not isinstance(exc,(TimeoutError,RuntimeError)):
+                        raise RuntimeError('iFind SW '+m['code']+' '+str(year)+' failed: '+type(exc).__name__) from exc
+                    if isinstance(exc,RuntimeError) and '-4102' not in str(exc):
+                        raise
+                    print('Retry transient iFind request '+m['code']+' '+str(year),flush=True)
             table=next((t for t in data.get('tables',[]) if t.get('thscode')==m['code']+'.SL'),None)
             if not table:raise ValueError('Missing matching iFind SW code: '+m['code']+' '+str(year))
             dates=table.get('time') or []
@@ -90,6 +117,7 @@ def main():
         if series.index.duplicated().any() or series.empty or str(series.index[-1])[:10]!=target or series.isna().any() or (series<=0).any():
             raise ValueError('Incomplete iFind SW history: '+m['code'])
         provenance[m['code']]='iFind / '+m['code']+'.SL'
+        cache_series(m['code'],series,provenance[m['code']])
         print('iFind verified '+m['code']+' '+str(series.index[-1])[:10],flush=True)
         return m['code'],series
     with ThreadPoolExecutor(max_workers=2) as pool:prices=pd.DataFrame(dict(pool.map(one,members)))
