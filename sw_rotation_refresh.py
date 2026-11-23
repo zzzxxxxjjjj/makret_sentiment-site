@@ -60,16 +60,29 @@ def main():
                 s=s.sort_index().loc[:target]
                 if str(s.index[-1])[:10]!=target:raise ValueError('Stale SW close: '+m['name'])
                 provenance[m['code']]='AKShare / 申万'
+                print('AKShare verified '+m['code']+' '+str(s.index[-1])[:10],flush=True)
                 return m['code'],s
-            except Exception as exc:last=exc
+            except Exception as exc:
+                last=exc
+                print('AKShare fallback '+m['code']+' '+type(exc).__name__,flush=True)
         if not os.environ.get('IFIND_REFRESH_TOKEN'):
             raise RuntimeError('SW price fetch failed: '+m['name']) from last
-        with fallback_lock:
-            data=fallback.post('cmd_history_quotation',{'codes':m['code']+'.SL','indicators':'close',
-                'startdate':str(limit.replace(year=limit.year-10)),'enddate':target,
-                'functionpara':{'Fill':'Omit'}})
-        table=next((t for t in data.get('tables',[]) if t.get('thscode')==m['code']+'.SL'),None)
-        if not table:raise ValueError('Missing matching iFind SW code: '+m['code'])
+        from datetime import date
+        observations={}
+        # Bound requests by calendar year to avoid large provider timeouts.
+        for year in range(max(2015,limit.year-5),limit.year+1):
+            first=str(date(year,1,1))
+            last_day=min(target,str(date(year,12,31)))
+            with fallback_lock:
+                data=fallback.post('cmd_history_quotation',{'codes':m['code']+'.SL','indicators':'close',
+                    'startdate':first,'enddate':last_day,'functionpara':{'Fill':'Omit'}})
+            table=next((t for t in data.get('tables',[]) if t.get('thscode')==m['code']+'.SL'),None)
+            if not table:raise ValueError('Missing matching iFind SW code: '+m['code']+' '+str(year))
+            dates=table.get('time') or []
+            closes=(table.get('table') or {}).get('close') or []
+            if len(dates)!=len(closes):raise ValueError('Mismatched iFind history: '+m['code'])
+            observations.update(zip(dates,closes))
+        table={'time':sorted(observations),'table':{'close':[observations[d] for d in sorted(observations)]}}
         values=pd.to_numeric(pd.Series((table.get('table') or {}).get('close',[])),errors='coerce')
         dates=pd.to_datetime(table.get('time') or [])
         if len(values)!=len(dates):raise ValueError('Mismatched iFind dates and values')
@@ -77,6 +90,7 @@ def main():
         if series.index.duplicated().any() or series.empty or str(series.index[-1])[:10]!=target or series.isna().any() or (series<=0).any():
             raise ValueError('Incomplete iFind SW history: '+m['code'])
         provenance[m['code']]='iFind / '+m['code']+'.SL'
+        print('iFind verified '+m['code']+' '+str(series.index[-1])[:10],flush=True)
         return m['code'],series
     with ThreadPoolExecutor(max_workers=2) as pool:prices=pd.DataFrame(dict(pool.map(one,members)))
     start=max(str(prices.index.min().date()),str(limit.replace(year=limit.year-10)))
