@@ -86,7 +86,7 @@ def fetch(as_of, output=DEFAULT_OUTPUT, *, ak=None):
         if cursor.weekday() < 5:
             stamp = cursor.strftime("%Y%m%d")
             try:
-                daily = ak.bond_china_close_return(
+                daily = (getattr(ak, "bond_zh_close_yield_cm", None) or ak.bond_china_close_return)(
                     symbol=CDB_CURVE, period="1", start_date=stamp, end_date=stamp,
                 )
                 bond_rows.extend(points(daily[daily["期限"] == 10], "日期", "到期收益率", as_of=as_of))
