@@ -48,7 +48,13 @@ jobs:
           for name,digest in before.items(): assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==digest,name
           print('No SDK imports, no legacy network access, historical files unchanged')
           PY
+      - name: Block live requests in retained calculation tests
+        run: |
+          mkdir -p /tmp/offline-check
+          printf '%s\n' 'import socket' 'def blocked(*args, **kwargs): raise RuntimeError("Offline test: network disabled")' 'socket.socket.connect = blocked' > /tmp/offline-check/sitecustomize.py
       - name: Independent collectors and retained calculation tests
+        env:
+          PYTHONPATH: /tmp/offline-check:.
         run: |
           for pattern in test_akshare_*.py test_cloud_market.py test_market_data_sync.py test_rqdata_late_etf.py test_rqdata_trading_day.py test_fund_exposure_refresh.py test_style_crowding.py test_position_refresh.py; do
             python -m unittest discover -s tests -p "$pattern"
