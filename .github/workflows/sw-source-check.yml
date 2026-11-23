@@ -1,0 +1,43 @@
+name: Diagnose SW2021 history sources
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/sw-source-check.yml']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-daily.txt
+      - name: Test original AKShare source
+        continue-on-error: true
+        timeout-minutes: 2
+        run: |
+          python - <<'PY'
+          import akshare as ak,requests,json
+          original=requests.sessions.Session.request
+          def bounded(self,method,url,**kw):
+              kw['timeout']=(5,15)
+              return original(self,method,url,**kw)
+          requests.sessions.Session.request=bounded
+          frame=ak.index_hist_sw(symbol='801010',period='day')
+          print(json.dumps({'rows':len(frame),'columns':list(frame.columns),'last':str(frame['日期'].max())},ensure_ascii=False))
+          PY
+      - name: Test matching iFind SW index code
+        env:
+          IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+        run: |
+          python - <<'PY'
+          from ifind_client import Client
+          import json
+          r=Client().post('cmd_history_quotation',{'codes':'801010.SL','indicators':'close','startdate':'2025-01-01','enddate':'2026-11-20','functionpara':{'Fill':'Omit'}})
+          for t in r.get('tables') or []:
+              print(json.dumps({'code':t.get('thscode'),'rows':len(t.get('time') or []),'last':max(t.get('time') or ['']),'columns':list((t.get('table') or {}).keys())},ensure_ascii=False))
+          assert r.get('tables')
+          PY
