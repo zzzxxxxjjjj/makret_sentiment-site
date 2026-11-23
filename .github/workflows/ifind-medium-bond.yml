@@ -1,6 +1,9 @@
 name: Update iFind medium bond proxy
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/ifind-medium-bond.yml'
 permissions:
   contents: write
 concurrency:
