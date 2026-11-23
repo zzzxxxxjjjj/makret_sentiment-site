@@ -72,7 +72,7 @@ def fetch(as_of, output=DEFAULT_OUTPUT, *, ak=None):
     history = (getattr(ak, "index_hist_csindex", None) or ak.stock_zh_index_hist_csindex)(
         symbol=CSI_ALL_SHARE, start_date=history_start, end_date=target.strftime("%Y%m%d")
     )
-    valuation = ak.stock_zh_index_value_csindex(symbol=CSI_ALL_SHARE)
+    valuation = (getattr(ak, "index_value_csindex", None) or ak.stock_zh_index_value_csindex)(symbol=CSI_ALL_SHARE)
     old = previous_series(output)
     # AKShare currently requests only page 1 (50 tenor rows), so a multi-day
     # query silently returns the first day. Request each weekday separately.
