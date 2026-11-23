@@ -1,6 +1,8 @@
 name: Refresh AKShare SW industry rotation
 on:
   workflow_dispatch:
+  push:
+    paths: ['.github/workflows/sw-rotation.yml']
 
 permissions:
   contents: write
@@ -10,19 +12,40 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install akshare
-      - run: python sw_rotation_refresh.py
+      - run: python -m pip install -r requirements-daily.txt
+      - run: python -m py_compile sw_rotation_refresh.py data_freshness.py
+      - run: python -m unittest discover -s tests -p test_sw_rotation.py
+      - name: Refresh and verify completed SW session
+        run: |
+          python sw_rotation_refresh.py
+          python - <<'PY'
+          import json
+          from datetime import datetime,timedelta
+          from zoneinfo import ZoneInfo
+          now=datetime.now(ZoneInfo('Asia/Shanghai'))
+          import akshare as ak
+          limit=str(now.date() if now.hour>=18 else now.date()-timedelta(days=1))
+          target=max(str(d) for d in ak.calendar_trade_date_hist_sina()['trade_date'] if str(d)<=limit)
+          r=json.load(open('akshare-sw-industry-rotation.json'))
+          assert r['asOf']==target and r['points'][-1]['date']==target
+          assert r['industryCount']==30 and len(r['priceSources'])==30
+          print('Verified SW target:',target,'observations:',len(r['points']),'sources:',r['priceSources'])
+          PY
+          python rebuild_saved_page.py
+          python build_static_site.py
       - name: Publish SW rotation only
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- akshare-sw-industry-rotation.json
+          git add -- akshare-sw-industry-rotation.json data-freshness.json
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Refresh AKShare SW2021 industry rotation'
           git pull --rebase origin main
