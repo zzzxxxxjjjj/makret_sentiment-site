@@ -48,8 +48,10 @@ def build_report(target, directory=BASE_DIR, errors=None, calendar=None):
     children=[child for row in rows for child in row.get('children',[])]
     child_dates=[child.get('asOf') for child in children]
     add('second-industry-flow','二级行业资金流向',min(child_dates) if child_dates and all(child_dates) else None,source='RQData')
-    rotation=read(directory,'rqdata-industry-rotation.json')
-    add('industry-rotation','行业轮动强度与中证全指',rotation.get('asOf'),source='RQData')
+    rotation=read(directory,'akshare-sw-industry-rotation.json')
+    if not rotation.get('points'):
+        rotation=read(directory,'rqdata-industry-rotation.json')
+    add('industry-rotation','行业轮动强度与中证全指',rotation.get('asOf'),source=rotation.get('source','历史快照'))
     risk=read(directory,'akshare-margin-risk.json')
     risk_series={item.get('id'):item for item in risk.get('series',[]) if isinstance(item,dict)}
     for sid,label in [('margin-guarantee-ratio','市场平均维持担保比例'),
