@@ -1,0 +1,53 @@
+name: Diagnose AKShare sources without publishing
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install akshare pandas tzdata
+      - name: Existing mapping tests
+        run: python -m unittest discover -s tests -p 'test_akshare_*.py'
+      - name: Margin source
+        continue-on-error: true
+        run: python akshare_margin_risk.py --output /tmp/margin.json
+      - name: Medium source
+        continue-on-error: true
+        run: |
+          cp akshare-medium-inputs.json /tmp/medium.json
+          python akshare_medium_inputs.py --as-of "$(date -u +%F)" --output /tmp/medium.json
+      - name: Public source collection only
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import json, pathlib, shutil, akshare as ak
+          import akshare_public_refresh as p
+          p.ROOT = pathlib.Path('/tmp/public-check')
+          p.ROOT.mkdir()
+          for name in ('akshare-public-inputs.json', 'rqdata-broad-sentiment.json'):
+              if pathlib.Path(name).exists(): shutil.copy(name, p.ROOT / name)
+          target = str(ak.tool_trade_date_hist_sina()['trade_date'].max())[:10]
+          from datetime import datetime, timedelta
+          from zoneinfo import ZoneInfo
+          now = datetime.now(ZoneInfo('Asia/Shanghai'))
+          limit = now.date() if now.hour >= 18 else now.date()-timedelta(days=1)
+          target = max(str(x)[:10] for x in ak.tool_trade_date_hist_sina()['trade_date'] if str(x)[:10] <= str(limit))
+          result = p.collect(ak, target)
+          print(json.dumps({'target': target, 'errors': result['errors'], 'series': {s['id']: s['points'][-1]['date'] for s in result['series'] if s.get('points')}}, ensure_ascii=False))
+          PY
+      - name: ETF source transform only
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import akshare as ak
+          from etf_market_refresh import build
+          r=build(ak.fund_etf_spot_em())
+          print('ETF asOf:',r['asOf'],'rows:',len(r['rows']))
+          PY
