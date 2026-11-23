@@ -102,7 +102,13 @@ def collect(ak, target):
                 raise ValueError("Incomplete index turnover history through " + target)
             put(sid, name, "%", history, "AKShare / 东方财富指数换手率")
         except Exception as exc:
-            errors.append({"source": sid, "error": str(exc)[:240]})
+            # Use the separately validated iFind turnover history on provider failure.
+            fallback = next((s for s in read("ifind-index-turnover.json").get("series", []) if s.get("id") == sid), {})
+            observations = [p for p in fallback.get("points", []) if p.get("date", "") <= target]
+            if observations and observations[-1]["date"] == target and len(observations) >= 126:
+                put(sid, name, "%", merged(sid, observations), fallback.get("source", "iFind"))
+            else:
+                errors.append({"source": sid, "error": str(exc)[:240]})
 
     # The public spot feed has no reliable historical-date selector. Only use
     # it after the close of today's confirmed trading session.
