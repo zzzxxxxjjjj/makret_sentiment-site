@@ -69,7 +69,7 @@ def fetch(as_of, output=DEFAULT_OUTPUT, *, ak=None):
     old = previous_series(output)
     prior = old.get("csi-all-share-close", [])
     history_start = ((date.fromisoformat(prior[-1]["date"]) + timedelta(days=1)) if prior else (target - timedelta(days=5 * 366))).strftime("%Y%m%d")
-    history = ak.stock_zh_index_hist_csindex(
+    history = (getattr(ak, "index_hist_csindex", None) or ak.stock_zh_index_hist_csindex)(
         symbol=CSI_ALL_SHARE, start_date=history_start, end_date=target.strftime("%Y%m%d")
     )
     valuation = ak.stock_zh_index_value_csindex(symbol=CSI_ALL_SHARE)
