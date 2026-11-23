@@ -1,6 +1,11 @@
 name: Update iFind medium bond proxy
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '40 12 * * 1-5'
+  push:
+    paths:
+      - '.github/workflows/ifind-medium-bond.yml'
 permissions:
   contents: write
 concurrency:
@@ -20,6 +25,20 @@ jobs:
         env:
           IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
         run: python ifind_medium_bond_refresh.py
+      - run: python -m pip install -r requirements-cloud.txt
+      - name: Validate medium model recomputation
+        run: |
+          python -m py_compile broad_sentiment.py ifind_medium_bond_refresh.py
+          python - <<'PY'
+          import broad_sentiment as b
+          result = b.broad_market_medium_term_sentiment_snapshot()
+          rows = [s for s in result['series'] if s['id'] in ('medium-equity-bond-position', 'medium-equity-bond-relative-return-120d')]
+          assert len(rows) == 2
+          for row in rows:
+              assert '701014.TI' in row['name']
+              assert len(row['points']) > 750
+              print(row['id'], len(row['points']), row['points'][-1])
+          PY
       - name: Publish isolated history
         run: |
           git config user.name 'github-actions[bot]'
