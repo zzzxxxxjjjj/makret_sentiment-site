@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - '.github/workflows/daily-provider-check.yml'
+      - '.github/workflows/daily-data-update.yml'
+      - 'daily_batch.py'
 permissions:
   contents: read
 jobs:
