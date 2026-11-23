@@ -1,8 +1,6 @@
 name: Rebuild page and freshness status
 on:
   workflow_dispatch:
-  push:
-    paths: ['.github/workflows/rebuild-page-status.yml']
 permissions:
   contents: write
 jobs:
