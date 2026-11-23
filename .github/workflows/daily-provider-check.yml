@@ -1,0 +1,48 @@
+name: Verify daily pipeline without RQData
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/daily-provider-check.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-daily.txt pyyaml
+      - name: Validate independent task selection and historical model reads
+        run: |
+          python - <<'PY'
+          import ast, hashlib, importlib.util, json, pathlib, yaml
+          assert importlib.util.find_spec('rqdatac') is None
+          before={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in pathlib.Path('.').rglob('*') if p.suffix.lower() in ('.json','.csv','.xlsx','.xlsm') and '.git' not in p.parts}
+          for name in ('daily_batch.py','broad_sentiment.py'): ast.parse(pathlib.Path(name).read_text(encoding='utf-8-sig'))
+          for p in pathlib.Path('.github/workflows').glob('*.yml'): yaml.safe_load(p.read_text())
+          import daily_batch as d
+          from unittest.mock import patch
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          commands=[]
+          def stage(name,command,target,outputs=()):
+              commands.append(command)
+              return True
+          with patch.object(d,'datetime') as clock, patch.object(d,'trading_day',return_value=True), patch.object(d,'run_stage',side_effect=stage), patch.object(d,'write'), patch('data_freshness.write_report'), patch.dict('os.environ',{'RQDATAC_CONF':'must-not-be-used','AIDO_API_KEY':''}):
+              clock.now.return_value=datetime(2026,11,23,19,tzinfo=ZoneInfo('Asia/Shanghai'))
+              d.main()
+          assert ['akshare_public_refresh.py','--sources-only'] in commands
+          assert ['ifind_medium_bond_refresh.py'] in commands
+          assert not any(c[0] in ('cloud_daily_update.py','sw_valuation_rotation.py','position_refresh.py') for c in commands)
+          import broad_sentiment as b
+          model=b.broad_market_medium_term_sentiment_snapshot()
+          assert any('701014.TI' in s.get('name','') for s in model['series'])
+          for name,digest in before.items(): assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==digest,name
+          print('Independent tasks and preserved historical data verified without RQData SDK')
+          PY
+      - run: python -m unittest discover -s tests -p 'test_akshare_*.py'
+      - run: python build_static_site.py

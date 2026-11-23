@@ -591,7 +591,12 @@ def broad_market_new_equity_fund_shares_snapshot():
 
 
 def broad_market_medium_term_sentiment_snapshot():
-    from cloud_market_refresh import read as read_cloud
+    # Reading saved model inputs must not import a provider SDK.
+    def read_cloud(name):
+        try:
+            return json.loads((BASE_DIR / name).read_text(encoding="utf-8-sig"))
+        except (OSError, ValueError):
+            return {}
     cloud_data = read_cloud('cloud-market-inputs.json')
     if cloud_data.get('modelVersion') == 'cloud-v2':
         path = BASE_DIR / 'cloud-market-inputs.json'

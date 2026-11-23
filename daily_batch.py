@@ -48,7 +48,7 @@ def trading_day(now):
     calendar = read(path)
     year = str(now.year)
     if calendar.get("year") != year:
-        dates = sorted(str(d)[:10] for d in ak.tool_trade_date_hist_sina()["trade_date"])
+        dates = sorted(str(d)[:10] for d in (getattr(ak, 'calendar_trade_date_hist_sina', None) or ak.tool_trade_date_hist_sina)()["trade_date"])
         if not any(d.startswith(year) for d in dates):
             raise ValueError("Trading calendar does not cover current year")
         calendar = dict(year=year, dates=dates)
@@ -64,7 +64,7 @@ def main():
     os.environ["RQDATA_AS_OF"] = target
     os.environ["DEFER_DASHBOARD_BUILD"] = "1"
     tasks = [
-        ("public", ["akshare_public_refresh.py"], ["akshare-public-inputs.json"]),
+        ("public", ["akshare_public_refresh.py", "--sources-only"], ["akshare-public-inputs.json"]),
         ("medium", ["akshare_medium_inputs.py", "--as-of", target], ["akshare-medium-inputs.json"]),
         ("margin", ["akshare_margin_risk.py"], ["akshare-margin-risk.json"]),
         ("etf", ["etf_market_refresh.py"], ["etf-market.json"]),
@@ -72,14 +72,9 @@ def main():
         ("etf-weekly", ["etf_weekly_relative_flow.py"], ["etf-weekly-relative-flow.json"]),
         ("industry-flow", ["sw_flow_refresh.py"], ["sw-industry-flow.json"]),
         ("industry-rotation", ["sw_rotation_refresh.py"], ["akshare-sw-industry-rotation.json"]),
+        ("ifind-medium-bond", ["ifind_medium_bond_refresh.py"], ["ifind-medium-bond.json"]),
         ("ifind-turnover", ["ifind_index_turnover_refresh.py"], ["ifind-index-turnover.json"]),
     ]
-    if os.environ.get("RQDATAC_CONF"):
-        tasks += [
-            ("core", ["cloud_daily_update.py"], ["rqdata-breadth-sentiment.json"]),
-            ("valuation", ["sw_valuation_rotation.py"], ["sw-industry-valuation.json", "sw-industry-rotation.json"]),
-            ("position", ["position_refresh.py"], ["position-advice.json"]),
-        ]
     if os.environ.get("AIDO_API_KEY"):
         tasks += [
             ("fund", ["rqdata_fund_exposure_refresh.py", "--output", "rqdata-fund-exposure.json", "--timeout", "20"], ["rqdata-fund-exposure.json"]),
