@@ -700,6 +700,18 @@ def broad_market_medium_term_sentiment_snapshot():
         financing_rows = series_by_header("中国:融资余额", "balance")
         workbook.close()
 
+    # Use the independently verified proxy history as a complete series.
+    proxy_path = BASE_DIR / "ifind-medium-bond.json"
+    bond_proxy = None
+    if proxy_path.exists():
+        bond_proxy = json.loads(proxy_path.read_text(encoding="utf-8"))
+        if bond_proxy.get("code") != "701014.TI" or len(bond_proxy.get("points", [])) < 1000:
+            raise ValueError("Invalid iFind medium bond proxy history")
+        bond_fund_rows = [
+            {"date": date.fromisoformat(p["date"]), "close": p["value"]}
+            for p in bond_proxy["points"]
+        ]
+
     def points(rows, key, digits=4, unit_transform=None, positive_only=False):
         output = []
         for item in rows:
@@ -815,6 +827,7 @@ def broad_market_medium_term_sentiment_snapshot():
     saved_by_id = {s["id"]: s.get("points", []) for s in saved_wind.get("series", [])}
     def extend_wind(points, sid):
         if cloud_data.get("modelVersion") == "cloud-v2": return points
+        if bond_proxy and sid in {"medium-equity-bond-position", "medium-equity-bond-relative-return-120d"}: return points
         last = max((p["date"] for p in points), default="")
         limit = os.environ.get("RQDATA_AS_OF", "")
         incoming = [p for p in saved_by_id.get(sid, []) if p["date"] > last and (not limit or p["date"] <= limit)]
@@ -1125,8 +1138,8 @@ def broad_market_medium_term_sentiment_snapshot():
             {"id": "medium-erp", "name": "万得全A股权风险溢价ERP", "unit": "%", "points": erp_points},
             {"id": "medium-erp-band-percent", "name": "ERP通道百分化", "unit": "分", "points": erp_band_points[-1900:]},
             {"id": "medium-erp-rolling-3y", "name": "ERP三年滚动均值", "unit": "%", "points": erp_rolling_points[-1900:]},
-            {"id": "medium-equity-bond-position", "name": "万得全A/偏债混合型基金指数", "unit": "倍", "points": position_points},
-            {"id": "medium-equity-bond-relative-return-120d", "name": "万得全A相对偏债基金120日收益差", "unit": "pct", "points": relative_strength_points},
+            {"id": "medium-equity-bond-position", "name": ("权益指数/iFind 701014.TI偏债基金代理" if bond_proxy else "万得全A/偏债混合型基金指数"), "unit": "倍", "points": position_points},
+            {"id": "medium-equity-bond-relative-return-120d", "name": ("权益指数相对iFind 701014.TI的120日收益差" if bond_proxy else "万得全A相对偏债基金120日收益差"), "unit": "pct", "points": relative_strength_points},
             {"id": "medium-equity-bond-yield-spread", "name": "万得全A股息率TTM-10年国开债收益率", "unit": "pct", "points": spread_points},
             {"id": "medium-yield-spread-band-percent", "name": "股债收益差通道百分化", "unit": "分", "points": spread_band_points[-1900:]},
             {"id": "medium-yield-spread-rolling-3y", "name": "股债收益差三年滚动均值", "unit": "pct", "points": spread_rolling_points[-1900:]},
