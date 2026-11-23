@@ -18,7 +18,7 @@ token = auth.get('data', {}).get('access_token') if isinstance(auth.get('data'),
 if not token:
     raise SystemExit(f"Authentication failed, code {auth.get('errorcode')}")
 now = datetime.now(ZoneInfo('Asia/Shanghai'))
-end = now.date() - timedelta(days=int(now.hour < 18))
+end = datetime.fromisoformat(os.environ['DAILY_TARGET_DATE']).date() if os.environ.get('DAILY_TARGET_DATE') else now.date() - timedelta(days=int(now.hour < 18))
 path = Path('ifind-index-turnover.json')
 previous_payload = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
 previous_series = {s['id']: s for s in previous_payload.get('series', [])}
