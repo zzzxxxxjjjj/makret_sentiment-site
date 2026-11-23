@@ -70,7 +70,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in akshare-public-inputs.json akshare-medium-inputs.json ifind-index-turnover.json ifind-medium-bond.json akshare-margin-risk.json data-freshness.json; do
+          for file in akshare-public-inputs.json akshare-medium-inputs.json ifind-index-turnover.json ifind-medium-bond.json akshare-margin-risk.json broad-sentiment-page-cache.json data-freshness.json; do
             if [ -f "$file" ]; then git add -- "$file"; fi
           done
           if [ -f daily-update-status.json ]; then git add -- daily-update-status.json; fi
