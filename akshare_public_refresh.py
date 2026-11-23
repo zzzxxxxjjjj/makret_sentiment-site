@@ -93,7 +93,7 @@ def collect(ak, target):
         ("000688", "star50-turnover", "科创50换手率"),
     ):
         try:
-            frame = ak.index_zh_a_hist(
+            frame = (getattr(ak, "index_zh_hist_em", None) or ak.index_zh_a_hist)(
                 symbol=code, period="daily", start_date=tail(sid),
                 end_date=target.replace("-", ""))
             history = merged(sid, points(frame, "换手率", target))
