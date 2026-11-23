@@ -1,0 +1,21 @@
+name: Audit lagging source capabilities
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/source-capability-audit.yml']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-daily.txt
+      - name: Probe historical source coverage without publication
+        env:
+          IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+        run: python source_capability_audit.py
