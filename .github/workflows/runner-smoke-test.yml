@@ -1,0 +1,12 @@
+name: Runner startup check
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Verify runner startup
+        shell: bash
+        run: printf '%s\n' 'Runner startup OK; no repository checkout or data writes.'
