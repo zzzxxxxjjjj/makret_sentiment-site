@@ -82,7 +82,19 @@ def collect(as_of=None, output=OUTPUT, *, ak=None):
         import akshare as ak
     as_of = as_of or datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat()
     payload = transform(ak.stock_margin_account_info(), as_of)
-    output.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    if output.exists():
+        previous = json.loads(output.read_text(encoding="utf-8"))
+        by_id = {item["id"]: item for item in previous.get("series", [])}
+        for item in payload["series"]:
+            values = {row["date"]: row for row in by_id.get(item["id"], {}).get("points", [])}
+            values.update({row["date"]: row for row in item["points"]})
+            item["points"] = [values[dt] for dt in sorted(values)]
+            by_id[item["id"]] = item
+        payload["series"] = list(by_id.values())
+        payload["asOf"] = min(item["points"][-1]["date"] for item in payload["series"])
+    temporary = output.with_suffix(".tmp")
+    temporary.write_text(json.dumps(payload, ensure_ascii=False, allow_nan=False, separators=(",", ":")), encoding="utf-8")
+    temporary.replace(output)
     return payload
 
 
