@@ -29,7 +29,7 @@ def run_stage(name, command, target, outputs=()):
     if previous.get("ok") and previous.get("outputs") == hashes and all(hashes.values()):
         print("Already complete: " + name, flush=True)
         return True
-    attempts = previous.get("attempts", 0)
+    attempts = 0  # Retry failed stages on each scheduled invocation; max two attempts per run.
     while attempts < 2:
         attempts += 1
         print(f"{name}: attempt {attempts}/2", flush=True)
@@ -64,6 +64,8 @@ def main():
     os.environ["RQDATA_AS_OF"] = target
     os.environ["DEFER_DASHBOARD_BUILD"] = "1"
     tasks = [
+        ("ifind-turnover", ["ifind_index_turnover_refresh.py"], ["ifind-index-turnover.json"]),
+
         ("public", ["akshare_public_refresh.py", "--sources-only"], ["akshare-public-inputs.json"]),
         ("medium", ["akshare_medium_inputs.py", "--as-of", target], ["akshare-medium-inputs.json"]),
         ("margin", ["akshare_margin_risk.py"], ["akshare-margin-risk.json"]),
@@ -73,7 +75,6 @@ def main():
         ("industry-flow", ["sw_flow_refresh.py"], ["sw-industry-flow.json"]),
         ("industry-rotation", ["sw_rotation_refresh.py"], ["akshare-sw-industry-rotation.json"]),
         ("ifind-medium-bond", ["ifind_medium_bond_refresh.py"], ["ifind-medium-bond.json"]),
-        ("ifind-turnover", ["ifind_index_turnover_refresh.py"], ["ifind-index-turnover.json"]),
     ]
     if os.environ.get("AIDO_API_KEY"):
         tasks += [
