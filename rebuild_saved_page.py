@@ -1,12 +1,72 @@
+"""Rebuild the displayed snapshot and freshness report from saved observations only."""
+import argparse
+import copy
+import json
 import os
+from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from data_freshness import read, write_report
-os.environ['ENABLE_RQDATA_REFRESH']='0'
+from market_data_sync import apply_market_data_sync
+from akshare_public_refresh import apply_public_inputs
 import broad_sentiment as broad
-broad.ENABLE_RQDATA_REFRESH=False
-payload=broad._build_payload(force=True)
-broad.save_page_cache(payload)
-base=Path(__file__).resolve().parent
-previous=read(base,'data-freshness.json')
-target=previous.get('targetDate') or payload['asOf']
-write_report(target,calendar=previous.get('tradingCalendar',[]),errors=previous.get('errors',[]))
+
+BASE = Path(__file__).resolve().parent
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--target")
+    args = parser.parse_args()
+    previous = read(BASE, "data-freshness.json")
+    calendar = previous.get("tradingCalendar", [])
+    now = datetime.now(ZoneInfo("Asia/Shanghai"))
+    limit = now.date() if now.hour >= 18 else now.date() - timedelta(days=1)
+    target = args.target or os.environ.get("DAILY_TARGET_DATE") or max((d for d in calendar if d <= str(limit)), default=None)
+    if not target:
+        raise ValueError("No verified completed trading date available")
+    original = read(BASE, "broad-sentiment-page-cache.json")
+    payload = copy.deepcopy(original.get("payload") or {})
+    if not payload.get("cards") or not payload.get("series"):
+        raise ValueError("Previous valid page snapshot is required")
+    payload = apply_public_inputs(apply_market_data_sync(payload, BASE), BASE)
+    series = {s["id"]: s for s in payload["series"]}
+    for filename in ("ifind-index-turnover.json", "akshare-margin-risk.json"):
+        source = read(BASE, filename)
+        for incoming in source.get("series", []):
+            if not incoming.get("points"): continue
+            old = series.get(incoming["id"], {})
+            old_date = max((p["date"] for p in old.get("points", [])), default="")
+            new_date = max(p["date"] for p in incoming["points"])
+            if new_date >= old_date:
+                merged = {p["date"]:p for p in old.get("points", [])}
+                merged.update({p["date"]:p for p in incoming["points"]})
+                series[incoming["id"]] = {**old, **incoming, "points":[merged[d] for d in sorted(merged)],
+                                           "source":incoming.get("source") or source.get("source", "iFind")}
+    # Recompute using the current model's real inputs; retain its actual date.
+    medium = broad.broad_market_medium_term_sentiment_snapshot()
+    for incoming in medium.get("series", []):
+        if incoming.get("points"):
+            series[incoming["id"]] = incoming
+    payload["series"] = list(series.values())
+    payload["generatedAt"] = now.isoformat(timespec="seconds")
+    payload["rebuildTargetDate"] = target
+    for card in payload["cards"]:
+        if card.get("id") == "medium-term-sentiment":
+            item = series.get("medium-term-sentiment", {})
+            if item.get("points"):
+                last = item["points"][-1]
+                card.update(value=last["value"], asOf=last["date"])
+    broad.ENABLE_RQDATA_REFRESH = False
+    broad.save_page_cache(payload)
+    state = read(BASE, "daily-update-status.json")
+    failures = state.get("failedStages", []) if state.get("targetDate") == target else []
+    errors = [{"source":name, "error":"Daily collection stage failed; actual older dates retained"} for name in failures]
+    public = read(BASE, "akshare-public-inputs.json")
+    errors.extend(public.get("errors", []))
+    report = write_report(target, calendar=calendar, errors=errors)
+    print(json.dumps({"targetDate":target, "current":report["currentDailyCount"],
+                      "total":report["dailyCount"], "lagging":len(report["laggingDaily"]),
+                      "errors":report["errors"]}, ensure_ascii=False))
+
+if __name__ == "__main__":
+    main()
