@@ -1,8 +1,8 @@
 name: Daily post-close market update
 on:
   schedule:
-    # Beijing 18:45, weekdays. The script checks the exchange calendar.
-    - cron: '45 10 * * 1-5'
+    # Beijing 18:45 primary run and 20:45 recovery run, weekdays. The script checks the exchange calendar.
+    - cron: '45 10,12 * * 1-5'
   workflow_dispatch:
 permissions:
   contents: write
@@ -70,7 +70,9 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add --update -- '*.json'
+          for file in akshare-public-inputs.json akshare-medium-inputs.json ifind-index-turnover.json ifind-medium-bond.json akshare-margin-risk.json data-freshness.json; do
+            if [ -f "$file" ]; then git add -- "$file"; fi
+          done
           if [ -f daily-update-status.json ]; then git add -- daily-update-status.json; fi
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Update daily closing data and stage status'
