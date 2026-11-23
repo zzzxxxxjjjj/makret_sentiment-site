@@ -82,8 +82,9 @@ def main():
             ("crowding", ["aido_style_crowding_refresh.py"], ["style-crowding.json"]),
         ]
     failures = [name for name, command, outputs in tasks if not run_stage(name, command, target, outputs)]
-    from data_freshness import write_report
-    write_report(target, errors=[{"source": name, "error": "daily stage failed"} for name in failures])
+    write(ROOT / "daily-update-status.json", dict(targetDate=target, ok=not failures, failedStages=failures))
+    if not run_stage("page-rebuild", ["rebuild_saved_page.py", "--target", target], target, ["broad-sentiment-page-cache.json", "data-freshness.json"]):
+        failures.append("page-rebuild")
     # Build once after all collectors, including partial results with actual source dates.
     if not run_stage("build", ["build_static_site.py"], target, ["dist/index.html"]):
         failures.append("build")
