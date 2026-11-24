@@ -70,4 +70,7 @@ def main():
     temp=path.with_suffix(".tmp")
     temp.write_text(json.dumps(result,ensure_ascii=False,allow_nan=False),encoding="utf-8")
     temp.replace(path)
-if __name__=="__main__": main()
+if __name__=="__main__":
+    from akshare_request_policy import install
+    install()
+    main()
