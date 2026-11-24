@@ -36,11 +36,11 @@ def main():
    value=fn();result["results"].append({"id":name,"ok":True,"detail":value});print(name+": "+str(value),flush=True)
   except Exception as e:
    result["results"].append({"id":name,"ok":False,"error":str(e)[:500]});print(name+": "+type(e).__name__+" "+str(e)[:200],flush=True)
-  save("medium-recovery-status.json" if "--medium-only" in sys.argv else "public-recovery-status.json",result)
+  save("medium-recovery-status.json" if "--medium-only" in sys.argv else "flows-recovery-status.json" if "--flows-only" in sys.argv else "public-recovery-status.json",result)
  start=(pd.Timestamp(target)-timedelta(days=40)).strftime("%Y%m%d")
  end=target.replace("-","")
  # Fetch missing public inputs using existing validated exchange conversion.
- if "--medium-only" not in sys.argv: attempt("public-inputs",lambda: subprocess.run([sys.executable,"akshare_public_refresh.py","--sources-only"],timeout=240,check=True).returncode)
+ if not any(v in sys.argv for v in ("--medium-only","--flows-only")): attempt("public-inputs",lambda: subprocess.run([sys.executable,"akshare_public_refresh.py","--sources-only"],timeout=240,check=True).returncode)
  public=read("akshare-public-inputs.json")
  series={s["id"]:s for s in public.get("series",[])}
  base=read("rqdata-broad-sentiment.json")
@@ -58,9 +58,12 @@ def main():
   points=[{"date":d,"value":float(v)} for d,v in data.diff().dropna().items()]
   put("financing-net","融资净流入",points,"沪深交易所融资余额差分；亿元")
   return {"asOf":points[-1]["date"],"count":len(points)}
- if "--medium-only" not in sys.argv: attempt("financing-net",financing_net)
+ if not any(v in sys.argv for v in ("--medium-only","--flows-only")): attempt("financing-net",financing_net)
  def institutional():
-  f=resolve(ak,"stock_lhb_jgmmtj_em")(start_date=start,end_date=end)
+  existing=series.get("institutional-buy",{}).get("points",[])
+  if existing and existing[-1]["date"]==target:return {"asOf":target,"alreadyCurrent":True}
+  fetch_start=(pd.Timestamp(existing[-1]["date"])+timedelta(days=1)).strftime("%Y%m%d") if existing else start
+  f=resolve(ak,"stock_lhb_jgmmtj_em")(start_date=fetch_start,end_date=end)
   save("recovery-lhb-schema.json",{"columns":list(f.columns),"rows":len(f),"sample":json.loads(f.head(3).to_json(orient="records",force_ascii=False,date_format="iso"))})
   needed={"上榜日期","代码","机构买入总额","上榜原因"}
   if not needed.issubset(f.columns):raise ValueError("Unexpected institution schema "+str(list(f.columns)))
@@ -84,7 +87,11 @@ def main():
   return {"asOf":pts[-1]["date"],"days":len(pts)}
  if "--medium-only" not in sys.argv: attempt("institutional-buy",institutional)
  def lhb_net():
-  f=resolve(ak,"stock_lhb_detail_em")(start_date=start,end_date=end)
+  existing=series.get("dragon-tiger-net-inflow",{}).get("points",[])
+  if existing and existing[-1]["date"]==target:return {"asOf":target,"alreadyCurrent":True}
+  cache=read("lhb-daily-cache.json").get("points",[])
+  fetch_start=(pd.Timestamp(cache[-1]["date"])+timedelta(days=1)).strftime("%Y%m%d") if cache else start
+  f=resolve(ak,"stock_lhb_detail_em")(start_date=fetch_start,end_date=end)
   f=f[~f["上榜原因"].astype(str).str.contains(r"连续|累计|三[个]?交易日|[35]个交易日",regex=True)].copy()
   f["date"]=pd.to_datetime(f["上榜日"]).dt.strftime("%Y-%m-%d")
   f["value"]=pd.to_numeric(f["龙虎榜净买额"],errors="coerce")
@@ -94,7 +101,10 @@ def main():
   sums=f.groupby("date")["value"].sum()/1e8
   days=[d for d in read("data-freshness.json")["tradingCalendar"] if start<=d.replace("-","")<=end]
   if len(days)<20 or sums.empty or max(sums.index)!=target:raise ValueError("Insufficient verified LHB range")
-  vals=pd.Series({d:float(sums.get(d,0)) for d in days}).rolling(20,min_periods=20).sum().dropna()
+  daily={p["date"]:p["value"] for p in cache}
+  daily.update({d:float(sums.get(d,0)) for d in days if d.replace("-","")>=fetch_start})
+  save("lhb-daily-cache.json",{"points":[{"date":d,"value":daily[d]} for d in sorted(daily)]})
+  vals=pd.Series(daily).sort_index().rolling(20,min_periods=20).sum().dropna()
   put("dragon-tiger-net-inflow","龙虎榜资金净流入（20日滚动）",[{"date":d,"value":float(v)} for d,v in vals.items()],"AKShare / 龙虎榜单日榜买卖净额，股票日期去重，20交易日累计")
   return {"asOf":max(vals.index),"count":len(vals)}
  if "--medium-only" not in sys.argv: attempt("lhb-net-20d",lhb_net)
@@ -135,7 +145,7 @@ def main():
   evidence["dates"]={k:{"first":v[0]["date"],"last":v[-1]["date"],"count":len(v)} for k,v in cloud["inputs"].items()}
   save("medium-input-audit.json",evidence)
   return evidence
- attempt("medium-model-inputs",medium)
+ if "--flows-only" not in sys.argv: attempt("medium-model-inputs",medium)
  # Capture exact schemas for the remaining missing metrics for subsequent verified adapters.
  probes=[
  ("financing-detail-sh","stock_margin_detail_sse",{"date":end}),
@@ -144,7 +154,7 @@ def main():
  ("options-sse","option_daily_stats_sse",{"date":end}),
  ("options-cffex","option_cffex_zz1000_daily_sina",{"symbol":"mo2612C6000"}),
  ]
- for key,name,kwargs in ([] if "--medium-only" in sys.argv else probes):
+ for key,name,kwargs in ([] if any(v in sys.argv for v in ("--medium-only","--flows-only")) else probes):
   def probe(name=name,kwargs=kwargs,key=key):
    f=resolve(ak,name)(**kwargs)
    save("recovery-"+key+".json",{"columns":list(f.columns),"rows":len(f),"sample":json.loads(f.head(3).to_json(orient="records",force_ascii=False,date_format="iso"))})
