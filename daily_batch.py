@@ -56,10 +56,11 @@ def trading_day(now):
     return now.date().isoformat() in calendar["dates"]
 def main():
     now = datetime.now(ZoneInfo("Asia/Shanghai"))
-    target = now.date().isoformat()
-    if now.hour < 18 or not trading_day(now):
-        print("Skip: outside post-close trading session")
-        return
+    from completed_session import completed_target
+    target=os.environ.get("DAILY_TARGET_DATE")
+    if not target:
+        trading_day(now)  # Populate the verified exchange calendar cache.
+        target=completed_target(now,read(STATE/"calendar.json").get("dates",[]))
     os.environ["DAILY_TARGET_DATE"] = target
     os.environ["RQDATA_AS_OF"] = target
     os.environ["DEFER_DASHBOARD_BUILD"] = "1"
