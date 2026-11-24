@@ -1,5 +1,5 @@
 """Recover index financing only after exchange totals and index membership validate."""
-import json,os,math,socket
+import json,os,math,socket,sys
 from pathlib import Path
 import pandas as pd
 from public_recovery import read,save,resolve,finite
@@ -7,53 +7,62 @@ def main():
  import akshare as ak
  from akshare_request_policy import install
  install()
- target=read("public-recovery-status.json")["targetDate"];stamp=target.replace("-","")
+ target=os.environ.get("DAILY_TARGET_DATE") or read("public-recovery-status.json")["targetDate"];stamp=target.replace("-","")
  status={"targetDate":target,"results":[]};out={"targetDate":target,"series":[]}
  def attempt(name,fn):
   try:status["results"].append({"id":name,"ok":True,"detail":fn()})
   except Exception as e:status["results"].append({"id":name,"ok":False,"error":str(e)[:500]})
   save("index-recovery-status.json",status);print(status["results"][-1],flush=True)
  def indexes():
-  sh=resolve(ak,"stock_margin_detail_sse")(date=stamp)
-  sz=resolve(ak,"stock_margin_detail_szse")(date=stamp)
-  sht=resolve(ak,"stock_margin_sse")(start_date=stamp,end_date=stamp)
-  szt=resolve(ak,"stock_margin_szse")(date=stamp)
-  sh=sh[sh["信用交易日期"].astype(str)==stamp]
-  # AKShare's one-page response can be capped by SSE. Follow real pagination.
-  if len(sht)==1 and abs(pd.to_numeric(sh["融资买入额"]).sum()-float(sht.iloc[0]["融资买入额"]))>100:
-   import requests
-   params={"isPagination":"true","tabType":"mxtype","detailsDate":stamp,"stockCode":"","beginDate":"","endDate":"","pageHelp.pageSize":"1000","pageHelp.pageNo":"1","pageHelp.beginPage":"1","pageHelp.cacheSize":"1","pageHelp.endPage":"1"}
-   records=[];total=None
-   for page in range(1,11):
-    params["pageHelp.pageNo"]=str(page)
-    params["pageHelp.beginPage"]=str(page)
-    params["pageHelp.endPage"]=str(page)
-    response=requests.get("https://query.sse.com.cn/marketdata/tradedata/queryMargin.do",params=params,headers={"Referer":"https://www.sse.com.cn/","User-Agent":"Mozilla/5.0"},timeout=30)
-    response.raise_for_status();data=response.json();rows=data.get("result") or []
-    if page==1:
-     help=data.get("pageHelp") or {};total=int(help.get("total") or help.get("totalCount") or 0)
-     save("recovery-sse-pagination.json",{"pageHelp":{k:v for k,v in help.items() if k!="data"},"keys":list(rows[0]) if rows else [],"sample":rows[:1]})
-    if not rows:break
-    records.extend(rows)
-    if total and len(records)>=total:break
-   frame=pd.DataFrame(records)
-   if frame.shape[1]!=13:raise ValueError("Unknown SSE pagination schema")
-   frame=frame.rename(columns={"opDate":"信用交易日期","rzmre":"融资买入额","stockCode":"标的证券代码"})
-   frame=frame.drop_duplicates(["信用交易日期","标的证券代码"])
-   frame["融资买入额"]=pd.to_numeric(frame["融资买入额"],errors="raise")
-   sh=frame[frame["信用交易日期"].astype(str)==stamp]
-  if len(sht)!=1 or len(szt)!=1:raise ValueError("Missing exchange totals")
-  for frame,total,tolerance in [(sh,float(sht.iloc[0]["融资买入额"]),100),(sz,float(szt.iloc[0]["融资买入额"])*1e8,1e6)]:
-   actual=pd.to_numeric(frame["融资买入额"],errors="raise").sum()
-   if abs(actual-total)>tolerance:raise ValueError("Exchange detail incomplete: "+str(actual)+" versus "+str(total))
-  values={}
-  for frame,col in [(sh,"标的证券代码"),(sz,"证券代码")]:
-   values.update({str(r[col]).zfill(6):float(r["融资买入额"]) for r in frame.to_dict("records")})
+  cached=read("financing-detail-cache.json")
+  if cached.get("asOf")==target and cached.get("buys"):
+   values=cached["buys"]
+  else:
+   sh=resolve(ak,"stock_margin_detail_sse")(date=stamp)
+   sz=resolve(ak,"stock_margin_detail_szse")(date=stamp)
+   sht=resolve(ak,"stock_margin_sse")(start_date=stamp,end_date=stamp)
+   szt=resolve(ak,"stock_margin_szse")(date=stamp)
+   sh=sh[sh["信用交易日期"].astype(str)==stamp]
+   # AKShare's one-page response can be capped by SSE. Follow real pagination.
+   if len(sht)==1 and abs(pd.to_numeric(sh["融资买入额"]).sum()-float(sht.iloc[0]["融资买入额"]))>100:
+    import requests
+    params={"isPagination":"true","tabType":"mxtype","detailsDate":stamp,"stockCode":"","beginDate":"","endDate":"","pageHelp.pageSize":"1000","pageHelp.pageNo":"1","pageHelp.beginPage":"1","pageHelp.cacheSize":"1","pageHelp.endPage":"1"}
+    records=[];total=None
+    for page in range(1,11):
+     params["pageHelp.pageNo"]=str(page)
+     params["pageHelp.beginPage"]=str(page)
+     params["pageHelp.endPage"]=str(page)
+     response=requests.get("https://query.sse.com.cn/marketdata/tradedata/queryMargin.do",params=params,headers={"Referer":"https://www.sse.com.cn/","User-Agent":"Mozilla/5.0"},timeout=30)
+     response.raise_for_status();data=response.json();rows=data.get("result") or []
+     if page==1:
+      help=data.get("pageHelp") or {};total=int(help.get("total") or help.get("totalCount") or 0)
+      save("recovery-sse-pagination.json",{"pageHelp":{k:v for k,v in help.items() if k!="data"},"keys":list(rows[0]) if rows else [],"sample":rows[:1]})
+     if not rows:break
+     records.extend(rows)
+     if total and len(records)>=total:break
+    frame=pd.DataFrame(records)
+    if frame.shape[1]!=13:raise ValueError("Unknown SSE pagination schema")
+    frame=frame.rename(columns={"opDate":"信用交易日期","rzmre":"融资买入额","stockCode":"标的证券代码"})
+    frame=frame.drop_duplicates(["信用交易日期","标的证券代码"])
+    frame["融资买入额"]=pd.to_numeric(frame["融资买入额"],errors="raise")
+    sh=frame[frame["信用交易日期"].astype(str)==stamp]
+   if len(sht)!=1 or len(szt)!=1:raise ValueError("Missing exchange totals")
+   for frame,total,tolerance in [(sh,float(sht.iloc[0]["融资买入额"]),100),(sz,float(szt.iloc[0]["融资买入额"])*1e8,1e6)]:
+    actual=pd.to_numeric(frame["融资买入额"],errors="raise").sum()
+    if abs(actual-total)>tolerance:raise ValueError("Exchange detail incomplete: "+str(actual)+" versus "+str(total))
+   values={}
+   for frame,col in [(sh,"标的证券代码"),(sz,"证券代码")]:
+    values.update({str(r[col]).zfill(6):float(r["融资买入额"]) for r in frame.to_dict("records")})
+   save("financing-detail-cache.json",{"asOf":target,"buys":values})
   snapshot=read("ifind-stock-snapshot.json")
   if snapshot.get("asOf")!=target or len(snapshot.get("rows",[]))<4000:raise ValueError("Exact-date all-share amount snapshot missing")
   amounts={str(r["代码"]).zfill(6):float(r["成交额"]) for r in snapshot["rows"] if finite(r.get("成交额"))}
   results=[]
   for code,prefix,name,count in [("000016","sse50","上证50",50),("000300","hs300","沪深300",300),("000852","csi1000","中证1000",1000),("000688","star50","科创50",50)]:
+   previous=read("public-index-inputs.json")
+   completed=[s for s in previous.get("series",[]) if s["id"].startswith(prefix+"-") and s.get("points") and s["points"][-1]["date"]==target]
+   if len(completed)==3:
+    out["series"].extend(completed);results.append({"code":code,"alreadyCurrent":True});continue
    try:
     f=resolve(ak,"index_stock_cons_csindex")(symbol=code)
     save("recovery-members-"+prefix+".json",{"columns":list(f.columns),"rows":len(f),"sample":json.loads(f.head(2).to_json(orient="records",force_ascii=False,date_format="iso"))})
@@ -108,5 +117,8 @@ def main():
    if not bj:raise ValueError("Baostock universe has "+str(len(stocks))+" SH/SZ A shares but no Beijing stocks; cannot preserve original all-A breadth definition.")
    return {"stocks":len(stocks),"beijing":len(bj)}
   finally:bs.logout()
- attempt("breadth-baostock-universe",bao)
+ if "--daily" not in sys.argv:attempt("breadth-baostock-universe",bao)
+ if "--daily" in sys.argv:
+  item=next(r for r in status["results"] if r["id"]=="index-financing")
+  if not item["ok"] or any("error" in r for r in item.get("detail",[])):raise SystemExit(1)
 if __name__=="__main__":main()
