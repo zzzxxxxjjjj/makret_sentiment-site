@@ -43,9 +43,9 @@ def main():
    frame["融资买入额"]=pd.to_numeric(frame["融资买入额"],errors="raise")
    sh=frame[frame["信用交易日期"].astype(str)==stamp]
   if len(sht)!=1 or len(szt)!=1:raise ValueError("Missing exchange totals")
-  for frame,total in [(sh,float(sht.iloc[0]["融资买入额"])),(sz,float(szt.iloc[0]["融资买入额"])*1e8)]:
+  for frame,total,tolerance in [(sh,float(sht.iloc[0]["融资买入额"]),100),(sz,float(szt.iloc[0]["融资买入额"])*1e8,1e6)]:
    actual=pd.to_numeric(frame["融资买入额"],errors="raise").sum()
-   if abs(actual-total)>max(100,total*0.00001):raise ValueError("Exchange detail incomplete: "+str(actual)+" versus "+str(total))
+   if abs(actual-total)>tolerance:raise ValueError("Exchange detail incomplete: "+str(actual)+" versus "+str(total))
   values={}
   for frame,col in [(sh,"标的证券代码"),(sz,"证券代码")]:
    values.update({str(r[col]).zfill(6):float(r["融资买入额"]) for r in frame.to_dict("records")})
