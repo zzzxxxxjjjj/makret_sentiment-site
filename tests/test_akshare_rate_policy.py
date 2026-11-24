@@ -17,6 +17,14 @@ class PolicyTests(unittest.TestCase):
         r=Mock(status_code=status,headers={})
         if status==429:r.raise_for_status.side_effect=requests.HTTPError("429")
         return r
+    def test_eastmoney_uses_slower_gap(self):
+        c,t,p=self.make([self.response(200),self.response(200)])
+        for _ in range(2):p.request(None,"GET","https://push2delay.eastmoney.com")
+        self.assertEqual(c.sleeps,[8.])
+    def test_eastmoney_gateway_has_longer_backoff(self):
+        c,t,p=self.make([self.response(502),self.response(200)])
+        p.request(None,"GET","https://push2delay.eastmoney.com")
+        self.assertEqual(c.sleeps,[30.])
     def test_two_transports_share_one_gate(self):
         c,t,p=self.make([self.response(200)])
         other=Mock(return_value=self.response(200))
