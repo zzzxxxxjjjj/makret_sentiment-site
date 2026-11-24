@@ -14,8 +14,15 @@ def apply_cloud_display(payload,directory):
     for item in series.values():
         if item['id'].startswith('medium-'):
             for old,new in replacements.items():item['name']=item.get('name','').replace(old,new)
-            item['source']='云端版v2 · RQData/中债；全历史同口径重算'
-    put('windall-close-excel','中证全指','点',cloud['inputs']['equity'],'RQData 000985.XSHG')
+            item['source']=('AKShare中证全指 / iFind 701014.TI；保留历史' if item['id'] in ('medium-equity-bond-position','medium-equity-bond-relative-return-120d','medium-position-score','medium-relative-return-score') else 'AKShare中证全指PE；保留同口径历史' if item['id']=='medium-pe-ttm' else item.get('source','历史模型输入'))
+    equity={p['date']:p for p in cloud['inputs']['equity']}
+    try: latest=json.loads((base/'akshare-medium-inputs.json').read_text(encoding='utf-8'))
+    except (OSError,ValueError):latest={}
+    last=max(equity,default='')
+    for item in latest.get('series',[]):
+        if item.get('id')=='csi-all-share-close':
+            equity.update({p['date']:p for p in item.get('points',[]) if p['date']>last})
+    put('windall-close-excel','中证全指','点',[equity[d] for d in sorted(equity)],'AKShare中证全指000985；保留同口径历史')
     if series.get('market-turnover',{}).get('points'):
         put('windall-turnover','全A等权换手率','%',series['market-turnover']['points'],'RQData全A个股日换手率等权平均')
     put('new-equity-fund-shares','股票型公募基金新成立数量（20日累计）','只',cloud['fundEstablishment20D'],'RQData基金成立日期；股票型及股票指数型；主代码去重')
