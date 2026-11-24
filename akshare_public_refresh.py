@@ -187,6 +187,12 @@ def collect(ak, target):
     except Exception as exc:
         errors.append({"source": "financing", "error": str(exc)[:240]})
 
+    balances = series.get("financing-balance", {}).get("points", [])
+    if len(balances) > 1:
+        net = [{"date": current["date"], "value": current["value"]-previous["value"]}
+               for previous, current in zip(balances, balances[1:])]
+        put("financing-net", "融资净流入", "亿元", net,
+            "沪深交易所融资余额差分；人民币亿元")
     buys={p["date"]:p["value"] for p in series.get("alla-financing-buy",{}).get("points",[])}
     amounts={p["date"]:p["value"] for p in series.get("alla-turnover-amount",{}).get("points",[])}
     baseline=read("rqdata-broad-sentiment.json")
