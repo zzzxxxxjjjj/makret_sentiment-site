@@ -24,6 +24,12 @@ def observations(frame, target):
     return result
 
 def main():
+    import requests
+    original=requests.sessions.Session.request
+    def bounded(self,method,url,**kwargs):
+        kwargs["timeout"]=(10,35)
+        return original(self,method,url,**kwargs)
+    requests.sessions.Session.request=bounded
     target=os.environ["DAILY_TARGET_DATE"]
     calendar=json.loads((ROOT/"data-freshness.json").read_text())["tradingCalendar"]
     days=[d for d in calendar if d<=target][-3:]
