@@ -1,12 +1,14 @@
 """Conservative request pacing for AKShare collectors, including internal pagination."""
 import random
+import json
+from pathlib import Path
 import threading
 import time
 from urllib.parse import urlsplit
 import requests
 
 class PacedRequests:
-    def __init__(self, transport, interval=4.0, clock=time.monotonic, sleep=time.sleep, jitter=None):
+    def __init__(self, transport, interval=4.0, clock=time.monotonic, sleep=time.sleep, jitter=None, state_path=None):
         self.transport=transport
         self.interval=interval
         self.clock=clock
@@ -15,8 +17,26 @@ class PacedRequests:
         self.lock=threading.Lock()
         self.next_request=0.
         self.blocked={}
+        self.state_path=Path(state_path) if state_path else None
+        if self.state_path:
+            try:
+                saved=json.loads(self.state_path.read_text(encoding="utf-8"))
+                self.blocked={h:self.clock()+max(0,min(float(until)-time.time(),3600)) for h,until in saved.items()}
+            except (OSError,ValueError,TypeError):pass
         self.calls=0
         self.retries=0
+
+    def block(self,host,seconds):
+        self.blocked[host]=self.clock()+seconds
+        if self.state_path:
+            try:
+                saved=json.loads(self.state_path.read_text(encoding="utf-8")) if self.state_path.exists() else {}
+                saved[host]=time.time()+seconds
+                self.state_path.parent.mkdir(parents=True,exist_ok=True)
+                temporary=self.state_path.with_suffix(".tmp")
+                temporary.write_text(json.dumps(saved),encoding="utf-8")
+                temporary.replace(self.state_path)
+            except (OSError,ValueError,TypeError):pass
 
     def request(self, session, method, url, _transport=None, **kwargs):
         host=urlsplit(str(url)).hostname or "unknown"
@@ -47,7 +67,7 @@ class PacedRequests:
                 if status==429:
                     try:cooldown=max(300,min(float(response.headers.get("Retry-After",300)),3600))
                     except (ValueError,TypeError):cooldown=300
-                    self.blocked[host]=self.clock()+cooldown
+                    self.block(host,cooldown)
                     response.raise_for_status()
                     raise requests.exceptions.RetryError("AKShare HTTP 429: "+host)
                 if status in (502,503,504) and method=="GET":
@@ -57,13 +77,13 @@ class PacedRequests:
                         self.next_request=self.clock()+retry_delay+self.jitter()
                         print("AKShare HTTP "+str(status)+"; delayed retry: "+host,flush=True)
                         continue
-                    self.blocked[host]=self.clock()+300
+                    self.block(host,300)
                 return response
 
 def install():
     current=requests.sessions.Session.request
     if getattr(current,"_akshare_paced",False):return
-    limiter=PacedRequests(current)
+    limiter=PacedRequests(current,state_path=Path(__file__).resolve().parent/".daily-cache"/"network-cooldown.json")
     def paced(session,method,url,**kwargs):
         return limiter.request(session,method,url,**kwargs)
     paced._akshare_paced=True
