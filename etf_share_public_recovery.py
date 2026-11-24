@@ -6,7 +6,7 @@ def main():
  import akshare as ak
  from akshare_request_policy import install
  install()
- target=read("public-recovery-status.json")["targetDate"]
+ target=os.environ.get("DAILY_TARGET_DATE") or read("public-recovery-status.json")["targetDate"]
  calendar=[d for d in read("data-freshness.json")["tradingCalendar"] if d<=target and date.fromisoformat(d).weekday()<5]
  days=calendar[-2:]
  from etf_net_subscription_refresh import TARGET,compute
