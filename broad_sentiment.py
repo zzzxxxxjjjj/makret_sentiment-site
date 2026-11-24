@@ -824,6 +824,10 @@ def broad_market_medium_term_sentiment_snapshot():
         if numeric(point.get("value")) is not None
     }
     financing_by_date = {**excel_financing_by_date, **rq_financing_by_date}
+    public_financing=read_cloud("akshare-public-inputs.json")
+    for item in public_financing.get("series",[]):
+        if item.get("id")=="financing-balance" and item.get("unit")=="亿元":
+            financing_by_date.update({p["date"]:p["value"] for p in item.get("points",[]) if numeric(p.get("value")) is not None and p["value"]>0})
     financing_points = [
         {"date": dt, "value": clean(value, 3)}
         for dt, value in sorted(financing_by_date.items())
