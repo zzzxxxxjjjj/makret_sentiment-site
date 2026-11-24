@@ -1,0 +1,50 @@
+name: Verify paced AKShare collection
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/akshare-rate-check.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-daily.txt pyyaml
+      - name: Validate collectors and pacing tests
+        run: |
+          python -m compileall -q akshare_request_policy.py akshare_public_refresh.py akshare_medium_inputs.py akshare_margin_risk.py akshare_options_refresh.py etf_market_refresh.py etf_weekly_relative_flow.py sw_flow_refresh.py sw_rotation_refresh.py daily_batch.py
+          python -m unittest discover -s tests -p 'test_akshare_*.py'
+          python -m unittest discover -s tests -p 'test_completed_session.py'
+      - name: Read-only paced ETF and SW probes
+        run: |
+          python - <<'PY'
+          import subprocess,sys
+          child="""
+          import json,time,requests
+          from akshare_request_policy import install
+          install()
+          limiter=requests.sessions.Session.request.limiter
+          import akshare as ak
+          started=time.monotonic()
+          try:
+              frame=CALL
+              print('PACED_PROBE='+json.dumps(dict(case=NAME,ok=True,rows=len(frame),columns=list(frame.columns),requests=limiter.calls,retries=limiter.retries,elapsed=round(time.monotonic()-started,2)),ensure_ascii=False))
+          except Exception as exc:
+              print('PACED_PROBE='+json.dumps(dict(case=NAME,ok=False,errorType=type(exc).__name__,error=str(exc)[:400],requests=limiter.calls,retries=limiter.retries,elapsed=round(time.monotonic()-started,2)),ensure_ascii=False))
+          """
+          import textwrap
+          for name,call,timeout in [('etf','ak.fund_etf_spot_em()',420),('sw','ak.index_first_info_sw()',120)]:
+              code=textwrap.dedent(child).replace('CALL',call).replace('NAME',repr(name))
+              try:
+                  result=subprocess.run([sys.executable,'-c',code],capture_output=True,text=True,timeout=timeout)
+                  print(result.stdout,flush=True)
+                  if result.returncode:raise RuntimeError(result.stderr[-1000:])
+              except subprocess.TimeoutExpired:
+                  print('PACED_PROBE timeout: '+name,flush=True)
+          PY
