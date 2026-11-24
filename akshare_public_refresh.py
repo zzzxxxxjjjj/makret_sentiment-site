@@ -20,6 +20,11 @@ INDEXES = (
 )
 
 
+def margin_totals(sh, sz):
+    """SSE amounts are yuan; SZSE summary amounts are already CNY 100 million."""
+    return tuple(float(sh[field])/1e8+float(sz[field]) for field in ("融资余额","融资买入额"))
+
+
 def read(name):
     path = ROOT / name
     return json.loads(path.read_text(encoding="utf-8-sig")) if path.exists() else {}
@@ -141,7 +146,7 @@ def collect(ak, target):
         except Exception as exc:
             errors.append({"source": "all-share-closing-snapshot", "error": str(exc)[:240]})
 
-    # Both exchanges publish financing in yuan. Require both on the same date.
+    # Require both exchanges on the same date; convert each exchange's own unit.
     try:
         end = target.replace("-", "")
         start = (pd.Timestamp(target) - timedelta(days=30)).strftime("%Y%m%d")
@@ -156,8 +161,7 @@ def collect(ak, target):
             sse = sh[sh["date"] == day]
             if len(sse) != 1:
                 raise ValueError(f"Ambiguous Shanghai market total on {day}")
-            balance = (float(sse.iloc[0]["融资余额"]) + float(sz.iloc[0]["融资余额"])) / 1e8
-            buy = (float(sse.iloc[0]["融资买入额"]) + float(sz.iloc[0]["融资买入额"])) / 1e8
+            balance, buy = margin_totals(sse.iloc[0], sz.iloc[0])
             if not all(math.isfinite(x) and x >= 0 for x in [balance, buy]):
                 raise ValueError("Invalid financing totals")
             rows.append((day, balance, buy))
