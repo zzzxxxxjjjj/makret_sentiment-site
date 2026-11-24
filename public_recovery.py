@@ -65,7 +65,7 @@ def main():
   needed={"上榜日期","代码","机构买入总额","上榜原因"}
   if not needed.issubset(f.columns):raise ValueError("Unexpected institution schema "+str(list(f.columns)))
   # Multi-session disclosures cannot be allocated to a single session.
-  f=f[~f["上榜原因"].astype(str).str.contains("三|3|五|5|累计",regex=True)].copy()
+  f=f[~f["上榜原因"].astype(str).str.contains(r"连续|累计|三[个]?交易日|[35]个交易日",regex=True)].copy()
   f["date"]=pd.to_datetime(f["上榜日期"]).dt.strftime("%Y-%m-%d")
   f["value"]=pd.to_numeric(f["机构买入总额"],errors="coerce")
   if f["value"].isna().any() or (f["value"]<0).any():raise ValueError("Invalid institutional amount")
@@ -83,6 +83,21 @@ def main():
   put("institutional-buy-ma5","机构买入额 MA5",[{"date":d,"value":float(v)} for d,v in vals.items()],"AKShare / 机构专用单日榜买入额5日均线")
   return {"asOf":pts[-1]["date"],"days":len(pts)}
  attempt("institutional-buy",institutional)
+ def lhb_net():
+  f=resolve(ak,"stock_lhb_detail_em")(start_date=start,end_date=end)
+  f=f[~f["上榜原因"].astype(str).str.contains(r"连续|累计|三[个]?交易日|[35]个交易日",regex=True)].copy()
+  f["date"]=pd.to_datetime(f["上榜日"]).dt.strftime("%Y-%m-%d")
+  f["value"]=pd.to_numeric(f["龙虎榜净买额"],errors="coerce")
+  if f["value"].isna().any():raise ValueError("Missing LHB net amount")
+  if (f.groupby(["date","代码"])["value"].nunique()>1).any():raise ValueError("Ambiguous duplicate LHB stock/date totals")
+  f=f.drop_duplicates(["date","代码"])
+  sums=f.groupby("date")["value"].sum()/1e8
+  days=[d for d in read("data-freshness.json")["tradingCalendar"] if start<=d.replace("-","")<=end]
+  if len(days)<20 or sums.empty or max(sums.index)!=target:raise ValueError("Insufficient verified LHB range")
+  vals=pd.Series({d:float(sums.get(d,0)) for d in days}).rolling(20,min_periods=20).sum().dropna()
+  put("dragon-tiger-net-inflow","龙虎榜资金净流入（20日滚动）",[{"date":d,"value":float(v)} for d,v in vals.items()],"AKShare / 龙虎榜单日榜买卖净额，股票日期去重，20交易日累计")
+  return {"asOf":max(vals.index),"count":len(vals)}
+ attempt("lhb-net-20d",lhb_net)
  def medium():
   cloud=read("cloud-market-inputs.json")
   if cloud.get("modelVersion")!="cloud-v2":raise ValueError("Unknown medium model")
@@ -90,6 +105,7 @@ def main():
   def append_checked(key,incoming):
    old=cloud["inputs"][key];prior={p["date"]:p["value"] for p in old}
    pairs=[(prior[p["date"]],p["value"]) for p in incoming if p["date"] in prior]
+   evidence[key+"RecentOverlap"]=[{"date":p["date"],"old":prior[p["date"]],"new":p["value"]} for p in incoming if p["date"] in prior][-5:]
    if len(pairs)<3:raise ValueError(key+": need >=3 overlap observations to verify definition")
    err=max(abs(a-b)/max(abs(a),1e-8) for a,b in pairs)
    evidence[key]={"overlap":len(pairs),"maxRelativeError":err}
@@ -123,7 +139,7 @@ def main():
  ("financing-detail-sz","stock_margin_detail_szse",{"date":end}),
  ("lhb-net","stock_lhb_detail_em",{"start_date":start,"end_date":end}),
  ("options-sse","option_daily_stats_sse",{"date":end}),
- ("options-cffex","option_cffex_mo_daily_sina",{"symbol":"mo"}),
+ ("options-cffex","option_cffex_zz1000_daily_sina",{"symbol":"mo2612C6000"}),
  ]
  for key,name,kwargs in probes:
   def probe(name=name,kwargs=kwargs,key=key):
