@@ -18,7 +18,7 @@ class PacedRequests:
         self.calls=0
         self.retries=0
 
-    def request(self, session, method, url, **kwargs):
+    def request(self, session, method, url, _transport=None, **kwargs):
         host=urlsplit(str(url)).hostname or "unknown"
         method=method.upper()
         # Hold through the response: worker pools cannot burst concurrent pages.
@@ -31,7 +31,7 @@ class PacedRequests:
                 kwargs.setdefault("timeout",(10,30))
                 try:
                     self.calls+=1
-                    response=self.transport(session,method,url,**kwargs)
+                    response=(_transport or self.transport)(session,method,url,**kwargs)
                 except (requests.exceptions.Timeout,requests.exceptions.ConnectionError):
                     self.next_request=self.clock()+self.interval+self.jitter()
                     if method!="GET" or attempt:raise
@@ -66,4 +66,15 @@ def install():
     paced._akshare_paced=True
     paced.limiter=limiter
     requests.sessions.Session.request=paced
+    # Some AKShare sources use curl_cffi for browser-compatible TLS.
+    try:
+        from curl_cffi import requests as curl_requests
+    except ImportError:
+        curl_requests=None
+    if curl_requests is not None:
+        original_curl=curl_requests.Session.request
+        def paced_curl(session,method,url,**kwargs):
+            return limiter.request(session,method,url,_transport=original_curl,**kwargs)
+        paced_curl._akshare_paced=True
+        curl_requests.Session.request=paced_curl
     print("AKShare request policy: serial requests, 4-4.5s gap, one delayed GET retry",flush=True)
