@@ -1,8 +1,5 @@
 name: Refresh ETF quotes with Baostock fallback
 on:
-  push:
-    paths:
-      - '.github/workflows/etf-market.yml'
   workflow_dispatch:
 
 permissions:
