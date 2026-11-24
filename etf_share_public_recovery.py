@@ -1,12 +1,13 @@
 """Recover dated SSE ETF share history; never date SZSE undated current scale as history."""
 import os,json
+from datetime import date
 from public_recovery import read,save,resolve,finite
 def main():
  import akshare as ak
  from akshare_request_policy import install
  install()
  target=read("public-recovery-status.json")["targetDate"]
- calendar=[d for d in read("data-freshness.json")["tradingCalendar"] if d<=target]
+ calendar=[d for d in read("data-freshness.json")["tradingCalendar"] if d<=target and date.fromisoformat(d).weekday()<5]
  days=calendar[-2:]
  from etf_net_subscription_refresh import TARGET,compute
  codes=[c for c in TARGET if c.startswith("5")]
@@ -32,7 +33,10 @@ def main():
  save("etf-shares-history.json",history)
  value=compute()
  for row in value["rows"]:
-  row["asOf"]=target if row["code"] in codes else None
+  c=row["code"]
+  row["asOf"]=target if c in codes else None
+  if c in codes:
+   row["flow1D"]=round((entries[days[-1]]["shares"][c]-entries[days[-2]]["shares"][c])*close[c]/1e8,3)
   if row["code"] not in codes:row.update(flow1D=None,flow5D=None,shares=None)
   # The previous six cache entries may have gaps; do not label them five trading days.
   row["flow5D"]=None
