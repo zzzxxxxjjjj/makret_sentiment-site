@@ -3,9 +3,6 @@ on:
   schedule:
     # Beijing 18:45 primary collection run and 20:45 recovery run, weekdays. The script checks the exchange calendar.
     - cron: '45 10,12 * * 1-5'
-  push:
-    paths:
-      - '.github/workflows/daily-data-update.yml'
   workflow_dispatch:
 permissions:
   contents: write
@@ -83,7 +80,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in akshare-options-pcr.json etf-market.json etf-shares-history.json etf-net-subscription.json etf-weekly-relative-flow.json sw-industry-flow.json rqdata-fund-exposure.json style-crowding.json akshare-public-inputs.json akshare-medium-inputs.json ifind-index-turnover.json ifind-medium-bond.json akshare-margin-risk.json akshare-sw-industry-rotation.json broad-sentiment-page-cache.json data-freshness.json; do
+          for file in akshare-options-pcr.json etf-market.json etf-shares-history.json etf-net-subscription.json etf-weekly-relative-flow.json sw-industry-flow.json sw-flow-members.json rqdata-fund-exposure.json style-crowding.json akshare-public-inputs.json akshare-medium-inputs.json ifind-index-turnover.json ifind-medium-bond.json akshare-margin-risk.json akshare-sw-industry-rotation.json broad-sentiment-page-cache.json data-freshness.json; do
             if [ -f "$file" ]; then git add -- "$file"; fi
           done
           if [ -f daily-update-status.json ]; then git add -- daily-update-status.json; fi
