@@ -1,6 +1,7 @@
 """Free Eastmoney ETF turnover + shares snapshot; no invented fund-flow values."""
 import json
 import math
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -62,12 +63,22 @@ if __name__ == '__main__':
         kwargs.setdefault('timeout', 30)
         return original(self, method, url, **kwargs)
     requests.sessions.Session.request = bounded
-    value = build(ak.fund_etf_spot_em())
     path = ROOT / 'etf-market.json'
+    target=os.environ.get('DAILY_TARGET_DATE')
+    try:
+        value = build(ak.fund_etf_spot_em())
+        if target and value['asOf']!=target:raise ValueError('AKShare ETF target date mismatch')
+    except Exception as exc:
+        print('AKShare ETF failed: '+type(exc).__name__+'; switching to iFind',flush=True)
+        if not target:raise ValueError('Verified DAILY_TARGET_DATE required for fallback') from exc
+        from ifind_etf_fallback import collect
+        previous=json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
+        value=collect(previous,target)
+        value['fallbackReason']=type(exc).__name__
     if path.exists() and json.loads(path.read_text(encoding='utf-8')).get('asOf', '') > value['asOf']:
         raise ValueError('Refusing date rollback')
     tmp = path.with_suffix('.tmp')
     tmp.write_text(json.dumps(value, ensure_ascii=False, allow_nan=False), encoding='utf-8')
     tmp.replace(path)
-    update_history(value)
-    print('Eastmoney ETF snapshot: ' + value['asOf'] + ' rows=' + str(len(value['rows'])))
+    if value.get('sharesAvailable',True):update_history(value)
+    print('ETF snapshot: ' + value['asOf'] + ' rows=' + str(len(value['rows'])))
