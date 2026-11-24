@@ -99,6 +99,8 @@ def collect(as_of=None, output=OUTPUT, *, ak=None):
 
 
 if __name__ == "__main__":
+    from akshare_request_policy import install
+    install()
     parser = argparse.ArgumentParser()
     parser.add_argument("--as-of")
     parser.add_argument("--output", type=Path, default=OUTPUT)
