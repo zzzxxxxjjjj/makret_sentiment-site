@@ -149,6 +149,7 @@ if __name__ == '__main__':
     install()
     try:main()
     except Exception as exc:
-        print("AKShare industry flow failed: "+type(exc).__name__+"; switching to iFind",flush=True)
+        print("AKShare industry flow failed: "+type(exc).__name__,flush=True)
+        print("Baostock skipped: main-money net inflow is unsupported; turnover is not fund flow. Trying iFind last.",flush=True)
         ifind_fallback()
 
