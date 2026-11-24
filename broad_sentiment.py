@@ -608,19 +608,9 @@ def broad_market_medium_term_sentiment_snapshot():
         wind_all_rows = cloud_rows('equity', 'close')
         bond_fund_rows = cloud_rows('bond', 'close')
         financing_rows = []
-        # Append only matching CSI All Share close and rolling PE definitions.
-        latest=read_cloud('akshare-medium-inputs.json')
-        for sid, rows, field in (
-            ('csi-all-share-close',wind_all_rows,'close'),
-            ('csi-all-share-pe-rolling',pe_rows,'peTtm')):
-            incoming=next((s.get('points',[]) for s in latest.get('series',[]) if s.get('id')==sid),[])
-            merged={r['date']:r for r in rows}
-            last=max(merged,default=date.min)
-            for p in incoming:
-                dt=date.fromisoformat(p['date'])
-                if dt>last and numeric(p.get('value')) is not None and p['value']>0:
-                    merged[dt]={'date':dt,field:p['value']}
-            rows[:]=[merged[d] for d in sorted(merged)]
+        # cloud-market-inputs.json is extended only by the overlap-validated collector.
+        # Do not bypass its PE/dividend rejection with a raw public snapshot.
+
     else:
         from openpyxl import load_workbook
 
