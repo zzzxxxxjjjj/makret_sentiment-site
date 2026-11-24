@@ -54,34 +54,44 @@ def main():
   amounts={str(r["代码"]).zfill(6):float(r["成交额"]) for r in snapshot["rows"] if finite(r.get("成交额"))}
   results=[]
   for code,prefix,name,count in [("000016","sse50","上证50",50),("000300","hs300","沪深300",300),("000852","csi1000","中证1000",1000),("000688","star50","科创50",50)]:
-   f=resolve(ak,"index_stock_cons_csindex")(symbol=code)
-   save("recovery-members-"+prefix+".json",{"columns":list(f.columns),"rows":len(f),"sample":json.loads(f.head(2).to_json(orient="records",force_ascii=False,date_format="iso"))})
-   if "日期" not in f or set(pd.to_datetime(f["日期"]).dt.strftime("%Y-%m-%d"))!={target}:raise ValueError("Exact-date membership unavailable for "+code)
-   members=set(f["成分券代码"].astype(str).str.zfill(6))
-   if len(members)!=count:raise ValueError("Wrong membership count "+code+" "+str(len(members)))
-   missing=members-amounts.keys()
-   if missing:
-    import baostock as bs
-    socket.setdefaulttimeout(20)
-    login=bs.login()
-    if login.error_code!="0":raise ValueError("Baostock missing-amount login failed")
-    try:
-     for stock in sorted(missing):
-      security=("sh." if stock.startswith("6") else "sz.")+stock
-      query=bs.query_history_k_data_plus(security,"date,code,amount,tradestatus",start_date=target,end_date=target,adjustflag="3")
-      rows=[]
-      while query.error_code=="0" and query.next():rows.append(dict(zip(query.fields,query.get_row_data())))
-      if len(rows)==1 and rows[0]["date"]==target and finite(rows[0].get("amount")):
-       amounts[stock]=float(rows[0]["amount"])
-    finally:bs.logout()
-   if members-amounts.keys():raise ValueError("Missing constituent amounts "+code+" "+",".join(sorted(members-amounts.keys())))
-   buy=sum(values.get(c,0) for c in members)/1e8
-   amount=sum(amounts[c] for c in members)/1e8
-   if amount<=0:raise ValueError("Invalid denominator")
-   for suffix,label,val,unit in [("financing-buy","融资买入额",buy,"亿元"),("turnover-amount","成交额",amount,"亿元"),("financing-activity","融资买入额占比",buy/amount*100,"%")]:
-    out["series"].append({"id":prefix+"-"+suffix,"name":name+label,"unit":unit,"source":"AKShare沪深交易所融资明细（核对全市场总额）＋中证指数当日成分；iFind当日个股成交额","points":[{"date":target,"value":val}]})
-   results.append({"code":code,"buy":buy,"amount":amount})
-   save("public-index-inputs.json",out)
+   try:
+    f=resolve(ak,"index_stock_cons_csindex")(symbol=code)
+    save("recovery-members-"+prefix+".json",{"columns":list(f.columns),"rows":len(f),"sample":json.loads(f.head(2).to_json(orient="records",force_ascii=False,date_format="iso"))})
+    if "日期" not in f or set(pd.to_datetime(f["日期"]).dt.strftime("%Y-%m-%d"))!={target}:raise ValueError("Exact-date membership unavailable for "+code)
+    members=set(f["成分券代码"].astype(str).str.zfill(6))
+    if len(members)!=count:raise ValueError("Wrong membership count "+code+" "+str(len(members)))
+    missing=members-amounts.keys()
+    if missing:
+     import baostock as bs
+     socket.setdefaulttimeout(20)
+     login=bs.login()
+     if login.error_code!="0":raise ValueError("Baostock missing-amount login failed")
+     try:
+      for stock in sorted(missing):
+       security=("sh." if stock.startswith("6") else "sz.")+stock
+       query=bs.query_history_k_data_plus(security,"date,code,amount,tradestatus",start_date=target,end_date=target,adjustflag="3")
+       rows=[]
+       while query.error_code=="0" and query.next():rows.append(dict(zip(query.fields,query.get_row_data())))
+       if len(rows)==1 and rows[0]["date"]==target and finite(rows[0].get("amount")):
+        amounts[stock]=float(rows[0]["amount"])
+     finally:bs.logout()
+    for stock in sorted(members-amounts.keys()):
+     try:
+      frame=resolve(ak,"stock_zh_a_hist")(symbol=stock,period="daily",start_date=stamp,end_date=stamp,adjust="")
+      rows=[r for r in frame.to_dict("records") if str(r.get("日期"))[:10]==target]
+      if len(rows)==1 and finite(rows[0].get("成交额")) and float(rows[0]["成交额"])>=0:amounts[stock]=float(rows[0]["成交额"])
+     except Exception:pass
+    if members-amounts.keys():raise ValueError("Missing constituent amounts "+code+" "+",".join(sorted(members-amounts.keys())))
+    buy=sum(values.get(c,0) for c in members)/1e8
+    amount=sum(amounts[c] for c in members)/1e8
+    if amount<=0:raise ValueError("Invalid denominator")
+    for suffix,label,val,unit in [("financing-buy","融资买入额",buy,"亿元"),("turnover-amount","成交额",amount,"亿元"),("financing-activity","融资买入额占比",buy/amount*100,"%")]:
+     out["series"].append({"id":prefix+"-"+suffix,"name":name+label,"unit":unit,"source":"AKShare沪深交易所融资明细（核对全市场总额）＋中证指数当日成分；iFind当日个股成交额","points":[{"date":target,"value":val}]})
+    results.append({"code":code,"buy":buy,"amount":amount})
+    save("public-index-inputs.json",out)
+   except Exception as e:
+    results.append({"code":code,"error":str(e)[:300]})
+    continue
   save("public-index-inputs.json",out);return results
  attempt("index-financing",indexes)
  def bao():
