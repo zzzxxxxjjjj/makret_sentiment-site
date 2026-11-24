@@ -49,4 +49,7 @@ def main():
     tmp.write_text(json.dumps(output,ensure_ascii=False,indent=2),encoding="utf-8")
     tmp.replace(path)
     print("ETF option PCR updated through",target)
-if __name__=="__main__":main()
+if __name__=="__main__":
+    from akshare_request_policy import install
+    install()
+    main()
