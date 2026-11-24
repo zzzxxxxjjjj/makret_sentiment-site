@@ -21,6 +21,9 @@ class PacedRequests:
     def request(self, session, method, url, _transport=None, **kwargs):
         host=urlsplit(str(url)).hostname or "unknown"
         method=method.upper()
+        eastmoney=host=="eastmoney.com" or host.endswith(".eastmoney.com")
+        interval=max(self.interval,8.) if eastmoney else self.interval
+        retry_delay=30. if eastmoney else 15.
         # Hold through the response: worker pools cannot burst concurrent pages.
         with self.lock:
             for attempt in range(2 if method=="GET" else 1):
@@ -33,13 +36,13 @@ class PacedRequests:
                     self.calls+=1
                     response=(_transport or self.transport)(session,method,url,**kwargs)
                 except (requests.exceptions.Timeout,requests.exceptions.ConnectionError):
-                    self.next_request=self.clock()+self.interval+self.jitter()
+                    self.next_request=self.clock()+interval+self.jitter()
                     if method!="GET" or attempt:raise
                     self.retries+=1
-                    self.next_request=self.clock()+15+self.jitter()
+                    self.next_request=self.clock()+retry_delay+self.jitter()
                     print("AKShare transient network failure; delayed retry: "+host,flush=True)
                     continue
-                self.next_request=self.clock()+self.interval+self.jitter()
+                self.next_request=self.clock()+interval+self.jitter()
                 status=response.status_code
                 if status==429:
                     try:cooldown=max(300,min(float(response.headers.get("Retry-After",300)),3600))
@@ -51,10 +54,10 @@ class PacedRequests:
                     if attempt==0:
                         response.close()
                         self.retries+=1
-                        self.next_request=self.clock()+15+self.jitter()
+                        self.next_request=self.clock()+retry_delay+self.jitter()
                         print("AKShare HTTP "+str(status)+"; delayed retry: "+host,flush=True)
                         continue
-                    self.blocked[host]=self.clock()+60
+                    self.blocked[host]=self.clock()+300
                 return response
 
 def install():
@@ -77,4 +80,4 @@ def install():
             return limiter.request(session,method,url,_transport=original_curl,**kwargs)
         paced_curl._akshare_paced=True
         curl_requests.Session.request=paced_curl
-    print("AKShare request policy: serial requests, 4-4.5s gap, one delayed GET retry",flush=True)
+    print("AKShare request policy: serial requests, 4-4.5s gap (Eastmoney 8-8.5s), one delayed GET retry",flush=True)
