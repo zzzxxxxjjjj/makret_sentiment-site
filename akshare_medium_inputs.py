@@ -1,9 +1,7 @@
-"""Collect verified public inputs for a future CSI All Share medium-term model.
+"""Collect standalone public medium inputs; source compatibility is audited separately.
 
-This snapshot is deliberately separate from the published medium-term score:
-CSI dividend history currently covers only about 20 days, and AKShare has no
-verified daily series for the Wind partial-debt mixed fund index (885003.WI).
-Neither series may be silently replaced with a differently defined fund index.
+The active cloud model has retained history. PE and dividend inputs must pass
+overlap checks before extending that history; do not silently splice definitions.
 """
 from __future__ import annotations
 
@@ -118,8 +116,9 @@ def fetch(as_of, output=DEFAULT_OUTPUT, *, ak=None):
         "indexCode": CSI_ALL_SHARE,
         "readyForPublishedMediumScore": False,
         "pending": [
-            "未核实 AKShare 中真正的偏债混合型基金指数日线，保留原 885003.WI，不以其他基金类别冒充",
-            "中证全指股息率公开接口仅返回近期数据，尚不足以重算原三年历史标准化",
+            "当前云端模型PE历史与本接口滚动PE重叠值不一致，见medium-input-audit.json；禁止直接接续ERP",
+            "本接口股息率与当前模型历史不一致；股债收益差及三年通道暂保留最后兼容日期",
+            "完整中期合成仍需沪深北全A广度；BaoStock沪深股票清单不包含北交所",
         ],
         "series": series,
     }
