@@ -1,5 +1,8 @@
-name: Refresh free Eastmoney ETF turnover
+name: Refresh ETF quotes with Baostock fallback
 on:
+  push:
+    paths:
+      - '.github/workflows/etf-market.yml'
   workflow_dispatch:
 
 permissions:
@@ -11,12 +14,15 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    env:
+      IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install akshare
+      - run: python -m pip install -r requirements-daily.txt
+      - run: python -m unittest discover -s tests -p 'test_akshare_*.py'
       - run: python etf_market_refresh.py
       - run: python etf_net_subscription_refresh.py
       - name: Publish ETF turnover & net-subscription snapshot
@@ -25,6 +31,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -- etf-market.json etf-shares-history.json etf-net-subscription.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Update Eastmoney ETF turnover & net-subscription snapshot'
-          git pull --rebase origin main
+          git commit -m 'Update ETF quotes with validated Baostock fallback'
+          git -c rebase.autoStash=true pull --rebase origin main
           git push origin HEAD:main
