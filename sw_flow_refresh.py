@@ -3,6 +3,7 @@
 Snapshots are actual collection times, not fabricated minute history.
 """
 import json
+import os
 from pathlib import Path
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -43,8 +44,9 @@ def main():
         return original(self, method, url, **kwargs)
     requests.sessions.Session.request = bounded
     now = datetime.now(ZoneInfo('Asia/Shanghai'))
-    calendar = ak.tool_trade_date_hist_sina()['trade_date'].astype(str).tolist()
-    day = max(d for d in calendar if d <= now.date().isoformat())
+    calendar = (getattr(ak,'calendar_trade_date_hist_sina',None) or ak.tool_trade_date_hist_sina)()['trade_date'].astype(str).tolist()
+    from completed_session import completed_target
+    day = os.environ.get('DAILY_TARGET_DATE') or completed_target(now,calendar)
     path = ROOT/'sw-industry-flow.json'
     old = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
     membership_path = ROOT/'sw-flow-members.json'
