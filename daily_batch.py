@@ -4,6 +4,8 @@ import json
 import os
 import subprocess
 import sys
+import time
+import random
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -24,6 +26,8 @@ def run_stage(name, command, target, outputs=()):
     marker = STATE / target / (name + ".json")
     previous = read(marker)
     code = hashlib.sha256("".join(str(digest(p)) for p in ([ROOT/command[0],ROOT/"requirements-daily.txt"] if name not in {"build","page-rebuild"} else sorted(ROOT.glob("*.py")))).encode()).hexdigest()
+    if command[0] in {"akshare_public_refresh.py","akshare_medium_inputs.py","akshare_margin_risk.py","akshare_options_refresh.py","etf_market_refresh.py","etf_weekly_relative_flow.py","sw_flow_refresh.py","sw_rotation_refresh.py"}:
+        code=hashlib.sha256((code+str(digest(ROOT/"akshare_request_policy.py"))).encode()).hexdigest()
     hashes = {p: digest(ROOT / p) for p in outputs}
     if name in {"build", "page-rebuild"}:
         hashes["inputs"] = hashlib.sha256("".join(str(digest(p)) for p in sorted(ROOT.glob("*.json")) if p.name != "daily-update-status.json").encode()).hexdigest()
@@ -42,6 +46,9 @@ def run_stage(name, command, target, outputs=()):
         write(marker, dict(ok=ok, attempts=attempts, code=code,
                           outputs={**{p: digest(ROOT / p) for p in outputs}, **({"inputs": hashes["inputs"]} if name in {"build", "page-rebuild"} else {})}))
         if ok: return True
+        if attempts<2:
+            print("Cooling down before stage retry: "+name,flush=True)
+            time.sleep(30+random.uniform(0,5))
     return False
 def trading_day(now):
     import akshare as ak
