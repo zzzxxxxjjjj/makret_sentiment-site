@@ -1,0 +1,62 @@
+name: Publish recovered cloud dashboard
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/publish-recovered-dashboard.yml'
+permissions:
+  contents: write
+concurrency:
+  group: publish-recovered-dashboard
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONUNBUFFERED: '1'
+      TZ: Asia/Shanghai
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-daily.txt
+      - name: Check modified Python and JavaScript
+        run: |
+          python -m py_compile public_recovery.py index_public_recovery.py etf_share_public_recovery.py broad_sentiment.py rebuild_saved_page.py data_freshness.py akshare_public_refresh.py daily_batch.py
+          node --check industry-sentiment.js
+          node --check industry-flow-trend.js
+          python -m unittest discover -s tests -p 'test_akshare_*.py'
+      - name: Refresh only matched medium inputs
+        run: python public_recovery.py --medium-only
+      - name: Attempt exact-date ETF share recovery
+        id: shares
+        continue-on-error: true
+        run: python etf_share_public_recovery.py
+      - name: Rebuild and validate active page
+        run: |
+          python rebuild_saved_page.py
+          python build_static_site.py
+          python - <<'PY'
+          import json,pathlib
+          html=pathlib.Path('dist/industry-sentiment.html').read_text()
+          assert 'CITICS LEVEL-2' not in html
+          assert 'valuationChart' not in html
+          assert '中信一级行业情绪' not in html
+          data=json.loads(pathlib.Path('dist/sw-industry-flow.json').read_text())
+          assert data['asOf']=='2026-11-23'
+          print('SW industry page and source dates validated')
+          PY
+      - name: Publish recovered data and actual remaining gaps
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for f in cloud-market-inputs.json medium-input-audit.json medium-recovery-status.json etf-share-recovery-status.json etf-shares-history.json etf-net-subscription.json broad-sentiment-page-cache.json data-freshness.json; do
+            if [ -f "$f" ]; then git add -- "$f"; fi
+          done
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Publish recovered indicators and actual active dashboard gaps'
+          git -c rebase.autoStash=true pull --rebase origin main
+          git push origin HEAD:main
