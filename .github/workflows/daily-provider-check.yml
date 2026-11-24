@@ -6,6 +6,8 @@ on:
       - '.github/workflows/daily-provider-check.yml'
       - '.github/workflows/daily-data-update.yml'
       - 'daily_batch.py'
+      - 'akshare_request_policy.py'
+      - 'tests/test_akshare_rate_policy.py'
       - 'akshare_options_refresh.py'
       - 'market_data_sync.py'
       - 'broad_sentiment.py'
