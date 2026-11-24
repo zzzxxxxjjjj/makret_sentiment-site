@@ -189,7 +189,11 @@ def collect(ak, target):
 
     buys={p["date"]:p["value"] for p in series.get("alla-financing-buy",{}).get("points",[])}
     amounts={p["date"]:p["value"] for p in series.get("alla-turnover-amount",{}).get("points",[])}
-    activity=merged("financing-activity",[{"date":d,"value":buys[d]/amounts[d]*100} for d in sorted(buys.keys()&amounts.keys()) if amounts[d]>0])
+    baseline=read("rqdata-broad-sentiment.json")
+    prior=next((s.get("points",[]) for s in baseline.get("series",[]) if s["id"]=="financing-activity"),[])
+    activity={p["date"]:p for p in prior+series.get("financing-activity",{}).get("points",[])}
+    activity.update({d:{"date":d,"value":buys[d]/amounts[d]*100} for d in sorted(buys.keys()&amounts.keys()) if amounts[d]>0})
+    activity=[activity[d] for d in sorted(activity)]
     if activity:put("financing-activity","全A融资买入额占比","%",activity,"交易所融资买入额 / AKShare优先、iFind兜底全A成交额；历史保留")
 
     output = dict(targetDate=target, generatedAt=datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(),
@@ -214,7 +218,7 @@ def apply_public_inputs(payload, directory):
     for card in payload.get("cards", []):
         if card.get("id") in {"market-turnover", "top5-concentration"}:
             item = series.get(card["id"], {})
-            if item.get("source", "").startswith("AKShare") and item.get("points"):
+            if item.get("source", "").startswith(("AKShare","iFind")) and item.get("points"):
                 history = [p["value"] for p in item["points"][-250:]]
                 last = item["points"][-1]
                 card.update(value=last["value"], asOf=last["date"], source=item["source"],
