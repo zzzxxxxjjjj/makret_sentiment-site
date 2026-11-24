@@ -26,17 +26,19 @@ def main():
    records=[];total=None
    for page in range(1,11):
     params["pageHelp.pageNo"]=str(page)
+    params["pageHelp.beginPage"]=str(page)
+    params["pageHelp.endPage"]=str(page)
     response=requests.get("https://query.sse.com.cn/marketdata/tradedata/queryMargin.do",params=params,headers={"Referer":"https://www.sse.com.cn/","User-Agent":"Mozilla/5.0"},timeout=30)
     response.raise_for_status();data=response.json();rows=data.get("result") or []
     if page==1:
      help=data.get("pageHelp") or {};total=int(help.get("total") or help.get("totalCount") or 0)
-     save("recovery-sse-pagination.json",{"pageHelp":help,"keys":list(rows[0]) if rows else [],"sample":rows[:1]})
+     save("recovery-sse-pagination.json",{"pageHelp":{k:v for k,v in help.items() if k!="data"},"keys":list(rows[0]) if rows else [],"sample":rows[:1]})
     if not rows:break
     records.extend(rows)
     if total and len(records)>=total:break
    frame=pd.DataFrame(records)
    if frame.shape[1]!=13:raise ValueError("Unknown SSE pagination schema")
-   frame.columns=["_0","信用交易日期","_2","_3","_4","_5","_6","_7","融资买入额","_9","_10","_11","标的证券代码"]
+   frame=frame.rename(columns={"opDate":"信用交易日期","rzmre":"融资买入额","stockCode":"标的证券代码"})
    frame=frame.drop_duplicates(["信用交易日期","标的证券代码"])
    frame["融资买入额"]=pd.to_numeric(frame["融资买入额"],errors="raise")
    sh=frame[frame["信用交易日期"].astype(str)==stamp]
