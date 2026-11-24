@@ -1,4 +1,6 @@
 import unittest
+import tempfile
+from pathlib import Path
 from unittest.mock import Mock
 import requests
 from akshare_request_policy import PacedRequests
@@ -17,6 +19,16 @@ class PolicyTests(unittest.TestCase):
         r=Mock(status_code=status,headers={})
         if status==429:r.raise_for_status.side_effect=requests.HTTPError("429")
         return r
+    def test_cooldown_survives_collector_restart(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/"cooldown.json"
+            first=PacedRequests(Mock(),state_path=path)
+            first.block("host.test",300)
+            transport=Mock()
+            restarted=PacedRequests(transport,state_path=path)
+            with self.assertRaises(requests.exceptions.RetryError):
+                restarted.request(None,"GET","https://host.test")
+            transport.assert_not_called()
     def test_eastmoney_uses_slower_gap(self):
         c,t,p=self.make([self.response(200),self.response(200)])
         for _ in range(2):p.request(None,"GET","https://push2delay.eastmoney.com")
