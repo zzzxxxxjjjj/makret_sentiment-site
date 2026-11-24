@@ -65,6 +65,7 @@ def main():
     os.environ["RQDATA_AS_OF"] = target
     os.environ["DEFER_DASHBOARD_BUILD"] = "1"
     tasks = [
+        ("options", ["akshare_options_refresh.py"], ["akshare-options-pcr.json"]),
         ("ifind-turnover", ["ifind_index_turnover_refresh.py"], ["ifind-index-turnover.json"]),
 
         ("public", ["akshare_public_refresh.py", "--sources-only"], ["akshare-public-inputs.json"]),
