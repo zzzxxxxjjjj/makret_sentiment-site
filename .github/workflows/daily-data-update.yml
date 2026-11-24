@@ -32,7 +32,12 @@ jobs:
           now = datetime.now(ZoneInfo('Asia/Shanghai'))
           p = Path('daily-update-status.json')
           state = json.loads(p.read_text()) if p.exists() else {}
-          skip = now.weekday() > 4 or now.hour < 18 or (state.get('targetDate') == now.date().isoformat() and state.get('ok') is True)
+          from completed_session import completed_target
+          calendar=json.loads(Path('data-freshness.json').read_text()).get('tradingCalendar',[])
+          target=completed_target(now,calendar)
+          skip=state.get('targetDate')==target and state.get('ok') is True
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('DAILY_TARGET_DATE='+target+'\n')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write('run=' + str(not skip).lower() + '\n')
           PY
