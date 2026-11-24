@@ -1,4 +1,5 @@
 name: Recover supported public indicators
+# Recovery pass 2: validated single-session LHB and recent valuation overlap.
 on:
   workflow_dispatch:
   push:
