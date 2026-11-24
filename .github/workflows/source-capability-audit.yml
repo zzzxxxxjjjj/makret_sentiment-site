@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -r requirements-daily.txt
-      - name: Probe historical source coverage without publication
+      - name: Probe exact-date iFind semantic coverage without publication
         env:
           IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
         run: python provider_fallback_probe.py
