@@ -289,4 +289,6 @@ def main():
 
 
 if __name__ == "__main__":
+    from akshare_request_policy import install
+    install()
     main()
