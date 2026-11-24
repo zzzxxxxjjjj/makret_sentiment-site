@@ -63,6 +63,12 @@ def apply_market_data_sync(payload, directory):
         options = json.loads((Path(directory) / "rqdata-options-pcr.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         options = {}
+    try:
+        fresh_options=json.loads((Path(directory)/"akshare-options-pcr.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        fresh_options={}
+    options["series"]=options.get("series",[])+fresh_options.get("series",[])
+    options["asOf"]=max(options.get("asOf",""),fresh_options.get("asOf",""))
     for incoming in options.get("series", []):
         sid = incoming.get("id", "")
         if not any(sid == f"pcr-{metric}-{key}" for key in PCR_KEYS for metric in ("oi", "amount", "volume")):
