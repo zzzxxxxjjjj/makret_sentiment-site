@@ -19,6 +19,27 @@ def main():
   sht=resolve(ak,"stock_margin_sse")(start_date=stamp,end_date=stamp)
   szt=resolve(ak,"stock_margin_szse")(date=stamp)
   sh=sh[sh["信用交易日期"].astype(str)==stamp]
+  # AKShare's one-page response can be capped by SSE. Follow real pagination.
+  if len(sht)==1 and abs(pd.to_numeric(sh["融资买入额"]).sum()-float(sht.iloc[0]["融资买入额"]))>100:
+   import requests
+   params={"isPagination":"true","tabType":"mxtype","detailsDate":stamp,"stockCode":"","beginDate":"","endDate":"","pageHelp.pageSize":"1000","pageHelp.pageNo":"1","pageHelp.beginPage":"1","pageHelp.cacheSize":"1","pageHelp.endPage":"1"}
+   records=[];total=None
+   for page in range(1,11):
+    params["pageHelp.pageNo"]=str(page)
+    response=requests.get("https://query.sse.com.cn/marketdata/tradedata/queryMargin.do",params=params,headers={"Referer":"https://www.sse.com.cn/","User-Agent":"Mozilla/5.0"},timeout=30)
+    response.raise_for_status();data=response.json();rows=data.get("result") or []
+    if page==1:
+     help=data.get("pageHelp") or {};total=int(help.get("total") or help.get("totalCount") or 0)
+     save("recovery-sse-pagination.json",{"pageHelp":help,"keys":list(rows[0]) if rows else [],"sample":rows[:1]})
+    if not rows:break
+    records.extend(rows)
+    if total and len(records)>=total:break
+   frame=pd.DataFrame(records)
+   if frame.shape[1]!=13:raise ValueError("Unknown SSE pagination schema")
+   frame.columns=["_0","信用交易日期","_2","_3","_4","_5","_6","_7","融资买入额","_9","_10","_11","标的证券代码"]
+   frame=frame.drop_duplicates(["信用交易日期","标的证券代码"])
+   frame["融资买入额"]=pd.to_numeric(frame["融资买入额"],errors="raise")
+   sh=frame[frame["信用交易日期"].astype(str)==stamp]
   if len(sht)!=1 or len(szt)!=1:raise ValueError("Missing exchange totals")
   for frame,total in [(sh,float(sht.iloc[0]["融资买入额"])),(sz,float(szt.iloc[0]["融资买入额"])*1e8)]:
    actual=pd.to_numeric(frame["融资买入额"],errors="raise").sum()
