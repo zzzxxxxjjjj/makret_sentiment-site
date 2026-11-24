@@ -77,6 +77,7 @@ def main():
         ("ifind-turnover", ["ifind_index_turnover_refresh.py"], ["ifind-index-turnover.json"]),
 
         ("public", ["akshare_public_refresh.py", "--sources-only"], ["akshare-public-inputs.json"]),
+        ("index-financing", ["index_public_recovery.py", "--daily"], ["public-index-inputs.json", "index-recovery-status.json"]),
         ("public-flows", ["public_recovery.py", "--flows-only"], ["flows-recovery-status.json", "akshare-public-inputs.json"]),
         ("medium", ["akshare_medium_inputs.py", "--as-of", target], ["akshare-medium-inputs.json"]),
         ("medium-matching-inputs", ["public_recovery.py", "--medium-only"], ["medium-input-audit.json", "cloud-market-inputs.json"]),
