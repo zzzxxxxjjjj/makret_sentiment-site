@@ -81,7 +81,7 @@ def main():
         ("medium-matching-inputs", ["public_recovery.py", "--medium-only"], ["medium-input-audit.json", "cloud-market-inputs.json"]),
         ("margin", ["akshare_margin_risk.py"], ["akshare-margin-risk.json"]),
         ("etf", ["etf_market_refresh.py"], ["etf-market.json"]),
-        ("etf-shares", ["etf_net_subscription_refresh.py"], ["etf-net-subscription.json"]),
+        ("etf-shares", ["etf_share_public_recovery.py"], ["etf-net-subscription.json", "etf-shares-history.json"]),
         ("etf-weekly", ["etf_weekly_relative_flow.py"], ["etf-weekly-relative-flow.json"]),
         ("industry-flow", ["sw_flow_refresh.py"], ["sw-industry-flow.json"]),
         ("industry-rotation", ["sw_rotation_refresh.py"], ["akshare-sw-industry-rotation.json"]),
