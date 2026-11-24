@@ -67,15 +67,25 @@ if __name__ == '__main__':
     requests.sessions.Session.request = bounded
     path = ROOT / 'etf-market.json'
     target=os.environ.get('DAILY_TARGET_DATE')
+    if not target:
+        from completed_session import completed_target
+        from zoneinfo import ZoneInfo
+        calendar=json.loads((ROOT/"data-freshness.json").read_text(encoding="utf-8"))["tradingCalendar"]
+        target=completed_target(datetime.now(ZoneInfo("Asia/Shanghai")),calendar)
     try:
         value = build(ak.fund_etf_spot_em())
         if target and value['asOf']!=target:raise ValueError('AKShare ETF target date mismatch')
     except Exception as exc:
-        print('AKShare ETF failed: '+type(exc).__name__+'; switching to iFind',flush=True)
+        print('AKShare ETF failed: '+type(exc).__name__+'; switching to Baostock',flush=True)
         if not target:raise ValueError('Verified DAILY_TARGET_DATE required for fallback') from exc
-        from ifind_etf_fallback import collect
         previous=json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
-        value=collect(previous,target)
+        try:
+            from baostock_etf_fallback import collect
+            value=collect(previous,target)
+        except Exception as bao_error:
+            print("Baostock ETF failed: "+type(bao_error).__name__+"; switching to iFind",flush=True)
+            from ifind_etf_fallback import collect
+            value=collect(previous,target)
         value['fallbackReason']=type(exc).__name__
     if path.exists() and json.loads(path.read_text(encoding='utf-8')).get('asOf', '') > value['asOf']:
         raise ValueError('Refusing date rollback')
