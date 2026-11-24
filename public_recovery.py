@@ -40,7 +40,7 @@ def main():
  start=(pd.Timestamp(target)-timedelta(days=40)).strftime("%Y%m%d")
  end=target.replace("-","")
  # Fetch missing public inputs using existing validated exchange conversion.
- if "--medium-only" not in sys.argv: attempt("public-inputs",lambda: subprocess.run([sys.executable,"akshare_public_refresh.py","--sources-only"],timeout=240).returncode)
+ if "--medium-only" not in sys.argv: attempt("public-inputs",lambda: subprocess.run([sys.executable,"akshare_public_refresh.py","--sources-only"],timeout=240,check=True).returncode)
  public=read("akshare-public-inputs.json")
  series={s["id"]:s for s in public.get("series",[])}
  base=read("rqdata-broad-sentiment.json")
@@ -101,6 +101,9 @@ def main():
  def medium():
   cloud=read("cloud-market-inputs.json")
   if cloud.get("modelVersion")!="cloud-v2":raise ValueError("Unknown medium model")
+  # Remove only non-session equity observations introduced during this recovery.
+  for key in ("pe","equity","dividend","bond"):
+   cloud["inputs"][key]=[p for p in cloud["inputs"][key] if p["date"]<="2026-11-18" or datetime.fromisoformat(p["date"]).weekday()<5]
   evidence={}
   def append_checked(key,incoming):
    old=cloud["inputs"][key];prior={p["date"]:p["value"] for p in old}
@@ -110,7 +113,7 @@ def main():
    err=max(abs(a-b)/max(abs(a),1e-8) for a,b in pairs)
    evidence[key]={"overlap":len(pairs),"maxRelativeError":err}
    if err>.001:raise ValueError(key+": source definition differs in overlap "+str(err))
-   new=[p for p in incoming if p["date"]>old[-1]["date"] and p["date"]<=target]
+   new=[p for p in incoming if p["date"]>old[-1]["date"] and p["date"]<=target and (key=="yield" or datetime.fromisoformat(p["date"]).weekday()<5)]
    cloud["inputs"][key]=merge(old,new)
    save("cloud-market-inputs.json",cloud)
   latest=read("akshare-medium-inputs.json")
