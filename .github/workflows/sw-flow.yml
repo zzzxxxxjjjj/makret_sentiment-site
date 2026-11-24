@@ -1,5 +1,8 @@
 name: Collect SW first-level industry flow
 on:
+  push:
+    paths:
+      - '.github/workflows/sw-flow.yml'
   workflow_dispatch:
 
 permissions:
@@ -11,16 +14,20 @@ jobs:
   collect:
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    env:
+      IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+      TZ: Asia/Shanghai
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install akshare
+      - run: python -m pip install akshare baostock
       - run: |
           if [ "${{ github.event_name }}" = "schedule" ] && python -c 'import json; from datetime import datetime; from zoneinfo import ZoneInfo; from pathlib import Path; p=Path("sw-industry-flow.json"); now=datetime.now(ZoneInfo("Asia/Shanghai")); rows=json.loads(p.read_text(encoding="utf-8")).get("snapshots",[]) if p.exists() else []; raise SystemExit(not any(r["date"]==now.date().isoformat() and "15:30"<=r["time"]<="23:59" for r in rows))'; then
             echo "Closing snapshot already available"
           else
+            export DAILY_TARGET_DATE=$(python -c 'import json; from datetime import datetime; from zoneinfo import ZoneInfo; from completed_session import completed_target; print(completed_target(datetime.now(ZoneInfo("Asia/Shanghai")),json.load(open("data-freshness.json"))["tradingCalendar"]))')
             python sw_flow_refresh.py
           fi
       - name: Publish only SW industry flow and public membership cache
