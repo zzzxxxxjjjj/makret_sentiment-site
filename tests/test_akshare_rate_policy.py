@@ -17,6 +17,13 @@ class PolicyTests(unittest.TestCase):
         r=Mock(status_code=status,headers={})
         if status==429:r.raise_for_status.side_effect=requests.HTTPError("429")
         return r
+    def test_two_transports_share_one_gate(self):
+        c,t,p=self.make([self.response(200)])
+        other=Mock(return_value=self.response(200))
+        p.request(None,"GET","https://host.test")
+        p.request(None,"GET","https://other.test",_transport=other)
+        self.assertEqual(c.sleeps,[4.])
+        self.assertNotIn("_transport",other.call_args.kwargs)
     def test_pagination_requests_are_spaced(self):
         c,t,p=self.make([self.response(200)]*3)
         for _ in range(3):p.request(None,"GET","https://host.test/pages")
