@@ -1,5 +1,8 @@
 name: Audit lagging source capabilities
 on:
+  push:
+    paths:
+      - '.github/workflows/source-capability-audit.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,4 +19,4 @@ jobs:
       - name: Probe historical source coverage without publication
         env:
           IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
-        run: python source_capability_audit.py
+        run: python provider_fallback_probe.py
