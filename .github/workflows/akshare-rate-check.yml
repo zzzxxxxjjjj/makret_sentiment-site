@@ -1,9 +1,9 @@
 name: Verify paced AKShare collection
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '.github/workflows/akshare-rate-check.yml'
+concurrency:
+  group: akshare-rate-check
+  cancel-in-progress: false
 permissions:
   contents: read
 jobs:
