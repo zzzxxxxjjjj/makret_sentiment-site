@@ -1,5 +1,5 @@
 name: Validate and recover index financing
-# Validate all SSE pages with matching page windows.
+# Validate SSE pagination and SZSE summary rounding precision.
 on:
   workflow_dispatch:
   push:
