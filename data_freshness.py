@@ -24,30 +24,20 @@ def build_report(target, directory=BASE_DIR, errors=None, calendar=None):
         entries.append({'id':key,'label':label,'asOf':as_of,'frequency':frequency,
                         'current':bool(as_of and as_of>=target) if frequency=='daily' else None,'source':source})
     # Audit displayed daily series, excluding superseded Excel aliases.
-    obsolete={'breadth-sentiment','sentiment-cycle','institutional-net-buy','sh-composite-close-excel','windall-close-excel'}
+    obsolete={'breadth-sentiment','sentiment-cycle','institutional-net-buy','sh-composite-close-excel','windall-close-excel','new-equity-fund-shares','land-connect-turnover-ma20'}
     for series in page.get('series',[]):
         if not isinstance(series,dict) or series.get('id') in obsolete:
             continue
         sid=series.get('id','')
         add(sid,series.get('name',sid),last_date(series.get('points',[])),NON_DAILY.get(sid,'daily'),series.get('source',''))
     for card in page.get('cards',[]):
-        if not isinstance(card,dict) or card.get('id') in {'breadth-sentiment','sentiment-cycle'}:continue
+        if not isinstance(card,dict) or card.get('id') in {'breadth-sentiment','sentiment-cycle','new-equity-fund-shares'}:continue
         sid=card.get('id','')
         add('card-'+sid,card.get('title',sid)+'（概览）',card.get('asOf'),NON_DAILY.get(sid,'daily'),card.get('source',''))
     cycle=page.get('cycleComparison',{})
     add('cycle-composite','短期情绪合成',last_date(cycle.get('points',[]),'sentiment'))
-    industry=read(directory,'rqdata-industry-sentiment.json')
-    rows=industry.get('industries',[])
-    for metric,label in [('netFlow','一级行业主力资金'),('marginActivity','一级行业杠杆资金'),('amountShare','一级行业成交额占比')]:
-        dates=[last_date(row.get('series',[]),metric) for row in rows if row.get('name')!='综合']
-        # Slowest industry determines whether the entire module is ready.
-        as_of=min(dates) if dates and all(dates) else None
-        add(metric,label,as_of,source='RQData')
-    valuation_dates=[row.get('valuationAsOf') for row in rows if row.get('name')!='综合']
-    add('industry-pb-roe','行业PB-ROE分位',min(valuation_dates) if valuation_dates and all(valuation_dates) else None,source='RQData')
-    children=[child for row in rows for child in row.get('children',[])]
-    child_dates=[child.get('asOf') for child in children]
-    add('second-industry-flow','二级行业资金流向',min(child_dates) if child_dates and all(child_dates) else None,source='RQData')
+    industry=read(directory,'sw-industry-flow.json')
+    add('sw-industry-flow','申万一级行业主力资金',industry.get('asOf'),source=industry.get('source',''))
     rotation=read(directory,'akshare-sw-industry-rotation.json')
     if not rotation.get('points'):
         rotation=read(directory,'rqdata-industry-rotation.json')
