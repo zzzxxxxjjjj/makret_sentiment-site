@@ -6,6 +6,10 @@ on:
       - '.github/workflows/daily-provider-check.yml'
       - '.github/workflows/daily-data-update.yml'
       - 'daily_batch.py'
+      - 'akshare_options_refresh.py'
+      - 'market_data_sync.py'
+      - 'broad_sentiment.py'
+      - 'tests/test_akshare_options.py'
 permissions:
   contents: read
 jobs:
