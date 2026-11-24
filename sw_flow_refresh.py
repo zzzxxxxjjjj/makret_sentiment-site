@@ -124,4 +124,29 @@ def main():
     print('SW industry snapshot '+day+' industries='+str(len(rows)))
 
 
-if __name__ == '__main__': main()
+def ifind_fallback():
+    from ifind_stock_fallback import collect
+    import pandas as pd
+    day=os.environ["DAILY_TARGET_DATE"]
+    cache=json.loads((ROOT/"sw-flow-members.json").read_text(encoding="utf-8"))
+    if cache.get("date")!=day:raise ValueError("Exact-date SW constituents unavailable for fallback")
+    rows=aggregate(cache["members"],pd.DataFrame(collect(day)))
+    path=ROOT/"sw-industry-flow.json"
+    old=json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    snapshots=old.get("snapshots",[])
+    snapshots=[p for p in snapshots if not (p["date"]==day and p["time"]=="收盘快照")]
+    snapshots.append(dict(date=day,time="收盘快照",rows=rows,source="iFind问财主力资金流向"))
+    value=dict(available=True,asOf=day,collectedAt=datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(),
+        classification="申万2021一级行业（剔除综合）",source="iFind问财精确日期个股主力资金流向＋申万成分股",
+        snapshots=snapshots,note="AKShare故障后按同花顺主力资金口径汇总；保留原东方财富历史，各来源主力划分可能有差异。覆盖率至少90%，缺失不填零；不构造分钟数据。")
+    tmp=path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(value,ensure_ascii=False,allow_nan=False),encoding="utf-8")
+    tmp.replace(path)
+    print("iFind SW flow fallback updated "+day+" industries="+str(len(rows)),flush=True)
+
+if __name__ == '__main__':
+    try:main()
+    except Exception as exc:
+        print("AKShare industry flow failed: "+type(exc).__name__+"; switching to iFind",flush=True)
+        ifind_fallback()
+
