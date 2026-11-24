@@ -213,6 +213,10 @@ def apply_public_inputs(payload, directory):
     if not path.exists():
         return payload
     public = json.loads(path.read_text(encoding="utf-8"))
+    extra_path = Path(directory) / "public-index-inputs.json"
+    if extra_path.exists():
+        extras = json.loads(extra_path.read_text(encoding="utf-8"))
+        public["series"] = public.get("series", []) + extras.get("series", [])
     series = {item["id"]: item for item in payload.get("series", [])}
     for incoming in public.get("series", []):
         sid = incoming["id"]
@@ -220,7 +224,9 @@ def apply_public_inputs(payload, directory):
         latest = incoming["points"][-1]["date"] if incoming.get("points") else ""
         old_date = max((p["date"] for p in old.get("points", [])), default="")
         if latest and latest >= old_date:
-            series[sid] = incoming
+            observations = {p["date"]: p for p in old.get("points", [])}
+            observations.update({p["date"]: p for p in incoming["points"]})
+            series[sid] = {**incoming, "points": [observations[d] for d in sorted(observations)]}
     for card in payload.get("cards", []):
         if card.get("id") in {"market-turnover", "top5-concentration"}:
             item = series.get(card["id"], {})
