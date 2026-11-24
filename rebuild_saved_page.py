@@ -60,6 +60,11 @@ def main():
     broad.save_page_cache(payload)
     state = read(BASE, "daily-update-status.json")
     failures = state.get("failedStages", []) if state.get("targetDate") == target else []
+    # Independent successful collectors supersede an older batch-stage error.
+    for stage, filename in (("etf", "etf-market.json"), ("industry-flow", "sw-industry-flow.json")):
+        current = read(BASE, filename)
+        if current.get("available") and current.get("asOf") == target:
+            failures = [name for name in failures if name != stage]
     errors = [{"source":name, "error":"Daily collection stage failed; actual older dates retained"} for name in failures]
     public = read(BASE, "akshare-public-inputs.json")
     errors.extend(public.get("errors", []))
