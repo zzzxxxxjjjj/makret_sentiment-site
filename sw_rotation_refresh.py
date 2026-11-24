@@ -120,7 +120,7 @@ def main():
         cache_series(m['code'],series,provenance[m['code']])
         print('iFind verified '+m['code']+' '+str(series.index[-1])[:10],flush=True)
         return m['code'],series
-    with ThreadPoolExecutor(max_workers=2) as pool:prices=pd.DataFrame(dict(pool.map(one,members)))
+    with ThreadPoolExecutor(max_workers=1) as pool:prices=pd.DataFrame(dict(pool.map(one,members)))
     start=max(str(prices.index.min().date()),str(limit.replace(year=limit.year-10)))
     raw=(getattr(ak,'index_hist_csindex',None) or ak.stock_zh_index_hist_csindex)(symbol='000985',start_date=start.replace('-',''),end_date=target.replace('-',''))
     benchmark=pd.Series(pd.to_numeric(raw['收盘'],errors='coerce').to_numpy(),index=pd.to_datetime(raw['日期'])).sort_index()
@@ -142,4 +142,7 @@ def main():
     print(json.dumps(dict(asOf=target,first=points[0]['date'],points=len(points),industries=30)))
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    from akshare_request_policy import install
+    install()
+    main()
