@@ -10,6 +10,9 @@ on:
       - 'market_data_sync.py'
       - 'broad_sentiment.py'
       - 'tests/test_akshare_options.py'
+      - 'cloud_display.py'
+      - 'sw_flow_refresh.py'
+      - 'completed_session.py'
 permissions:
   contents: read
 jobs:
@@ -28,7 +31,7 @@ jobs:
           import ast, hashlib, importlib.util, json, pathlib, yaml
           assert importlib.util.find_spec('rqdatac') is None
           before={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in pathlib.Path('.').rglob('*') if p.suffix.lower() in ('.json','.csv','.xlsx','.xlsm') and '.git' not in p.parts}
-          for name in ('daily_batch.py','broad_sentiment.py'): ast.parse(pathlib.Path(name).read_text(encoding='utf-8-sig'))
+          for name in ('daily_batch.py','broad_sentiment.py','completed_session.py','akshare_options_refresh.py','market_data_sync.py','cloud_display.py','sw_flow_refresh.py'): ast.parse(pathlib.Path(name).read_text(encoding='utf-8-sig'))
           for p in pathlib.Path('.github/workflows').glob('*.yml'): yaml.safe_load(p.read_text())
           import daily_batch as d
           from unittest.mock import patch
