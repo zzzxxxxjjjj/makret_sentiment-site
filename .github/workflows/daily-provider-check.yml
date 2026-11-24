@@ -34,7 +34,7 @@ jobs:
           def stage(name,command,target,outputs=()):
               commands.append(command)
               return True
-          with patch.object(d,'datetime') as clock, patch.object(d,'trading_day',return_value=True), patch.object(d,'run_stage',side_effect=stage), patch.object(d,'write'), patch('data_freshness.write_report'), patch.dict('os.environ',{'RQDATAC_CONF':'must-not-be-used','AIDO_API_KEY':''}):
+          with patch.object(d,'datetime') as clock, patch.object(d,'trading_day',return_value=True), patch.object(d,'run_stage',side_effect=stage), patch.object(d,'write'), patch('data_freshness.write_report'), patch.dict('os.environ',{'RQDATAC_CONF':'must-not-be-used','AIDO_API_KEY':'','DAILY_TARGET_DATE':'2026-11-23'}):
               clock.now.return_value=datetime(2026,11,23,19,tzinfo=ZoneInfo('Asia/Shanghai'))
               d.main()
           assert ['akshare_public_refresh.py','--sources-only'] in commands
@@ -47,4 +47,5 @@ jobs:
           print('Independent tasks and preserved historical data verified without RQData SDK')
           PY
       - run: python -m unittest discover -s tests -p 'test_akshare_*.py'
+      - run: python -m unittest discover -s tests -p 'test_completed_session.py'
       - run: python build_static_site.py
