@@ -1,0 +1,12 @@
+{
+  "159528": {
+    "status": "suspended-for-liquidation",
+    "inactiveFrom": "2026-11-19",
+    "liquidationFrom": "2026-11-20",
+    "reason": "基金管理人公告确认停牌、不再复牌并进入清算；历史交易数据保留，不构造后续行情或份额。",
+    "sources": [
+      "https://static.cninfo.com.cn/finalpage/2026-11-17/1225673171.PDF",
+      "https://www.cfi.net.cn/p20261119001246.html"
+    ]
+  }
+}
