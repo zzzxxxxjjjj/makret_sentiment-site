@@ -1,4 +1,5 @@
 name: Publish recovered cloud dashboard
+# Validate source compatibility and incremental skip path.
 on:
   workflow_dispatch:
   push:
@@ -28,6 +29,8 @@ jobs:
           node --check industry-sentiment.js
           node --check industry-flow-trend.js
           python -m unittest discover -s tests -p 'test_akshare_*.py'
+      - name: Validate incremental flow skip path
+        run: python public_recovery.py --flows-only
       - name: Refresh only matched medium inputs
         run: python public_recovery.py --medium-only
       - name: Attempt exact-date ETF share recovery
@@ -46,14 +49,18 @@ jobs:
           assert '中信一级行业情绪' not in html
           data=json.loads(pathlib.Path('dist/sw-industry-flow.json').read_text())
           assert data['asOf']=='2026-11-23'
-          print('SW industry page and source dates validated')
+          page=json.loads(pathlib.Path('dist/broad-sentiment.json').read_text())
+          cloud=json.loads(pathlib.Path('cloud-market-inputs.json').read_text())
+          erp=next(s for s in page['series'] if s['id']=='medium-erp')
+          assert erp['points'][-1]['date'] <= cloud['inputs']['pe'][-1]['date']
+          print('SW page and medium source compatibility validated')
           PY
       - name: Publish recovered data and actual remaining gaps
         if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for f in cloud-market-inputs.json medium-input-audit.json medium-recovery-status.json etf-share-recovery-status.json etf-shares-history.json etf-net-subscription.json broad-sentiment-page-cache.json data-freshness.json; do
+          for f in flows-recovery-status.json lhb-daily-cache.json cloud-market-inputs.json medium-input-audit.json medium-recovery-status.json etf-share-recovery-status.json etf-shares-history.json etf-net-subscription.json broad-sentiment-page-cache.json data-freshness.json; do
             if [ -f "$f" ]; then git add -- "$f"; fi
           done
           if git diff --cached --quiet; then exit 0; fi
