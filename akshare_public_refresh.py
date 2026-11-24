@@ -118,9 +118,17 @@ def collect(ak, target):
     # The public spot feed has no reliable historical-date selector. Only use
     # it after the close of today's confirmed trading session.
     now = datetime.now(ZoneInfo("Asia/Shanghai"))
-    if target == now.date().isoformat() and now.hour >= 18:
+    if True:
         try:
-            spot = ak.stock_zh_a_spot_em()
+            spot_source="AKShare / 东方财富收盘快照"
+            try:
+                if target!=now.date().isoformat() or now.hour<18:raise ValueError("Historical AKShare spot unsupported")
+                spot = ak.stock_zh_a_spot_em()
+            except Exception as exc:
+                print("AKShare closing snapshot unavailable; switching to iFind: "+type(exc).__name__,flush=True)
+                from ifind_stock_fallback import collect as ifind_snapshot
+                spot=pd.DataFrame(ifind_snapshot(target))
+                spot_source="iFind问财 / 精确日期A股快照"
             codes = spot["代码"].astype(str).str.zfill(6)
             spot = spot[codes.str.match(r"^(00|30|60|68|43|83|87|88|92)")]
             amount = pd.to_numeric(spot["成交额"], errors="coerce")
@@ -132,17 +140,18 @@ def collect(ak, target):
             turnover = pd.to_numeric(valid["换手率"])
             count = math.ceil(len(valid) * .05)
             metrics = [
-                ("market-turnover", "全A等权日换手率", float(turnover.mean())),
-                ("top5-concentration", "成交额前5%个股占比", float(amount.nlargest(count).sum()/amount.sum()*100)),
+                ("market-turnover", "全A等权日换手率", "%", float(turnover.mean())),
+                ("top5-concentration", "成交额前5%个股占比", "%", float(amount.nlargest(count).sum()/amount.sum()*100)),
+                ("alla-turnover-amount","全A成交额","亿元",float(amount.sum()/1e8)),
             ]
             baseline = read("rqdata-broad-sentiment.json")
-            for sid, name, value in metrics:
+            for sid, name, unit, value in metrics:
                 old = next((s.get("points", []) for s in baseline.get("series", []) if s["id"] == sid), [])
                 existing = series.get(sid, {}).get("points", [])
                 merged = {p["date"]: p for p in old + existing}
                 merged[target] = {"date": target, "value": value}
-                put(sid, name, "%", [merged[d] for d in sorted(merged)],
-                    "AKShare / 东方财富收盘快照，沪深北A股有成交样本；早期历史保留原数据")
+                put(sid, name, unit, [merged[d] for d in sorted(merged)],
+                    spot_source+"；沪深北A股有成交样本；早期历史保留原数据")
         except Exception as exc:
             errors.append({"source": "all-share-closing-snapshot", "error": str(exc)[:240]})
 
@@ -177,6 +186,11 @@ def collect(ak, target):
                 "AKShare / 沪深交易所融资汇总，人民币亿元；早期历史保留原数据")
     except Exception as exc:
         errors.append({"source": "financing", "error": str(exc)[:240]})
+
+    buys={p["date"]:p["value"] for p in series.get("alla-financing-buy",{}).get("points",[])}
+    amounts={p["date"]:p["value"] for p in series.get("alla-turnover-amount",{}).get("points",[])}
+    activity=merged("financing-activity",[{"date":d,"value":buys[d]/amounts[d]*100} for d in sorted(buys.keys()&amounts.keys()) if amounts[d]>0])
+    if activity:put("financing-activity","全A融资买入额占比","%",activity,"交易所融资买入额 / AKShare优先、iFind兜底全A成交额；历史保留")
 
     output = dict(targetDate=target, generatedAt=datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(),
                   series=list(series.values()), errors=errors)
