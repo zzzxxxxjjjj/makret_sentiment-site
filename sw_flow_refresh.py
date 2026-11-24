@@ -72,7 +72,7 @@ def main():
             column = next((c for c in frame if '代码' in str(c)), None)
             if frame.empty or column is None: raise ValueError('Missing SW constituents: '+code) from last
             return dict(code=code, name=str(r['行业名称']), stocks=[str(c).split('.')[0].zfill(6) for c in frame[column]])
-        with ThreadPoolExecutor(max_workers=4) as pool:
+        with ThreadPoolExecutor(max_workers=1) as pool:
             members = list(pool.map(one, listing.to_dict('records')))
         # Retain validated public classification for future retries even if the
         # separate stock-flow service is unavailable during this run.
@@ -105,7 +105,7 @@ def main():
             if math.isfinite(value): return {'代码': code, '今日主力净流入-净额': value}
         except Exception: pass
         return None
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=1) as pool:
         extra = [r for r in pool.map(supplement, sorted(missing)) if r is not None]
     if extra: stocks = pd.concat([stocks, pd.DataFrame(extra)], ignore_index=True)
     rows = aggregate(members, stocks)
@@ -145,6 +145,8 @@ def ifind_fallback():
     print("iFind SW flow fallback updated "+day+" industries="+str(len(rows)),flush=True)
 
 if __name__ == '__main__':
+    from akshare_request_policy import install
+    install()
     try:main()
     except Exception as exc:
         print("AKShare industry flow failed: "+type(exc).__name__+"; switching to iFind",flush=True)
