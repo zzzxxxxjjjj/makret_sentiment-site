@@ -13,7 +13,7 @@ function renderCards(cards){
   const visible=cards.filter(card=>!['sentiment-cycle','breadth-sentiment'].includes(card.id));
   const groups={
     momentum:['market-turnover','top5-concentration'],
-    funds:['margin-financing','institutional-net-buy','dragon-tiger-net-inflow','new-equity-fund-shares','stock-fund-position','broad-etf-flow']
+    funds:['margin-financing','institutional-net-buy','dragon-tiger-net-inflow','stock-fund-position','broad-etf-flow']
   };
   const renderGroup=(ids,startIndex)=>ids.map(id=>visible.find(card=>card.id===id)).filter(Boolean).map((card,index)=>{
     const hiddenFundLabels=new Set(['等权均值','有效样本']);
@@ -100,7 +100,6 @@ const chartDefinitions=[
   {group:'funds',key:'margin',title:'融资活跃度',description:'融资活跃度与全A融资买入额（亿元）',series:['financing-activity','alla-financing-buy'],card:'margin-financing',colors:['#46d6b2','#f5bd5c'],unit:'%',type:'line',dualAxis:true,href:'/financing-activity.html?v=20260806',linkLabel:'查看各指数融资明细 →',clickableCard:true,currentMetrics:[{series:'financing-activity',label:'融资活跃度',unit:'%'},{series:'alla-financing-buy',label:'融资买入额',unit:'亿元'}]},
   {group:'funds',key:'etf',title:'宽基ETF流入 / 流出',description:'ETF份额变化 × 收盘价，红色流入、绿色流出',series:['broad-etf-flow'],card:'broad-etf-flow',colors:['#ff6b78'],unit:'亿元',type:'bar',zeroLine:true,href:'/etf-flows.html',linkLabel:'查看23只重点ETF明细 →'},
   {group:'funds',key:'institutionalBuy',title:'机构专用席位买入额 MA5',description:'龙虎榜「机构专用」席位买入额的5日移动平均，去除重复披露和多日累计榜；仅覆盖龙虎榜披露交易',series:['institutional-buy-ma5'],colors:['#9d8cff'],unit:'亿元',type:'line',zeroLine:true,currentMetrics:[{series:'institutional-buy-ma5',label:'5日均线',unit:'亿元'}]},
-  {group:'funds',key:'newFund',title:'股票型公募基金新成立数量',description:'云端口径：股票型及股票指数型基金，主代码去重，近20个交易日累计',series:['new-equity-fund-shares'],card:'new-equity-fund-shares',colors:['#6fd3ff'],unit:'只',type:'bar'}
 ];
 
 const comparisonGroups={
@@ -131,7 +130,6 @@ const comparisonGroups={
     {key:'a-share-new-accounts',label:'A股新增开户数',unit:'户'},
     {key:'dragon-tiger-net-inflow',label:'龙虎榜资金净流入',unit:'亿元',zeroLine:true},
     {key:'institutional-buy-ma5',label:'机构专用席位买入额 MA5',unit:'亿元',zeroLine:true},
-    {key:'new-equity-fund-shares',label:'股票型公募基金新成立数量（20日）',unit:'只',type:'bar',zeroLine:true},
   ]
 };
 
