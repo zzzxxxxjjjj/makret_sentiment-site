@@ -3,6 +3,7 @@ import json
 from ifind_client import Client
 client=Client()
 cases=[
+ ("dated_sw_membership","smart_stock_picking",dict(searchstring="2026年11月23日A股申万一级行业",searchtype="stock")),
  ("all_a_snapshot","smart_stock_picking",dict(searchstring="2026年11月23日A股成交额、换手率、主力资金流向",searchtype="stock")),
  ("missing_etf","smart_stock_picking",dict(searchstring="2026年11月23日159528的收盘价、成交额、基金份额",searchtype="fund")),
  ("flow_wencai","smart_stock_picking",dict(searchstring="2026年11月23日浦发银行主力资金净流入金额",searchtype="stock")),
