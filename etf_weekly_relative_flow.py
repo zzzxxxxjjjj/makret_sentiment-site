@@ -60,7 +60,7 @@ def main():
     calendar = json.loads(calendar_path.read_text(encoding="utf-8")).get("dates", []) if calendar_path.exists() else []
     if not calendar or min(calendar) > BASE:
         import akshare as ak
-        calendar = [str(d)[:10] for d in ak.tool_trade_date_hist_sina()["trade_date"]]
+        calendar = [str(d)[:10] for d in (getattr(ak,'calendar_trade_date_hist_sina',None) or ak.tool_trade_date_hist_sina)()["trade_date"]]
     end = max((e["date"] for e in history.get("entries", [])), default=BASE)
     market_path = ROOT/"etf-market.json"
     market = json.loads(market_path.read_text(encoding="utf-8")) if market_path.exists() else {}
