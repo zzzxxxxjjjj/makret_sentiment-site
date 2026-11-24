@@ -21,7 +21,7 @@ jobs:
           python -m compileall -q akshare_request_policy.py akshare_public_refresh.py akshare_medium_inputs.py akshare_margin_risk.py akshare_options_refresh.py etf_market_refresh.py etf_weekly_relative_flow.py sw_flow_refresh.py sw_rotation_refresh.py daily_batch.py
           python -m unittest discover -s tests -p 'test_akshare_*.py'
           python -m unittest discover -s tests -p 'test_completed_session.py'
-      - name: Read-only paced ETF and SW probes
+      - name: Read-only slower-paced ETF and SW probes
         run: |
           python - <<'PY'
           import subprocess,sys
