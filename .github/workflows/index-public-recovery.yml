@@ -1,5 +1,5 @@
 name: Validate and recover index financing
-# Supplement missing constituent amounts with verified BaoStock history.
+# Publish independent index results and validate remaining two CSI1000 stocks.
 on:
   workflow_dispatch:
   push:
