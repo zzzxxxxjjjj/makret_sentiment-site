@@ -840,6 +840,11 @@ def broad_market_medium_term_sentiment_snapshot():
             merged_activity.update({p["date"]:p for p in item.get("points",[])})
             financing_activity_points=[merged_activity[d] for d in sorted(merged_activity)]
     financing_net_points = cache_series_points(rqdata, "financing-net", digits=3)
+    for item in public_financing.get("series", []):
+        if item.get("id") == "financing-net" and item.get("unit") == "亿元":
+            merged_net = {p["date"]: p for p in financing_net_points}
+            merged_net.update({p["date"]: p for p in item.get("points", []) if numeric(p.get("value")) is not None})
+            financing_net_points = [merged_net[d] for d in sorted(merged_net)]
     breadth_cache = load_rqdata_breadth_cache() or {}
     breadth60_confirmation_points = cache_series_points(
         breadth_cache,
