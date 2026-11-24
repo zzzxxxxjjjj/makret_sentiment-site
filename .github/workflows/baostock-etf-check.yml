@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install 'baostock==0.9.4' 'pandas>=2.2,<3'
-      - name: Probe ETF daily batch with a strict time budget
+      - name: Probe ETF batch coverage and listing status
         run: |
           python - <<'PY'
           import subprocess,sys
