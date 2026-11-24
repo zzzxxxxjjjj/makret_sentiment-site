@@ -1,7 +1,7 @@
 name: Daily post-close market update
 on:
   schedule:
-    # Beijing 18:45 primary run and 20:45 recovery run, weekdays. The script checks the exchange calendar.
+    # Beijing 18:45 primary collection run and 20:45 recovery run, weekdays. The script checks the exchange calendar.
     - cron: '45 10,12 * * 1-5'
   push:
     paths:
