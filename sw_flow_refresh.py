@@ -54,7 +54,7 @@ def main():
     if cached.get('date') == day:
         members = cached['members']
     else:
-        listing = ak.sw_index_first_info()
+        listing = (getattr(ak,'index_first_info_sw',None) or ak.sw_index_first_info)()
         listing = listing[listing['行业名称'] != '综合']
         if len(listing) != 30: raise ValueError('Incomplete SW industry classification')
         def one(r):
@@ -68,7 +68,7 @@ def main():
                 except Exception as exc: last = exc
             # AKShare's Legulegu composition endpoint also accepts first-level
             # .SI index codes; same SW code, never an Eastmoney sector mapping.
-            frame = ak.sw_index_third_cons(symbol=code+'.SI')
+            frame = (getattr(ak,'index_third_cons_sw',None) or ak.sw_index_third_cons)(symbol=code+'.SI')
             column = next((c for c in frame if '代码' in str(c)), None)
             if frame.empty or column is None: raise ValueError('Missing SW constituents: '+code) from last
             return dict(code=code, name=str(r['行业名称']), stocks=[str(c).split('.')[0].zfill(6) for c in frame[column]])
@@ -86,7 +86,7 @@ def main():
     provider_day = max(str(d)[:10] for d in quote['数据日期'])
     if provider_day != day: raise ValueError('Provider trading date not current')
     if now.date().isoformat() == day and now.hour < 9: raise ValueError('Before current trading session')
-    stocks = ak.stock_individual_fund_flow_rank(indicator='今日')
+    stocks = (getattr(ak,'stock_fund_flow_individual_rank_em',None) or ak.stock_individual_fund_flow_rank)(indicator='今日')
     import pandas as pd
     numeric = pd.to_numeric(stocks['今日主力净流入-净额'], errors='coerce')
     available = set(stocks.loc[numeric.notna(), '代码'].astype(str).str.zfill(6))
@@ -99,7 +99,7 @@ def main():
     def supplement(code):
         market = 'sh' if code.startswith('6') else 'bj' if code.startswith(('4','8','9')) else 'sz'
         try:
-            history = ak.stock_individual_fund_flow(stock=code, market=market)
+            history = (getattr(ak,'stock_fund_flow_individual_hist_em',None) or ak.stock_individual_fund_flow)(stock=code, market=market)
             current = history[history['日期'].astype(str).str[:10] == day]
             value = float(current.iloc[-1]['主力净流入-净额']) if len(current) else float('nan')
             if math.isfinite(value): return {'代码': code, '今日主力净流入-净额': value}
