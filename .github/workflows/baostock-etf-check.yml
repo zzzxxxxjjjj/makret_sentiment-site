@@ -1,9 +1,6 @@
 name: Verify Baostock ETF fallback
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '.github/workflows/baostock-etf-check.yml'
 permissions:
   contents: read
 concurrency:
