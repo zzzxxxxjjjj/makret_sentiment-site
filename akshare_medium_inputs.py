@@ -128,6 +128,8 @@ def fetch(as_of, output=DEFAULT_OUTPUT, *, ak=None):
 
 
 if __name__ == "__main__":
+    from akshare_request_policy import install
+    install()
     parser = argparse.ArgumentParser()
     parser.add_argument("--as-of", required=True)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
