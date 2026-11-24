@@ -61,6 +61,11 @@ jobs:
       - name: Install dependencies once
         if: steps.plan.outputs.run == 'true'
         run: python -m pip install -r requirements-daily.txt
+      - name: Validate restored collectors and calendar
+        if: steps.plan.outputs.run == 'true'
+        run: |
+          python -m unittest discover -s tests -p 'test_akshare_*.py'
+          python -m unittest discover -s tests -p 'test_completed_session.py'
       - name: Update each stage with at most one retry
         id: update
         if: steps.plan.outputs.run == 'true'
@@ -78,7 +83,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in akshare-options-pcr.json etf-market.json etf-net-subscription.json etf-weekly-relative-flow.json sw-industry-flow.json rqdata-fund-exposure.json style-crowding.json akshare-public-inputs.json akshare-medium-inputs.json ifind-index-turnover.json ifind-medium-bond.json akshare-margin-risk.json akshare-sw-industry-rotation.json broad-sentiment-page-cache.json data-freshness.json; do
+          for file in akshare-options-pcr.json etf-market.json etf-shares-history.json etf-net-subscription.json etf-weekly-relative-flow.json sw-industry-flow.json rqdata-fund-exposure.json style-crowding.json akshare-public-inputs.json akshare-medium-inputs.json ifind-index-turnover.json ifind-medium-bond.json akshare-margin-risk.json akshare-sw-industry-rotation.json broad-sentiment-page-cache.json data-freshness.json; do
             if [ -f "$file" ]; then git add -- "$file"; fi
           done
           if [ -f daily-update-status.json ]; then git add -- daily-update-status.json; fi
