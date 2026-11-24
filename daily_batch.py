@@ -23,10 +23,11 @@ def digest(path):
 def run_stage(name, command, target, outputs=()):
     marker = STATE / target / (name + ".json")
     previous = read(marker)
+    code = hashlib.sha256("".join(str(digest(p)) for p in ([ROOT/command[0],ROOT/"requirements-daily.txt"] if name not in {"build","page-rebuild"} else sorted(ROOT.glob("*.py")))).encode()).hexdigest()
     hashes = {p: digest(ROOT / p) for p in outputs}
     if name in {"build", "page-rebuild"}:
         hashes["inputs"] = hashlib.sha256("".join(str(digest(p)) for p in sorted(ROOT.glob("*.json")) if p.name != "daily-update-status.json").encode()).hexdigest()
-    if previous.get("ok") and previous.get("outputs") == hashes and all(hashes.values()):
+    if previous.get("code")==code and previous.get("ok") and previous.get("outputs") == hashes and all(hashes.values()):
         print("Already complete: " + name, flush=True)
         return True
     attempts = 0  # Retry failed stages on each scheduled invocation; max two attempts per run.
@@ -38,7 +39,7 @@ def run_stage(name, command, target, outputs=()):
             ok = result.returncode == 0 and all((ROOT / p).is_file() for p in outputs)
         except subprocess.TimeoutExpired:
             ok = False
-        write(marker, dict(ok=ok, attempts=attempts,
+        write(marker, dict(ok=ok, attempts=attempts, code=code,
                           outputs={**{p: digest(ROOT / p) for p in outputs}, **({"inputs": hashes["inputs"]} if name in {"build", "page-rebuild"} else {})}))
         if ok: return True
     return False
