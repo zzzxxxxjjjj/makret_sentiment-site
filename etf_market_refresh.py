@@ -56,6 +56,8 @@ def update_history(value):
 
 
 if __name__ == '__main__':
+    from akshare_request_policy import install
+    install()
     import akshare as ak
     import requests
     original = requests.sessions.Session.request
