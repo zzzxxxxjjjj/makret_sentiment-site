@@ -101,7 +101,15 @@ def combine():
     while q.error_code=="0" and q.next():
      row=dict(zip(q.fields,q.get_row_data()))
      if finite(row.get("close")) and finite(row.get("volume")):repaired.append({"date":row["date"],"close":float(row["close"]),"volume":float(row["volume"])})
-    if repaired:prices[c]=repaired;continue
+    if repaired and repaired[-1]["date"]==target:prices[c]=repaired;continue
+    try:
+     import akshare as ak
+     from akshare_request_policy import install
+     install()
+     f=resolve(ak,"stock_zh_a_hist_tx")(symbol=c.replace(".",""),start_date=start.replace("-",""),end_date=target.replace("-",""),adjust="qfq")
+     alternative=[{"date":str(r["date"])[:10],"close":float(r["close"]),"volume":float(r["volume"])} for r in f.to_dict("records") if finite(r.get("close")) and finite(r.get("volume")) and str(r["date"])[:10]<=target]
+     if alternative and alternative[-1]["date"]==target:prices[c]=alternative;continue
+    except Exception:pass
     sessions=[d for d in read("data-freshness.json")["tradingCalendar"] if last<d<=target]
     paused=True
     for day in sessions:
