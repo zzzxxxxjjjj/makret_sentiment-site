@@ -66,6 +66,19 @@ def main():
   snapshot=read("ifind-stock-snapshot.json")
   if snapshot.get("asOf")!=target:snapshot={"rows":[]}
   amounts={str(r["代码"]).zfill(6):float(r["成交额"]) for r in snapshot["rows"] if finite(r.get("成交额"))}
+  if not amounts:
+   import baostock as bs
+   socket.setdefaulttimeout(20)
+   login=bs.login()
+   if login.error_code=="0":
+    try:
+     q=bs.query_daily_history_k_AStock(date=target)
+     while q.error_code=="0" and q.next():
+      row=dict(zip(q.fields,q.get_row_data()))
+      if row.get("date")==target and finite(row.get("amount")) and float(row["amount"])>=0:
+       amounts[row["code"].split(".")[-1]]=float(row["amount"])
+     print("BaoStock dated market amounts: "+str(len(amounts)),flush=True)
+    finally:bs.logout()
   results=[]
   for code,prefix,name,count in [("000016","sse50","上证50",50),("000300","hs300","沪深300",300),("000852","csi1000","中证1000",1000),("000688","star50","科创50",50)]:
    previous=read("public-index-inputs.json")
