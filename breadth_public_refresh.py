@@ -88,6 +88,37 @@ def combine():
   if expected.intersection(part["universe"]):raise ValueError("Overlapping shard universe")
   expected.update(part["universe"]);prices.update(part["stocks"]);errors.extend(part["errors"])
  save("breadth-public-status.json",{"targetDate":target,"universe":len(expected),"received":len(prices),"errors":errors,"beijing":sum(c.startswith("bj.") for c in prices)})
+ if errors:
+  import baostock as bs
+  socket.setdefaulttimeout(20);login=bs.login();remaining=[]
+  if login.error_code!="0":raise ValueError("Failed-stock repair login failed")
+  try:
+   for err in errors:
+    c=err["code"]
+    if c.startswith("bj."):remaining.append(err);continue
+    start=(pd.Timestamp(target)-pd.Timedelta(days=140)).strftime("%Y-%m-%d")
+    q=bs.query_history_k_data_plus(c,"date,code,close,volume",start_date=start,end_date=target,adjustflag="2");repaired=[]
+    while q.error_code=="0" and q.next():
+     row=dict(zip(q.fields,q.get_row_data()))
+     if finite(row.get("close")) and finite(row.get("volume")):repaired.append({"date":row["date"],"close":float(row["close"]),"volume":float(row["volume"])})
+    if repaired:prices[c]=repaired;continue
+    sessions=[d for d in read("data-freshness.json")["tradingCalendar"] if last<d<=target]
+    paused=True
+    for day in sessions:
+     q=bs.query_all_stock(day=day);match=None
+     while q.error_code=="0" and q.next():
+      row=dict(zip(q.fields,q.get_row_data()))
+      if row.get("code")==c:match=row;break
+     if not match or match.get("tradeStatus")!="0":paused=False;break
+    if paused:prices[c]=[];continue
+    q=bs.query_stock_basic(code=c);info=[]
+    while q.error_code=="0" and q.next():info.append(dict(zip(q.fields,q.get_row_data())))
+    warm=[d for d in read("data-freshness.json")["tradingCalendar"] if d<=target][-20:]
+    if len(info)==1 and info[0].get("ipoDate","")>warm[0]:prices[c]=[];continue
+    remaining.append(err)
+  finally:bs.logout()
+  errors=remaining
+  save("breadth-public-status.json",{"targetDate":target,"universe":len(expected),"received":len(prices),"errors":errors,"beijing":sum(c.startswith("bj.") for c in prices)})
  if errors or set(prices)!=expected or len(prices)<5300:raise ValueError("Public price universe incomplete; retaining old breadth")
  records=[{"order_book_id":c,"date":p["date"],"close":p["close"],"volume":p["volume"]} for c,pts in prices.items() for p in pts]
  recent=calculate_batch(pd.DataFrame(records),output_start)
