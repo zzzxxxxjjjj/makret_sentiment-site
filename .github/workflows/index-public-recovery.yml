@@ -1,5 +1,5 @@
 name: Validate and recover index financing
-# Publish independent index results and validate remaining two CSI1000 stocks.
+# Recover confirmed suspension zeros and dated BaoStock turnover.
 on:
   workflow_dispatch:
   push:
@@ -18,7 +18,10 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r requirements-daily.txt
       - run: python -m py_compile index_public_recovery.py
-      - run: python index_public_recovery.py
+      - name: Recover November 23 missing constituent
+        run: DAILY_TARGET_DATE=2026-11-23 python index_public_recovery.py
+      - name: Recover latest completed session independently
+        run: python index_public_recovery.py
       - name: Rebuild recovered index data into published page
         run: |
           python rebuild_saved_page.py
@@ -28,7 +31,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for f in broad-sentiment-page-cache.json data-freshness.json index-recovery-status.json public-index-inputs.json recovery-members-*.json recovery-sse-pagination.json; do
+          for f in broad-sentiment-page-cache.json data-freshness.json index-recovery-status.json public-index-inputs.json financing-detail-cache.json recovery-members-*.json recovery-sse-pagination.json; do
             if [ -f "$f" ]; then git add -- "$f"; fi
           done
           if git diff --cached --quiet; then exit 0; fi
