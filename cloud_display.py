@@ -14,7 +14,16 @@ def apply_cloud_display(payload,directory):
     for item in series.values():
         if item['id'].startswith('medium-'):
             for old,new in replacements.items():item['name']=item.get('name','').replace(old,new)
-            item['source']=('AKShare中证全指 / iFind 701014.TI；保留历史' if item['id'] in ('medium-equity-bond-position','medium-equity-bond-relative-return-120d','medium-position-score','medium-relative-return-score') else 'AKShare中证全指PE；保留同口径历史' if item['id']=='medium-pe-ttm' else item.get('source','历史模型输入'))
+            item['source']=('AKShare中证全指 / iFind 701014.TI；保留历史' if item['id'] in ('medium-equity-bond-position','medium-equity-bond-relative-return-120d','medium-position-score','medium-relative-return-score') else '中证官网滚动市盈率；新口径历史重算' if item['id']=='medium-pe-ttm' else item.get('source','历史模型输入'))
+    if cloud.get('valuationMethodology')=='csindex-public-v1':
+        for sid,item in series.items():
+            if sid.startswith(('medium-erp','medium-yield-spread')) or sid in ('medium-pe-ttm','medium-dividend-yield-ttm','medium-equity-bond-yield-spread'):
+                item['methodologyVersion']='csindex-public-v1'
+                item['source']='中证官网滚动PE / 计算用股本股息率2；历史按新口径重算，样本不足不生成分数'
+        if 'medium-dividend-yield-ttm' in series:
+            series['medium-dividend-yield-ttm']['name']='中证全指股息率2（计算用股本）'
+        if 'medium-equity-bond-yield-spread' in series:
+            series['medium-equity-bond-yield-spread']['name']='中证全指股息率2－10年国债收益率'
     equity={p['date']:p for p in cloud['inputs']['equity']}
     try: latest=json.loads((base/'akshare-medium-inputs.json').read_text(encoding='utf-8'))
     except (OSError,ValueError):latest={}
