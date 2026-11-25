@@ -1,7 +1,7 @@
 """Collect standalone public medium inputs; source compatibility is audited separately.
 
-The active cloud model has retained history. PE and dividend inputs must pass
-overlap checks before extending that history; do not silently splice definitions.
+The active valuation model uses public CSI rolling PE and calculation-share
+D/P2 histories. Old RQData valuation histories are archived, never spliced.
 """
 from __future__ import annotations
 
@@ -116,8 +116,8 @@ def fetch(as_of, output=DEFAULT_OUTPUT, *, ak=None):
         "indexCode": CSI_ALL_SHARE,
         "readyForPublishedMediumScore": False,
         "pending": [
-            "当前云端模型PE历史与本接口滚动PE重叠值不一致，见medium-input-audit.json；禁止直接接续ERP",
-            "本接口股息率与当前模型历史不一致；股债收益差及三年通道暂保留最后兼容日期",
+            "新口径PE历史已独立重算；股息率2同源历史持续积累，不拼接旧RQData股息率",
+            "股债收益差不足原算法最低120个配对样本时，衍生分数和中期综合留空",
             "完整中期合成仍需沪深北全A广度；BaoStock沪深股票清单不包含北交所",
         ],
         "series": series,
