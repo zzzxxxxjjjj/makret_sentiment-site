@@ -127,7 +127,25 @@ def main():
    cloud["inputs"][key]=merge(old,new)
    save("cloud-market-inputs.json",cloud)
   latest=read("akshare-medium-inputs.json")
-  for key,sid in [("pe","csi-all-share-pe-rolling"),("equity","csi-all-share-close"),("dividend","csi-all-share-dividend-yield")]:
+  if cloud.get("valuationMethodology") != "csindex-public-v1":
+   cloud["retiredValuationInputs"]={k:cloud["inputs"][k] for k in ("pe","dividend")}
+   history=resolve(ak,"stock_zh_index_hist_csindex")(symbol="000985",start_date="20150101",end_date=end)
+   pe=[{"date":str(row["日期"])[:10],"value":float(row["滚动市盈率"])} for row in history.to_dict("records") if finite(row.get("滚动市盈率")) and float(row["滚动市盈率"])>0 and str(row["日期"])[:10]<=target and datetime.fromisoformat(str(row["日期"])[:10]).weekday()<5]
+   if not pe:raise ValueError("No new-method PE history")
+   cloud["inputs"]["pe"]=sorted(pe,key=lambda p:p["date"])
+   cloud["valuationMethodology"]="csindex-public-v1"
+   cloud.setdefault("methodologyChanges",[]).append("估值统一改用中证官网滚动市盈率、计算用股本股息率2；两项历史不接续旧RQData估值；样本不足的衍生分数留空，不缩短原窗口。")
+  for key,sid in (("pe","csi-all-share-pe-rolling"),("dividend","csi-all-share-dividend-yield")):
+   incoming=next(item["points"] for item in latest["series"] if item["id"]==sid)
+   incoming=[p for p in incoming if p["date"]<=target and datetime.fromisoformat(p["date"]).weekday()<5]
+   if not incoming:raise ValueError("No public valuation observations: "+key)
+   if key=="dividend" and cloud.get("dividendMethodology")!="csindex-dp2":
+    cloud["inputs"][key]=incoming
+    cloud["dividendMethodology"]="csindex-dp2"
+   else:cloud["inputs"][key]=merge(cloud["inputs"][key],incoming)
+   evidence[key]={"methodology":"中证官网滚动PE" if key=="pe" else "中证官网股息率2（计算用股本）","oldHistorySpliced":False}
+  save("cloud-market-inputs.json",cloud)
+  for key,sid in [("equity","csi-all-share-close")]:
    try:append_checked(key,next(s["points"] for s in latest["series"] if s["id"]==sid))
    except Exception as e:evidence[key]={"error":str(e)}
   try:
