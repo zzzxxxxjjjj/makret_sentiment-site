@@ -36,6 +36,9 @@ def main():
  payload=read("akshare-options-pcr.json");series={s["id"]:s for s in payload.get("series",[])}
  status={"targetDate":target,"days":[]}
  for day in days:
+  required=["pcr-"+metric+"-csi1000" for metric in ("amount","volume","oi")]
+  if all(any(p["date"]==day for p in series.get(sid,{}).get("points",[])) for sid in required):
+   status["days"].append({"date":day,"ok":True,"cached":True});continue
   tag=day.replace("-","");errors=[];values=None
   for suffix in ("1","2"):
    try:
