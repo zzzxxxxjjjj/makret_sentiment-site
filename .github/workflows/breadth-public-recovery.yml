@@ -1,0 +1,92 @@
+name: Recover full-market breadth
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/breadth-public-recovery.yml']
+permissions:
+  contents: write
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      target: ${{ steps.plan.outputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: plan
+        run: |
+          python - <<'PY'
+          import os,json
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          from completed_session import completed_target
+          target=completed_target(datetime.now(ZoneInfo('Asia/Shanghai')),json.load(open('data-freshness.json'))['tradingCalendar'])
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('target='+target+'\n')
+          PY
+  prices:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - {provider: bao, shard: 0, shards: 2}
+          - {provider: bao, shard: 1, shards: 2}
+          - {provider: bj, shard: 0, shards: 4}
+          - {provider: bj, shard: 1, shards: 4}
+          - {provider: bj, shard: 2, shards: 4}
+          - {provider: bj, shard: 3, shards: 4}
+    env:
+      TZ: Asia/Shanghai
+      PYTHONUNBUFFERED: '1'
+      DAILY_TARGET_DATE: ${{ needs.plan.outputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install -r requirements-daily.txt
+      - uses: actions/cache@v4
+        with:
+          path: .breadth-public-cache
+          key: breadth-public-${{ matrix.provider }}-${{ matrix.shard }}-${{ needs.plan.outputs.target }}-${{ github.run_id }}
+          restore-keys: breadth-public-${{ matrix.provider }}-${{ matrix.shard }}-
+      - run: python breadth_public_refresh.py ${{ matrix.provider }} ${{ matrix.shard }} ${{ matrix.shards }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: breadth-${{ matrix.provider }}-${{ matrix.shard }}
+          path: breadth-parts/*.json.gz
+          retention-days: 3
+  publish:
+    needs: [plan, prices]
+    runs-on: ubuntu-latest
+    env:
+      DAILY_TARGET_DATE: ${{ needs.plan.outputs.target }}
+      TZ: Asia/Shanghai
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install -r requirements-daily.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: breadth-*
+          path: breadth-parts
+          merge-multiple: true
+      - name: Recompute and validate complete breadth
+        run: |
+          python breadth_public_refresh.py combine
+          python rebuild_saved_page.py
+          python build_static_site.py
+      - name: Save validated breadth and actual coverage
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for f in rqdata-breadth-sentiment.json breadth-public-status.json broad-sentiment-page-cache.json data-freshness.json; do
+            if [ -f "$f" ]; then git add -- "$f"; fi
+          done
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Publish complete public A-share breadth and recomputed sentiment'
+          git -c rebase.autoStash=true pull --rebase origin main
+          git push origin HEAD:main
