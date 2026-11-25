@@ -1122,21 +1122,7 @@ def broad_market_medium_term_sentiment_snapshot():
         }
         for dt in shared_dates
     ][-1900:]
-    if not composite_points:
-        missing = []
-        if not erp_points:
-            missing.append("万得全A PE或10年国开债收益率")
-        if not spread_points:
-            missing.append("万得全A股息率TTM或10年国开债收益率")
-        if not position_points:
-            missing.append("万得全A或偏债混合型基金指数")
-        if not financing_points or not financing_activity_points or not financing_net_points:
-            missing.append("融资余额、融资活跃度或融资净流入")
-        if not breadth60_confirmation_points:
-            missing.append("RQData 60日市场广度")
-        raise RuntimeError("、".join(missing) or "中期情绪有效样本不足")
-
-    latest = composite_points[-1]
+    latest = composite_points[-1] if composite_points else {"date": None, "value": None, "components": {}, "metrics": {}}
     return {
         "path": str(path),
         "asOf": latest["date"],
