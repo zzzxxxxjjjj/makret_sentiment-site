@@ -45,13 +45,14 @@ def main():
     # Recompute using the current model's real inputs; retain its actual date.
     medium = broad.broad_market_medium_term_sentiment_snapshot()
     for incoming in medium.get("series", []):
-        if incoming.get("points"):
-            series[incoming["id"]] = incoming
+        series[incoming["id"]] = incoming
     payload["series"] = list(series.values())
     payload["generatedAt"] = now.isoformat(timespec="seconds")
     payload["rebuildTargetDate"] = target
     for card in payload["cards"]:
         if card.get("id") == "medium-term-sentiment":
+            if not series.get("medium-term-sentiment", {}).get("points"):
+                card.update(value=None, asOf=None, percentile=None, submetrics=[], description="新中证估值口径历史积累中；未缩短原窗口，不沿用旧分数")
             item = series.get("medium-term-sentiment", {})
             if item.get("points"):
                 last = item["points"][-1]
