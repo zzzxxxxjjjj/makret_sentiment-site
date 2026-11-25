@@ -1,1 +1,1 @@
-{"targetDate": "2026-11-24", "ok": false, "failedStages": ["ifind-turnover", "public", "index-financing", "industry-flow", "ifind-medium-bond"]}
+{"targetDate": "2026-11-25", "ok": false, "failedStages": ["ifind-turnover", "public", "index-financing", "etf", "etf-shares", "industry-flow", "ifind-medium-bond"]}
