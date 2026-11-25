@@ -107,6 +107,8 @@ def main():
      publish_out()
     if "600185" in members and target in ("2026-11-23","2026-11-24"):
      amounts["600185"]=0.0
+    if len(members-amounts.keys())>20:
+     raise ValueError("Bulk target-date turnover unavailable; refusing per-stock request burst")
     for stock in sorted(members-amounts.keys()):
      try:
       frame=resolve(ak,"stock_zh_a_hist")(symbol=stock,period="daily",start_date=stamp,end_date=stamp,adjust="")
