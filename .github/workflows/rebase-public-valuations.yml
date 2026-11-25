@@ -1,0 +1,58 @@
+name: Rebase public valuations and publish
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/rebase-public-valuations.yml'
+permissions:
+  contents: write
+concurrency:
+  group: valuation-rebase
+  cancel-in-progress: false
+jobs:
+  rebase:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TZ: Asia/Shanghai
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-daily.txt
+      - run: python -m py_compile public_recovery.py broad_sentiment.py rebuild_saved_page.py cloud_display.py
+      - name: Rebase valuation inputs and rebuild
+        run: |
+          python public_recovery.py --medium-only
+          python rebuild_saved_page.py
+          python build_static_site.py
+          python - <<'PY'
+          import json,pathlib
+          cloud=json.loads(pathlib.Path('cloud-market-inputs.json').read_text())
+          assert cloud['valuationMethodology']=='csindex-public-v1'
+          assert cloud['dividendMethodology']=='csindex-dp2'
+          page=json.loads(pathlib.Path('dist/broad-sentiment.json').read_text())
+          series={s['id']:s for s in page['series']}
+          pe={p['date']:p['value'] for p in cloud['inputs']['pe']}
+          yields={p['date']:p['value'] for p in cloud['inputs']['yield']}
+          for p in series['medium-erp']['points']:
+              assert abs(p['value']-(100/pe[p['date']]-yields[p['date']]))<0.0002
+          div={p['date']:p['value'] for p in cloud['inputs']['dividend']}
+          for p in series['medium-equity-bond-yield-spread']['points']:
+              assert abs(p['value']-(div[p['date']]-yields[p['date']]))<0.0002
+          if len(div)<120:
+              assert not series['medium-yield-spread-score']['points']
+              assert not series['medium-term-sentiment']['points']
+          print(json.dumps({sid:{"count":len(s['points']),"last":s['points'][-1]['date'] if s['points'] else None} for sid,s in series.items() if sid.startswith(('medium-erp','medium-yield-spread')) or sid in ('medium-equity-bond-yield-spread','medium-term-sentiment')},ensure_ascii=False))
+          PY
+      - name: Publish rebased inputs and scores
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- cloud-market-inputs.json medium-input-audit.json medium-recovery-status.json broad-sentiment-page-cache.json data-freshness.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Publish CSI public valuation rebase and recomputed scores'
+          git -c rebase.autoStash=true pull --rebase origin main
+          git push origin HEAD:main
