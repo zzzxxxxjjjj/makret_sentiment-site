@@ -55,12 +55,20 @@ def worker(provider,shard,shards):
   master=sorted({str(r["代码"]) for r in read("ifind-stock-snapshot.json").get("rows",[]) if str(r["代码"]).startswith(("43","83","87","88","92"))})
   if len(master)<200:raise ValueError("No verified Beijing universe")
   codes=master[shard::shards];output["universe"]=["bj."+c for c in codes]
+  em_failures=0
   for i,c in enumerate(codes):
    key="bj."+c;path=CACHE/(key+".json.gz")
    if path.exists() and load(path).get("asOf")==target:output["stocks"][key]=load(path)["points"];continue
    try:
-    f=resolve(ak,"stock_zh_a_hist")(symbol=c,period="daily",start_date=start.replace("-",""),end_date=target.replace("-",""),adjust="qfq")
-    points=[{"date":str(r["日期"])[:10],"close":float(r["收盘"]),"volume":float(r["成交量"])} for r in f.to_dict("records") if finite(r.get("收盘")) and finite(r.get("成交量")) and str(r["日期"])[:10]<=target]
+    try:
+     if em_failures>=2:raise ValueError("Switch source after repeated Eastmoney failure")
+     f=resolve(ak,"stock_zh_a_hist")(symbol=c,period="daily",start_date=start.replace("-",""),end_date=target.replace("-",""),adjust="qfq")
+     points=[{"date":str(r["日期"])[:10],"close":float(r["收盘"]),"volume":float(r["成交量"])} for r in f.to_dict("records") if finite(r.get("收盘")) and finite(r.get("成交量")) and str(r["日期"])[:10]<=target]
+     if not points or points[-1]["date"]!=target:raise ValueError("Stale Eastmoney history")
+    except Exception:
+     em_failures+=1
+     f=resolve(ak,"stock_zh_a_hist_tx")(symbol="bj"+c,start_date=start.replace("-",""),end_date=target.replace("-",""),adjust="qfq")
+     points=[{"date":str(r["date"])[:10],"close":float(r["close"]),"volume":float(r["volume"])} for r in f.to_dict("records") if finite(r.get("close")) and finite(r.get("volume")) and str(r["date"])[:10]<=target]
     if not points or points[-1]["date"]!=target:raise ValueError("BJ target session missing")
     output["stocks"][key]=points;dump(path,{"asOf":target,"points":points})
    except Exception as e:output["errors"].append({"code":key,"error":type(e).__name__})
