@@ -39,7 +39,7 @@ def main():
   tag=day.replace("-","");errors=[];values=None
   for suffix in ("1","2"):
    try:
-    url="https://www.cffex.com.cn/sj/hqsj/rtj/"+tag[:6]+"/"+tag[6:]+"/"+tag+"_"+suffix+".csv"
+    url="http://www.cffex.com.cn/sj/hqsj/rtj/"+tag[:6]+"/"+tag[6:]+"/"+tag+"_"+suffix+".csv"
     r=requests.get(url,timeout=25);r.raise_for_status()
     raw=r.content.decode("gb18030")
     f=pd.read_csv(io.StringIO(raw))
