@@ -16,6 +16,16 @@ def main():
   try:status["results"].append({"id":name,"ok":True,"detail":fn()})
   except Exception as e:status["results"].append({"id":name,"ok":False,"error":str(e)[:500]})
   save("index-recovery-status.json",status);print(status["results"][-1],flush=True)
+ def publish_out():
+  previous=read("public-index-inputs.json")
+  merged={item["id"]:item for item in previous.get("series",[])}
+  for item in out["series"]:
+   old=merged.get(item["id"],{})
+   points={p["date"]:p for p in old.get("points",[])}
+   points.update({p["date"]:p for p in item["points"]})
+   merged[item["id"]]={**item,"points":[points[d] for d in sorted(points)]}
+  out["series"]=list(merged.values())
+  save("public-index-inputs.json",out)
  def indexes():
   def financing_values():
    cached=read("financing-detail-cache.json")
@@ -94,7 +104,7 @@ def main():
     buy=sum(values.get(c,0) for c in members)/1e8 if values is not None else None
     if buy is not None:
      out["series"].append({"id":prefix+"-financing-buy","name":name+"融资买入额","unit":"亿元","source":"交易所完整融资明细；独立于成交额更新","points":[{"date":target,"value":buy}]})
-     save("public-index-inputs.json",out)
+     publish_out()
     if "600185" in members and target in ("2026-11-23","2026-11-24"):
      amounts["600185"]=0.0
     for stock in sorted(members-amounts.keys()):
@@ -129,13 +139,13 @@ def main():
     amount=sum(amounts[c] for c in members)/1e8
     if amount<=0:raise ValueError("Invalid denominator")
     for suffix,label,val,unit in ([("turnover-amount","成交额",amount,"亿元")]+([("financing-activity","融资买入额占比",buy/amount*100,"%")] if buy is not None else [])):
-     out["series"].append({"id":prefix+"-"+suffix,"name":name+label,"unit":unit,"source":"AKShare沪深交易所融资明细（核对全市场总额）＋中证指数当日成分；iFind当日个股成交额","points":[{"date":target,"value":val}]})
-    results.append({"code":code,"buy":buy,"amount":amount})
-    save("public-index-inputs.json",out)
+     out["series"].append({"id":prefix+"-"+suffix,"name":name+label,"unit":unit,"source":"当日指数成分股；已核验成交额缓存，缺项AkShare优先、BaoStock补齐；确认停牌记零","points":[{"date":target,"value":val}]})
+    results.append({"code":code,"buy":buy,"amount":amount,**({"error":"Financing detail unavailable; turnover independently published"} if buy is None else {})})
+    publish_out()
    except Exception as e:
     results.append({"code":code,"error":str(e)[:300]})
     continue
-  save("public-index-inputs.json",out);return results
+  publish_out();return results
  attempt("index-financing",indexes)
  def bao():
   import baostock as bs
