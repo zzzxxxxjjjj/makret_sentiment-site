@@ -58,4 +58,7 @@ def main():
    save("akshare-options-pcr.json",payload)
   else:status["days"].append({"date":day,"ok":False,"errors":errors})
   save("option-gap-recovery-status.json",status);print(status["days"][-1],flush=True)
+ save("option-gap-recovery-status.json",status)
+ if not all(any(p["date"]==target for p in series.get("pcr-"+metric+"-csi1000",{}).get("points",[])) for metric in ("amount","volume","oi")):
+  raise SystemExit("Target CFFEX PCR incomplete; earlier successful days retained")
 if __name__=="__main__":main()
