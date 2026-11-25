@@ -1,4 +1,5 @@
 name: Recover dated option PCR
+# Use verified official HTTP date files.
 on:
   workflow_dispatch:
   push:
