@@ -43,6 +43,8 @@ def worker(shard,shards):
  config=read("sse-option-plan.json");days=sorted(config["master"]);target=config["targetDate"]
  codes=sorted({r["code"] for rows in config["master"].values() for r in rows})[shard::shards]
  cache=ROOT/".option-bar-cache";cache.mkdir(exist_ok=True)
+ (ROOT/"option-bar-parts").mkdir(exist_ok=True)
+ failures=0
  output={"targetDate":target,"bars":{},"errors":[]}
  for i,code in enumerate(codes):
   p=cache/(code+".json")
@@ -61,8 +63,11 @@ def worker(shard,shards):
     if volume<0 or amount<0:raise ValueError("Negative contract amount")
     bars[day]={"volume":volume,"amount":amount}
    if not bars:raise ValueError("Empty contract daily bars")
+   failures=0
    output["bars"][code]=bars;p.write_text(json.dumps({"targetDate":target,"bars":bars}),encoding="utf-8")
-  except Exception as e:output["errors"].append({"code":code,"error":type(e).__name__})
+  except Exception as e:
+   output["errors"].append({"code":code,"error":type(e).__name__});failures+=1
+   if failures>=3:break
   if i%10==0:print("option shard",shard,i,len(codes),flush=True)
  save("option-bar-parts/shard-"+str(shard)+".json",output)
 def combine():
