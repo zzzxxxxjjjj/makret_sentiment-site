@@ -24,10 +24,12 @@ def worker(provider,shard,shards):
   r=bs.login()
   if r.error_code!="0":raise ValueError("Baostock login "+r.error_code)
   try:
-   q=bs.query_all_stock(day=target);master=[]
+   q=bs.query_all_stock(day=target);master=[];paused=set()
    while q.error_code=="0" and q.next():
     row=dict(zip(q.fields,q.get_row_data()));c=row.get("code","")
-    if c.startswith(("sh.60","sh.68","sz.00","sz.30")):master.append(c)
+    if c.startswith(("sh.60","sh.68","sz.00","sz.30")):
+     master.append(c)
+     if row.get("tradeStatus")=="0":paused.add(c)
    if q.error_code!="0" or len(master)<5000:raise ValueError("Incomplete SH/SZ universe")
    codes=sorted(set(master))[shard::shards];output["universe"]=codes
    for i,c in enumerate(codes):
@@ -41,6 +43,7 @@ def worker(provider,shard,shards):
       if finite(row.get("close")) and finite(row.get("volume")):
        points.append({"date":row["date"],"close":float(row["close"]),"volume":float(row["volume"])})
      if q.error_code!="0" or not points:raise ValueError("No verified price history")
+     if points[-1]["date"]!=target and c not in paused:raise ValueError("Active stock target session missing")
      output["stocks"][c]=points;dump(path,{"asOf":target,"points":points})
     except Exception as e:output["errors"].append({"code":c,"error":type(e).__name__})
     if i%100==0:print(provider,shard,i,len(codes),flush=True)
@@ -58,7 +61,7 @@ def worker(provider,shard,shards):
    try:
     f=resolve(ak,"stock_zh_a_hist")(symbol=c,period="daily",start_date=start.replace("-",""),end_date=target.replace("-",""),adjust="qfq")
     points=[{"date":str(r["日期"])[:10],"close":float(r["收盘"]),"volume":float(r["成交量"])} for r in f.to_dict("records") if finite(r.get("收盘")) and finite(r.get("成交量")) and str(r["日期"])[:10]<=target]
-    if not points:raise ValueError("Empty BJ history")
+    if not points or points[-1]["date"]!=target:raise ValueError("BJ target session missing")
     output["stocks"][key]=points;dump(path,{"asOf":target,"points":points})
    except Exception as e:output["errors"].append({"code":key,"error":type(e).__name__})
    if i%10==0:print(provider,shard,i,len(codes),flush=True)
