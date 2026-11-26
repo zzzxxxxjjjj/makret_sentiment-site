@@ -30,14 +30,20 @@ def run_stage(name, command, target, outputs=()):
         code=hashlib.sha256((code+str(digest(ROOT/"akshare_request_policy.py"))).encode()).hexdigest()
     if name=="etf-shares":
         code=hashlib.sha256((code+str(digest(ROOT/"szse_etf_units_refresh.py"))+str(digest(ROOT/"akshare_request_policy.py"))+str(digest(ROOT/"rqdata_refresh.py"))).encode()).hexdigest()
+    if name=="industry-flow-history":
+        code=hashlib.sha256((code+str(digest(ROOT/"sw-industry-flow.json"))+str(digest(ROOT/"sw-flow-members.json"))).encode()).hexdigest()
     hashes = {p: digest(ROOT / p) for p in outputs}
     if name in {"build", "page-rebuild"}:
         hashes["inputs"] = hashlib.sha256("".join(str(digest(p)) for p in sorted(ROOT.glob("*.json")) if p.name != "daily-update-status.json").encode()).hexdigest()
     if previous.get("code")==code and previous.get("ok") and previous.get("outputs") == hashes and all(hashes.values()):
         print("Already complete: " + name, flush=True)
         return True
-    attempts = 0  # Retry failed stages on each scheduled invocation; max two attempts per run.
-    while attempts < 2:
+    if name=="industry-flow" and previous.get("code")==code and previous.get("attempts",0)>=2:
+        print("Daily SW retry budget exhausted; retaining previous data",flush=True)
+        return False
+    attempts = previous.get("attempts",0) if name=="industry-flow" and previous.get("code")==code else 0
+    limit=min(attempts+1,2) if name=="industry-flow" else 2
+    while attempts < limit:
         attempts += 1
         print(f"{name}: attempt {attempts}/2", flush=True)
         try:
@@ -48,7 +54,7 @@ def run_stage(name, command, target, outputs=()):
         write(marker, dict(ok=ok, attempts=attempts, code=code,
                           outputs={**{p: digest(ROOT / p) for p in outputs}, **({"inputs": hashes["inputs"]} if name in {"build", "page-rebuild"} else {})}))
         if ok: return True
-        if attempts<2:
+        if attempts<limit:
             print("Cooling down before stage retry: "+name,flush=True)
             time.sleep(30+random.uniform(0,5))
     return False
@@ -89,6 +95,7 @@ def main():
         ("etf", ["etf_market_refresh.py"], ["etf-market.json"]),
         ("etf-weekly", ["etf_weekly_relative_flow.py"], ["etf-weekly-relative-flow.json"]),
         ("industry-flow", ["sw_flow_refresh.py"], ["sw-industry-flow.json"]),
+        ("industry-flow-history", ["sw_history_sync.py"], ["sw-industry-history.json", "sw-industry-history-archive.json", "sw-industry-history-status.json"]),
         ("industry-rotation", ["sw_rotation_refresh.py"], ["akshare-sw-industry-rotation.json"]),
         ("akshare-medium-bond", ["akshare_medium_bond_refresh.py"], ["akshare-medium-bond.json"]),
         ("macro-monthly", ["macro_tracking_refresh.py"], ["macro-tracking.json"]),
