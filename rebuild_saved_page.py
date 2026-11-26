@@ -57,6 +57,53 @@ def main():
     medium = broad.broad_market_medium_term_sentiment_snapshot()
     for incoming in medium.get("series", []):
         series[incoming["id"]] = incoming
+    # Reuse the original 80% breadth + 20% CSI RSI model for dependent charts.
+    exact=read(BASE,"rqdata-breadth-sentiment.json")
+    equity=read(BASE,"cloud-market-inputs.json").get("inputs",{}).get("equity",[])
+    price_map={p["date"]:p["value"] for p in equity}
+    aligned=[{**p,"windAll":price_map[p["date"]]} for p in exact.get("points",[]) if p.get("date") in price_map]
+    if aligned:
+        derived=broad.add_price_breadth_diagnostics(broad.blend_breadth_with_rsi(aligned,price_map,rsi_weight=0.20))
+        old_cycle=payload.get("cycleComparison",{})
+        prior={p["date"]:p for p in old_cycle.get("points",[])}
+        overlap=[abs(p["sentiment"]-prior[p["date"]]["sentiment"]) for p in derived if p["date"] in prior][-5:]
+        compatible=not prior or (len(overlap)>=3 and max(overlap)<=0.1)
+        payload["derivedBreadthStatus"]={"asOf":derived[-1]["date"] if derived else None,"compatible":compatible,"recentOverlapMaxError":max(overlap,default=None)}
+        if derived and compatible:
+            cutoff=max(prior,default="")
+            prior.update({p["date"]:p for p in derived if p["date"]>cutoff})
+            points=[prior[d] for d in sorted(prior)]
+            last=points[-1];diagnostics=last.get("diagnostics",{})
+            payload["cycleComparison"]={**old_cycle,"asOf":last["date"],"points":points,
+                "score":last["sentiment"],"phase":last.get("phase"),"phaseLabel":last.get("phaseLabel"),
+                "label":broad.cycle_label(last["sentiment"]),"diagnostics":diagnostics,
+                "sourceMode":"exact","priceLabel":"中证全指",
+                "description":"原规则：全A市场广度80%＋中证全指14日Wilder RSI（三日平滑）20%；保留历史，仅补新增日期。"}
+            sid="price-breadth-divergence"
+            incoming=[{"date":p["date"],"value":p["diagnostics"]["priceBreadthDivergence"]} for p in points if p.get("diagnostics",{}).get("priceBreadthDivergence") is not None]
+            if incoming:
+                old=series.get(sid,{})
+                merged={p["date"]:p for p in old.get("points",[])}
+                merged.update({p["date"]:p for p in incoming if p["date"]>max((v["date"] for v in old.get("points",[])),default="")})
+                series[sid]={**old,"id":sid,"name":"价格—广度背离","unit":"分","source":"原广度诊断规则，核验历史后补算","points":[merged[d] for d in sorted(merged)]}
+            for card in payload["cards"]:
+                if card.get("id")=="breadth-sentiment":
+                    metrics=last.get("metrics",{})
+                    values={"原始市场广度分":last.get("originalBreadthSentiment"),"中证全指 RSI":last.get("rsi14"),
+                        "20日新高家数":metrics.get("newHigh"),"20日新低家数":metrics.get("newLow"),
+                        "新高-新低广度":metrics.get("nhnlBreadth"),"均线上方广度":metrics.get("aboveMaBreadth"),
+                        "60日净新高广度":metrics.get("nhnlBreadth60"),"60日均线上方":metrics.get("aboveMaBreadth60"),
+                        "60日广度确认":diagnostics.get("breadth60Confirmation"),"价格—广度背离":diagnostics.get("priceBreadthDivergence"),
+                        "顶部风险":diagnostics.get("topRisk"),"底部修复":diagnostics.get("bottomRepair"),"有效样本":metrics.get("eligible")}
+                    texts={"周期阶段":str(last.get("phaseLabel",""))+" · "+broad.cycle_label(last["sentiment"]),
+                        "60日状态":str(diagnostics.get("cycleConfirmationLabel",""))+" · "+str(diagnostics.get("breadth60AsOf","")),
+                        "背离状态":str(diagnostics.get("priceBreadthDivergenceLabel",""))+" · "+str(diagnostics.get("priceBreadthAsOf","")),
+                        "前瞻观察":diagnostics.get("leadingSignal","")}
+                    for metric in card.get("submetrics",[]):
+                        label=metric.get("label","")
+                        if label in values:metric["value"]=values[label]
+                        if label in texts:metric.update(value=None,text=texts[label])
+                    card.update(asOf=last["date"],value=last["sentiment"],source="已核验全A广度＋中证全指RSI；沿用原80/20规则")
     # Refresh the ETF card from the same verified points displayed in its chart.
     etf_points=series.get("broad-etf-flow",{}).get("points",[])
     if etf_points:
