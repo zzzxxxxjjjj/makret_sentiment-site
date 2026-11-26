@@ -8,7 +8,6 @@ from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
-from retired_provider import client as rq
 from openpyxl import load_workbook
 
 
@@ -79,36 +78,30 @@ def normalize_price(raw):
 
 
 def latest_completed_month(latest_trading_date):
-    latest = pd.Timestamp(latest_trading_date).date()
-    month_start = latest.replace(day=1)
-    month_end = (pd.Timestamp(month_start) + pd.offsets.MonthEnd(0)).date()
-    month_trading_dates = rq.get_trading_dates(month_start, month_end)
-    month_trading_dates = [
-        item.date() if hasattr(item, "date") else item
-        for item in month_trading_dates
-    ]
-    if month_trading_dates and latest == max(month_trading_dates):
-        return latest
-    return (pd.Timestamp(month_start) - pd.offsets.Day(1)).date()
-
+    latest=pd.Timestamp(latest_trading_date).date()
+    calendar=json.loads((BASE_DIR/"data-freshness.json").read_text(encoding="utf-8"))["tradingCalendar"]
+    sessions=[date.fromisoformat(d) for d in calendar if d[:7]==latest.strftime("%Y-%m")]
+    if not sessions:raise ValueError("Verified month trading calendar missing")
+    if latest==max(sessions):return latest
+    return (pd.Timestamp(latest.replace(day=1))-pd.offsets.Day(1)).date()
 
 def read_hs300_yoy():
-    rq.init()
-    latest = rq.get_latest_trading_date()
-    latest = latest.date() if hasattr(latest, "date") else latest
-    completed_month = latest_completed_month(latest)
-    start = "2015-01-01"
-    raw = rq.get_price(
-        HS300_INDEX,
-        start,
-        completed_month,
-        fields=["close"],
-        adjust_type="none",
-        skip_suspended=False,
-    )
-    prices = normalize_price(raw)
-    if prices.empty:
-        raise RuntimeError("RQData未返回沪深300指数行情")
+    import akshare as ak
+    from completed_session import completed_target
+    from zoneinfo import ZoneInfo
+    from akshare_request_policy import install
+    install()
+    calendar=json.loads((BASE_DIR/"data-freshness.json").read_text(encoding="utf-8"))["tradingCalendar"]
+    latest=completed_target(datetime.now(ZoneInfo("Asia/Shanghai")),calendar)
+    completed_month=latest_completed_month(latest)
+    history=(getattr(ak,"index_hist_csindex",None) or ak.stock_zh_index_hist_csindex)(
+        symbol="000300",start_date="20150101",end_date=completed_month.strftime("%Y%m%d"))
+    prices=history.rename(columns={"日期":"date","收盘":"close"})[["date","close"]].copy()
+    prices["date"]=pd.to_datetime(prices["date"])
+    prices["close"]=pd.to_numeric(prices["close"],errors="coerce")
+    prices=prices.dropna().sort_values("date")
+    if prices.empty or (completed_month-prices["date"].max().date()).days>10:
+        raise ValueError("Incomplete completed-month CSI index history")
     prices["month"] = prices["date"].dt.to_period("M")
     monthly = prices.groupby("month", as_index=False).tail(1).copy()
     monthly["date"] = monthly["date"].dt.date
@@ -127,8 +120,8 @@ def read_hs300_yoy():
         "unit": "%",
         "axis": "right",
         "frequency": "monthly",
-        "source": "RQData",
-        "code": HS300_INDEX,
+        "source": "AKShare / 中证指数官方日收盘价，月末收盘价同比",
+        "code": "000300",
         "points": points,
     }
 
@@ -156,72 +149,14 @@ def read_resident_deposit_points(market_path):
 
 
 def read_all_a_market_cap_to_deposits(market_path):
-    rq.init()
-    latest = rq.get_latest_trading_date()
-    latest = latest.date() if hasattr(latest, "date") else latest
-    completed_month = latest_completed_month(latest)
-    start = "2015-01-01"
-    raw = frame(
-        rq.index_indicator(
-            ALL_A_INDEX,
-            start_date=start,
-            end_date=completed_month,
-            fields=["total_market_value"],
-        )
-    )
-    if raw.empty or "total_market_value" not in raw.columns:
-        return None
-    dt_col = next(
-        (name for name in ("trade_date", "date", "datetime", "trading_date") if name in raw.columns),
-        None,
-    )
-    if dt_col is None:
-        return None
-    raw[dt_col] = pd.to_datetime(raw[dt_col])
-    raw["total_market_value"] = pd.to_numeric(raw["total_market_value"], errors="coerce")
-    raw = raw.dropna(subset=["total_market_value"]).sort_values(dt_col)
-    raw["month"] = raw[dt_col].dt.to_period("M")
-    monthly_cap = raw.groupby("month", as_index=False).tail(1).copy()
-    deposit_points = read_resident_deposit_points(market_path)
-    if not deposit_points:
-        return {
-            "id": "all-a-market-cap-to-household-deposits",
-            "name": "全A总市值/居民部门存款余额",
-            "unit": "倍",
-            "axis": "left",
-            "frequency": "monthly",
-            "source": "RQData全A总市值；居民部门存款余额待接入",
-            "points": [],
-        }
-    deposits = pd.DataFrame(deposit_points)
-    deposits["date"] = pd.to_datetime(deposits["date"])
-    deposits["month"] = deposits["date"].dt.to_period("M")
-    deposits["deposit"] = pd.to_numeric(deposits["value"], errors="coerce")
-    merged = monthly_cap.merge(
-        deposits[["month", "deposit"]],
-        on="month",
-        how="inner",
-    )
-    if merged.empty:
-        return None
-    points = [
-        {
-            "date": row[dt_col].date().isoformat(),
-            "value": round(float(row["total_market_value"]) / float(row["deposit"]), 6),
-        }
-        for _, row in merged.iterrows()
-        if pd.notna(row["total_market_value"]) and pd.notna(row["deposit"]) and float(row["deposit"]) != 0
-    ]
-    return {
-        "id": "all-a-market-cap-to-household-deposits",
-        "name": "全A总市值/居民部门存款余额",
-        "unit": "倍",
-        "axis": "left",
-        "frequency": "monthly",
-        "source": "RQData全A总市值 / 本地居民部门存款余额",
-        "points": points,
-    }
-
+    # No compatible live public numerator/denominator pair is verified; retain dated history.
+    path=BASE_DIR/"macro-tracking.json"
+    if path.exists():
+        old=json.loads(path.read_text(encoding="utf-8"))
+        for item in old.get("series",[]):
+            if item.get("id")=="all-a-market-cap-to-household-deposits":
+                return {**item,"updateNote":"同口径市值与居民存款月度输入尚未齐，保留历史实际日期"}
+    return None
 
 def read_credit(path):
     workbook = load_workbook(path, data_only=True, read_only=True, keep_vba=False)
@@ -320,7 +255,7 @@ def main():
     ]
     notes = [
         "信贷脉冲按Excel百分比格式转换为百分数；PPI保留原始百分数。",
-        "沪深300同比改由RQData读取000300.XSHG日收盘价，取每月最后一个交易日收盘价计算12个月同比。",
+        "沪深300同比使用AKShare中证指数000300日收盘价，取完整月份最后一个交易日收盘价计算12个月同比。",
         "外汇脉冲沿用原表“领先3M”的月份标记，因此尾部可能出现领先月份。",
     ]
     if not cap_deposit or not cap_deposit.get("points"):
@@ -344,12 +279,12 @@ def main():
             },
             {
                 "name": "沪深300",
-                "path": "RQData:000300.XSHG",
+                "path": "AKShare中证指数:000300",
                 "modifiedAt": datetime.now().isoformat(timespec="seconds"),
             },
             {
                 "name": "全A总市值/居民部门存款余额",
-                "path": "RQData:000985.XSHG / 本地居民部门存款余额",
+                "path": "历史市值/存款比例缓存；未新增未验证月度数据",
                 "modifiedAt": datetime.now().isoformat(timespec="seconds"),
             },
         ],
