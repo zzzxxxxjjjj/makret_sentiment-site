@@ -17,6 +17,12 @@ def main():
   for error in part["errors"]:
    code=error["code"]
    if not code.startswith("bj."):remaining.append(error);continue
+   exclusion=next((r for r in read("verified-listing-exclusions.json").get("records",[]) if r["code"]==code and r["announcementDate"]<=target<=r["notListedThrough"]),None)
+   if exclusion:
+    part["universe"].remove(code)
+    part["stocks"].pop(code,None)
+    audit["repairs"].append({**exclusion,"status":"Excluded verified pre-listing subscription code from listed-A-share universe"})
+    continue
    repaired=False
    for method in ("stock_zh_a_hist","stock_zh_a_hist_tx"):
     try:
