@@ -41,7 +41,7 @@ def main():
         raise ValueError("Previous valid page snapshot is required")
     payload = apply_public_inputs(apply_market_data_sync(payload, BASE), BASE)
     series = {s["id"]: s for s in payload["series"]}
-    for filename in ("ifind-index-turnover.json", "akshare-margin-risk.json", "rqdata-breadth-sentiment.json", "public-etf-flow.json"):
+    for filename in ("ifind-index-turnover.json", "akshare-index-turnover.json", "akshare-margin-risk.json", "rqdata-breadth-sentiment.json", "public-etf-flow.json"):
         source = read(BASE, filename)
         for incoming in source.get("series", []):
             if not incoming.get("points"): continue
