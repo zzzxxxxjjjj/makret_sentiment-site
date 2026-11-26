@@ -1,5 +1,5 @@
 """Recover SSE amount PCR using dated contract master and verified historical bars."""
-import json,os,sys,requests
+import json,os,sys,requests,time
 from pathlib import Path
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -45,8 +45,10 @@ def worker(shard,shards):
  cache=ROOT/".option-bar-cache";cache.mkdir(exist_ok=True)
  (ROOT/"option-bar-parts").mkdir(exist_ok=True)
  failures=0
+ deadline=time.monotonic()+float(os.environ.get("SSE_BAR_BUDGET_SECONDS","1200"))
  output={"targetDate":target,"bars":{},"errors":[]}
  for i,code in enumerate(codes):
+  if time.monotonic()>deadline:break
   p=cache/(code+".json")
   if p.exists():
    old=json.loads(p.read_text())
@@ -68,6 +70,7 @@ def worker(shard,shards):
   except Exception as e:
    output["errors"].append({"code":code,"error":type(e).__name__});failures+=1
    if failures>=3:break
+  save("option-bar-parts/shard-"+str(shard)+".json",output)
   if i%10==0:print("option shard",shard,i,len(codes),flush=True)
  save("option-bar-parts/shard-"+str(shard)+".json",output)
 def combine():
