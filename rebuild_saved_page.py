@@ -79,6 +79,9 @@ def main():
         current = read(BASE, filename)
         if current.get("available") and current.get("asOf") == target:
             failures = [name for name in failures if name != stage]
+    etf_status=read(BASE,"etf-share-recovery-status.json")
+    if etf_status.get("ok") and etf_status.get("targetDate")==target:
+        failures=[name for name in failures if name!="etf-shares"]
     errors = [{"source":name, "error":"Daily collection stage failed; actual older dates retained"} for name in failures]
     public = read(BASE, "akshare-public-inputs.json")
     errors.extend(public.get("errors", []))
