@@ -47,6 +47,10 @@ def main():
     calendar = (getattr(ak,'calendar_trade_date_hist_sina',None) or ak.tool_trade_date_hist_sina)()['trade_date'].astype(str).tolist()
     from completed_session import completed_target
     day = os.environ.get('DAILY_TARGET_DATE') or completed_target(now,calendar)
+    # The bulk main-money service is a current-session feed, not a historical selector.
+    # Never label current intraday flows as a previous completed session.
+    if day != now.date().isoformat() or now.hour < 18:
+        raise ValueError("AkShare批量主力资金仅可核验当日收盘；目标日历史个股资金尚未齐，保留原行业日期")
     path = ROOT/'sw-industry-flow.json'
     old = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
     membership_path = ROOT/'sw-flow-members.json'
@@ -81,11 +85,6 @@ def main():
         temporary = membership_path.with_suffix('.tmp')
         temporary.write_text(json.dumps(dict(date=day, members=members), ensure_ascii=False), encoding='utf-8')
         temporary.replace(membership_path)
-    # ETF spot provides a provider-stamped trading date; do not date old flow as today.
-    quote = ak.fund_etf_spot_em()
-    provider_day = max(str(d)[:10] for d in quote['数据日期'])
-    if provider_day != day: raise ValueError('Provider trading date not current')
-    if now.date().isoformat() == day and now.hour < 9: raise ValueError('Before current trading session')
     stocks = (getattr(ak,'stock_fund_flow_individual_rank_em',None) or ak.stock_individual_fund_flow_rank)(indicator='今日')
     import pandas as pd
     numeric = pd.to_numeric(stocks['今日主力净流入-净额'], errors='coerce')
