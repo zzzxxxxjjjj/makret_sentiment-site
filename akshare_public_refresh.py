@@ -77,9 +77,13 @@ def collect(ak, target):
 
     for code, sid, distance, name in INDEXES:
         try:
-            frame = (getattr(ak, "index_hist_csindex", None) or ak.stock_zh_index_hist_csindex)(
-                symbol=code, start_date=tail(sid), end_date=target.replace("-", ""))
-            close = merged(sid, points(frame, "收盘", target))
+            cached=series.get(sid,{}).get("points",[])
+            if cached and cached[-1]["date"]==target:
+                close=cached
+            else:
+                frame = (getattr(ak, "index_hist_csindex", None) or ak.stock_zh_index_hist_csindex)(
+                    symbol=code, start_date=tail(sid), end_date=target.replace("-", ""))
+                close = merged(sid, points(frame, "收盘", target))
             if len(close) < 100:
                 raise ValueError(f"Insufficient price history for {code}")
             put(sid, name, "点", close, f"AKShare / 中证指数 {code} 收盘价")
