@@ -240,6 +240,26 @@ def apply_public_inputs(payload, directory):
                 last = item["points"][-1]
                 card.update(value=last["value"], asOf=last["date"], source=item["source"],
                             percentile=sum(v <= last["value"] for v in history)/len(history)*100)
+        if card.get("id") == "margin-financing":
+            mapping={"融资净流入":"financing-net","融资交易活跃度":"financing-activity","融资余额":"financing-balance"}
+            actual=[]
+            for metric in card.get("submetrics",[]):
+                item=series.get(mapping.get(metric.get("label"),""),{})
+                if item.get("points"):
+                    last=item["points"][-1]
+                    metric.update(value=last["value"],asOf=last["date"])
+                    actual.append(last["date"])
+            if actual:
+                card.update(asOf=min(actual),source="已核验公开融资序列；各分项保留实际日期",
+                            note="融资活跃度为融资买入额占全A成交额比例；融资净流入为余额差分。各分项日期可能不同。")
+        if card.get("id") == "dragon-tiger-net-inflow":
+            item=series.get("dragon-tiger-net-inflow",{})
+            if item.get("points"):
+                last=item["points"][-1]
+                card.update(asOf=last["date"],value=last["value"],source=item.get("source"))
+                for metric in card.get("submetrics",[]):
+                    if "20" in metric.get("label",""):metric["value"]=last["value"]
+                    elif "股票数" in metric.get("label",""):metric["value"]=None
         if card.get("id") == "ma-distance":
             keys = ["sh-ma100", "hs300-ma100", "windall-ma100"]
             rows = [series.get(k, {}) for k in keys]
