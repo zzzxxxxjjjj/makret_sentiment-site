@@ -94,6 +94,13 @@ def read_hs300_yoy():
     calendar=json.loads((BASE_DIR/"data-freshness.json").read_text(encoding="utf-8"))["tradingCalendar"]
     latest=completed_target(datetime.now(ZoneInfo("Asia/Shanghai")),calendar)
     completed_month=latest_completed_month(latest)
+    saved=BASE_DIR/"macro-tracking.json"
+    if saved.exists():
+        old=json.loads(saved.read_text(encoding="utf-8"))
+        prior=next((s for s in old.get("series",[]) if s.get("id")=="hs300-yoy"),{})
+        last=max((p["date"] for p in prior.get("points",[])),default="")
+        if "AKShare" in prior.get("source","") and last[:7]==completed_month.strftime("%Y-%m"):
+            return prior
     history=(getattr(ak,"index_hist_csindex",None) or ak.stock_zh_index_hist_csindex)(
         symbol="000300",start_date="20150101",end_date=completed_month.strftime("%Y%m%d"))
     prices=history.rename(columns={"日期":"date","收盘":"close"})[["date","close"]].copy()
