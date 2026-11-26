@@ -5,22 +5,120 @@ on:
     paths: ['.github/workflows/akshare-replacements.yml']
 permissions:
   contents: write
+  actions: read
+concurrency:
+  group: akshare-replacements
+  cancel-in-progress: false
 jobs:
-  recover:
+  core:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 9
+    env: {PYTHONUNBUFFERED: '1'}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: python -m pip install -r requirements-daily.txt
-      - run: python akshare_replacement_probe.py
+      - run: python akshare_replacements_refresh.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: akshare-core-replacements
+          retention-days: 3
+          path: |
+            akshare-index-turnover.json
+            akshare-index-turnover-status.json
+            akshare-medium-bond.json
+            akshare-replacement-status.json
+  stock-plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env: {PYTHONUNBUFFERED: '1'}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install -r requirements-daily.txt
+      - run: python public_stock_snapshot_refresh.py plan
+      - uses: actions/upload-artifact@v4
+        with:
+          name: public-snapshot-plan
+          path: public-snapshot-plan.json
+          retention-days: 3
+  beijing:
+    needs: stock-plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix: {shard: [0,1,2,3,4,5]}
+    env: {PYTHONUNBUFFERED: '1'}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install -r requirements-daily.txt
+      - uses: actions/download-artifact@v4
+        with: {name: public-snapshot-plan}
+      - uses: actions/cache@v4
+        with:
+          path: .daily-cache
+          key: public-snapshot-${{ matrix.shard }}-${{ github.run_id }}
+          restore-keys: public-snapshot-${{ matrix.shard }}-
+      - run: python public_stock_snapshot_refresh.py ${{ matrix.shard }} 6
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-snapshot-part-${{ matrix.shard }}
+          path: public-snapshot-part-*.json
+          retention-days: 3
+  publish:
+    needs: [core,stock-plan,beijing]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env: {PYTHONUNBUFFERED: '1'}
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          git fetch origin main
+          git reset --hard origin/main
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install -r requirements-daily.txt
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with: {name: akshare-core-replacements}
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with: {name: public-snapshot-plan}
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: public-snapshot-part-*
+          merge-multiple: true
+      - name: Verify dated full-market coverage
+        continue-on-error: true
+        run: |
+          if [ -f public-snapshot-plan.json ]; then python public_stock_snapshot_refresh.py combine; fi
+      - name: Refresh public aggregate indicators
+        continue-on-error: true
+        run: python akshare_public_refresh.py --sources-only
+      - name: Retry public SW flow only
+        continue-on-error: true
+        run: timeout 180 python sw_flow_refresh.py
+      - run: |
+          python rebuild_saved_page.py
+          python build_static_site.py
       - if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- akshare-replacement-probe.json
+          for f in akshare-index-turnover.json akshare-index-turnover-status.json akshare-medium-bond.json akshare-replacement-status.json akshare-stock-snapshot.json akshare-stock-snapshot-status.json akshare-public-inputs.json sw-industry-flow.json sw-flow-members.json broad-sentiment-page-cache.json data-freshness.json; do
+            if [ -f "$f" ]; then git add -- "$f"; fi
+          done
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Record public AkShare replacement availability'
+          git commit -m 'Publish verified public replacements and preserve real source dates'
           git -c rebase.autoStash=true pull --rebase origin main
           git push origin HEAD:main
