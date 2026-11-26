@@ -10,6 +10,8 @@ def main():
  from akshare_request_policy import install
  install()
  target=os.environ["DAILY_TARGET_DATE"]
+ if read("rqdata-breadth-sentiment.json").get("asOf","")>=target:
+  print("Breadth already current for cached target",target,flush=True);return
  audit={"targetDate":target,"repairs":[]}
  listing=None
  for path in (ROOT/"breadth-parts").rglob("*.json.gz"):
