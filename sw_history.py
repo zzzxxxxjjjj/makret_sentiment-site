@@ -23,6 +23,9 @@ def write(path, data):
 def collect(shard):
     import akshare as ak
     import requests
+    from sw_flow_api import history as stock_history
+    from akshare_request_policy import install
+    install()
     original = requests.sessions.Session.request
     def bounded(self, method, url, **kwargs):
         kwargs['timeout'] = 12
@@ -33,7 +36,7 @@ def collect(shard):
     if len(members) != 30: raise ValueError('Expected 30 SW industries')
     now = datetime.now(ZoneInfo('Asia/Shanghai'))
     limit = now.date() if now.hour >= 18 else now.date()-timedelta(days=1)
-    calendar = sorted(str(d) for d in ak.tool_trade_date_hist_sina()['trade_date'])
+    calendar = sorted(str(d) for d in (getattr(ak,'calendar_trade_date_hist_sina',None) or ak.tool_trade_date_hist_sina)()['trade_date'])
     dates = [d for d in calendar if d <= limit.isoformat()][-20:]
     if len(dates) != 20: raise ValueError('Incomplete calendar')
     group = members[shard::6]
@@ -43,7 +46,7 @@ def collect(shard):
         errors = []
         for attempt in range(3):
             try:
-                df = ak.stock_individual_fund_flow(stock=code, market=market)
+                df = stock_history(ak,code,market)
                 values = {}
                 invalid = 0
                 for row in df.to_dict('records'):
