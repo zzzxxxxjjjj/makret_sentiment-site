@@ -54,6 +54,8 @@ def worker(provider,shard,shards):
   install()
   master=sorted({str(r["代码"]) for r in read("ifind-stock-snapshot.json").get("rows",[]) if str(r["代码"]).startswith(("43","83","87","88","92"))})
   if len(master)<200:raise ValueError("No verified Beijing universe")
+  exclusions={r["code"].split(".")[1] for r in read("verified-listing-exclusions.json").get("records",[]) if r["announcementDate"]<=target<=r["notListedThrough"]}
+  master=[c for c in master if c not in exclusions]
   codes=master[shard::shards];output["universe"]=["bj."+c for c in codes]
   em_failures=0
   for i,c in enumerate(codes):
