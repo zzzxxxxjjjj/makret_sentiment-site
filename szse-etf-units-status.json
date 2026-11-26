@@ -1,1 +1,1 @@
-{"targetDate": "2026-11-25", "startDate": "2026-11-18", "source": "AKShare fund_scale_daily_szse", "ok": true, "rows": 4668, "dates": ["2026-11-18", "2026-11-19", "2026-11-20", "2026-11-23", "2026-11-24", "2026-11-25"], "codes": 781, "columns": ["日期", "基金代码", "基金简称", "基金份额"]}
+{"targetDate": "2026-11-26", "startDate": "2026-11-25", "source": "AKShare fund_scale_daily_szse", "ok": true, "rows": 1564, "dates": ["2026-11-25", "2026-11-26"], "codes": 782, "columns": ["日期", "基金代码", "基金简称", "基金份额"]}

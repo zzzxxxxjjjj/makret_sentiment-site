@@ -1,1 +1,1 @@
-{"targetDate": "2026-11-25", "checkedAt": "2026-11-26T04:24:22.288665+08:00", "results": [{"id": "institutional-buy", "ok": true, "detail": {"asOf": "2026-11-25", "days": 1}}, {"id": "lhb-net-20d", "ok": true, "detail": {"asOf": "2026-11-25", "count": 11}}]}
+{"targetDate": "2026-11-26", "checkedAt": "2026-11-27T04:03:33.491817+08:00", "results": [{"id": "institutional-buy", "ok": true, "detail": {"asOf": "2026-11-26", "days": 1}}, {"id": "lhb-net-20d", "ok": true, "detail": {"asOf": "2026-11-26", "count": 12}}]}
