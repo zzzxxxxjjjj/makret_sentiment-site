@@ -28,3 +28,20 @@ def without_northbound(value):
             result.append(without_northbound(item))
         return result
     return value
+
+_PCR_RETIRED = re.compile(r"^pcr-(?:amount|volume)(?:-|$)")
+def position_pcr_only(value):
+    """Retire trade PCR from publication; preserve raw saved inputs and model history."""
+    if isinstance(value,list):
+        return [position_pcr_only(item) for item in value
+                if not (isinstance(item,dict) and _PCR_RETIRED.match(str(item.get("id",item.get("key","")))))
+                and not (isinstance(item,str) and _PCR_RETIRED.match(item))]
+    if isinstance(value,dict):
+        result={key:position_pcr_only(item) for key,item in value.items()}
+        if isinstance(result.get("entries"),list) and "dailyCount" in result:
+            daily=[e for e in result["entries"] if e.get("frequency")=="daily"]
+            lagging=[e for e in daily if not e.get("current")]
+            result.update(dailyCount=len(daily),currentDailyCount=len(daily)-len(lagging),
+                          laggingDaily=lagging,allDailyCurrent=bool(daily) and not lagging)
+        return result
+    return value
