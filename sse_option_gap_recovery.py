@@ -101,9 +101,11 @@ def combine():
    try:
     rows=[r for r in master if r["under"]==under]
     sums={side:{"volume":0.,"amount":0.} for side in ("C","P")}
+    missing=[]
     for row in rows:
      bar=bars.get(row["code"],{}).get(day)
-     if not bar:raise ValueError("Missing contract/day "+row["code"])
+     if not bar:
+      missing.append(row["code"]);continue
      for metric in ("volume","amount"):sums[row["side"]][metric]+=bar[metric]
     expected=config["expected"][day][under]
     if sums["C"]["volume"]!=expected["callVolume"] or sums["P"]["volume"]!=expected["putVolume"]:raise ValueError("Contract volume totals differ from exchange")
@@ -114,7 +116,7 @@ def combine():
     item=series.setdefault(sid,{"id":sid,"unit":"倍","points":[]})
     points={p["date"]:p for p in item["points"]};points[day]={"date":day,"value":round(sums["P"]["amount"]/sums["C"]["amount"],6)}
     item.update(points=[points[d] for d in sorted(points)],source="AkShare上交所日期合约清单＋东方财富历史成交额；核对交易所成交量及总成交额")
-    status["days"].append({"date":day,"underlying":under,"ok":True,"contracts":len(rows)})
+    status["days"].append({"date":day,"underlying":under,"ok":True,"contracts":len(rows),"zeroVolumeContractsVerifiedByOfficialTotals":missing})
    except Exception as e:status["days"].append({"date":day,"underlying":under,"ok":False,"error":str(e)})
  payload.update(series=list(series.values()))
  save("akshare-options-pcr.json",payload);save("sse-option-gap-status.json",status);print(status,flush=True)
