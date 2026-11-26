@@ -8,5 +8,15 @@
       "https://static.cninfo.com.cn/finalpage/2026-11-17/1225673171.PDF",
       "https://www.cfi.net.cn/p20261119001246.html"
     ]
+  },
+  "563280": {
+    "status": "suspended-for-liquidation",
+    "inactiveFrom": "2026-11-24",
+    "liquidationFrom": "2026-11-25",
+    "reason": "管理人公告确认11月24日起停牌，11月25日表决结果公告确认进入清算。保留历史行情，不要求继续返回交易日行情或构造净流入。",
+    "sources": [
+      "https://www.sse.com.cn/disclosure/fund/announcement/c/new/2026-11-23/563280_20261123_XE2K.pdf",
+      "https://www.fullgoal.com.cn/noticedetails/1106934/index.html"
+    ]
   }
 }
