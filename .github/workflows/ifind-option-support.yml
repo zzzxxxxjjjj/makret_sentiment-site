@@ -1,0 +1,29 @@
+name: Verify iFind option amount access
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/ifind-option-support.yml']
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check account and option query
+        env:
+          IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
+        run: python ifind_option_support_probe.py
+      - name: Save sanitized support result
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ifind-option-support-status.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Record current iFind option access verification"
+          git pull --rebase origin main
+          git push
