@@ -11,7 +11,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from market_data_sync import apply_market_data_sync
-from publication_filters import without_northbound
+from publication_filters import without_northbound, position_pcr_only
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -209,7 +209,7 @@ def build():
     output["deployment-info.json"] = json.dumps(manifest, ensure_ascii=False, indent=2)
     for name, content in list(output.items()):
         if name.endswith(".json"):
-            output[name] = json.dumps(without_northbound(json.loads(content)), ensure_ascii=False, allow_nan=False)
+            output[name] = json.dumps(position_pcr_only(without_northbound(json.loads(content))), ensure_ascii=False, allow_nan=False)
     validate_output(output)
 
     destination = BASE_DIR / "dist"
