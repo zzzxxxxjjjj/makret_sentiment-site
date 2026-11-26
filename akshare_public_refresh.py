@@ -132,6 +132,8 @@ def collect(ak, target):
                 merged[target] = {"date": target, "value": value}
                 put(sid, name, unit, [merged[d] for d in sorted(merged)],
                     spot_source+"；沪深北A股有成交样本；早期历史保留原数据")
+                if sid=="market-turnover":
+                    put("windall-turnover","全A等权换手率","%",[merged[d] for d in sorted(merged)],spot_source+"；全A有成交样本等权平均")
         except Exception as exc:
             errors.append({"source": "all-share-closing-snapshot", "error": str(exc)[:240]})
 
