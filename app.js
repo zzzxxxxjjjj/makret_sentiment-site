@@ -115,13 +115,9 @@ const comparisonGroups={
     {key:'alla-turnover-amount',label:'两市成交额',unit:'万亿元',valueDivisor:10000,type:'line',exactDates:true,lineColor:'#46d6b2',overlays:amountBandLines,description:'中证全指口径全A成交额；120个交易日均线，上下1倍标准差为黄色虚线，上下2倍为紫色虚线。标准差按同一120日窗口计算（总体），满120个有效交易日后显示。'},
     {key:'top5-concentration',label:'成交额前5%占比',unit:'%'},
     {key:'pcr-oi-ma3-sz50',label:'上证50持仓量PCR MA3',unit:'倍'},
-    {key:'pcr-amount-volume-ma3-sz50',label:'上证50 PCR价量比 MA3（正向）',unit:'倍',description:'成交额PCR ÷ 成交量PCR的倒数'},
     {key:'pcr-oi-ma3-hs300',label:'沪深300持仓量PCR MA3',unit:'倍'},
-    {key:'pcr-amount-volume-ma3-hs300',label:'沪深300 PCR价量比 MA3（正向）',unit:'倍',description:'成交额PCR ÷ 成交量PCR的倒数'},
     {key:'pcr-oi-ma3-csi1000',label:'中证1000持仓量PCR MA3',unit:'倍'},
-    {key:'pcr-amount-volume-ma3-csi1000',label:'中证1000 PCR价量比 MA3（正向）',unit:'倍',description:'成交额PCR ÷ 成交量PCR的倒数'},
     {key:'pcr-oi-ma3-star50',label:'科创50持仓量PCR MA3',unit:'倍'},
-    {key:'pcr-amount-volume-ma3-star50',label:'科创50 PCR价量比 MA3（正向）',unit:'倍',description:'成交额PCR ÷ 成交量PCR的倒数'},
   ],
   funds:[
     {key:'financing-activity',label:'全A融资买入额占比',unit:'%'},
@@ -297,11 +293,8 @@ function renderDerivatives(series){
   const seriesMap=new Map((series||[]).map(item=>[item.id,item]));
   const indexKeys=['sz50','hs300','csi1000','star50'];
   const oiLines=indexKeys.map(key=>pcrLine(seriesMap,'oi-ma3',key)).filter(Boolean);
-  const tradeLines=indexKeys.map(key=>pcrLine(seriesMap,'amount-volume-ma3',key)).filter(Boolean);
   drawDerivativesChart('derivativesOiChart','derivativesOiEmpty','derivativesOiAsOf',oiLines);
-  drawDerivativesChart('derivativesTradeChart','derivativesTradeEmpty','derivativesTradeAsOf',tradeLines);
   el('derivativesOiLegend').innerHTML=oiLines.map(line=>`<span><i class="${line.dashed?'dashed':''}" style="--legend-color:${MC(line.color)}"></i>${escapeHtml(line.label)}</span>`).join('');
-  el('derivativesTradeLegend').innerHTML=tradeLines.map(line=>`<span><i class="${line.dashed?'dashed':''}" style="--legend-color:${MC(line.color)}"></i>${escapeHtml(line.label)}</span>`).join('');
 }
 
 function drawDerivativesChart(canvasId,emptyId,asOfId,lines,forceZero=false){
