@@ -129,7 +129,14 @@ def collect(ak, target):
                 old = next((s.get("points", []) for s in baseline.get("series", []) if s["id"] == sid), [])
                 existing = series.get(sid, {}).get("points", [])
                 merged = {p["date"]: p for p in old + existing}
-                merged[target] = {"date": target, "value": value}
+                recovered=read("akshare-stock-snapshot-status.json")
+                incoming=recovered.get("metrics",{}).get(sid,[]) if recovered.get("complete") and recovered.get("targetDate")==target else [{"date":target,"value":value}]
+                overlap=[abs(p["value"]-merged[p["date"]]["value"])/max(abs(merged[p["date"]]["value"]),1e-8) for p in incoming if p["date"] in merged]
+                if overlap and max(overlap)>.001:
+                    errors.append({"source":sid,"error":"公开新源与原历史重叠值差异超过0.1%，未混接；需独立历史重算"})
+                    continue
+                cutoff=max(merged,default="")
+                merged.update({p["date"]:p for p in incoming if p["date"]>cutoff})
                 put(sid, name, unit, [merged[d] for d in sorted(merged)],
                     spot_source+"；沪深北A股有成交样本；早期历史保留原数据")
                 if sid=="market-turnover":
