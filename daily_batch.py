@@ -28,6 +28,8 @@ def run_stage(name, command, target, outputs=()):
     code = hashlib.sha256("".join(str(digest(p)) for p in ([ROOT/command[0],ROOT/"requirements-daily.txt"] if name not in {"build","page-rebuild"} else sorted(ROOT.glob("*.py")))).encode()).hexdigest()
     if command[0] in {"akshare_public_refresh.py","akshare_medium_inputs.py","akshare_margin_risk.py","akshare_options_refresh.py","etf_market_refresh.py","etf_weekly_relative_flow.py","sw_flow_refresh.py","sw_rotation_refresh.py"}:
         code=hashlib.sha256((code+str(digest(ROOT/"akshare_request_policy.py"))).encode()).hexdigest()
+    if name=="etf-shares":
+        code=hashlib.sha256((code+str(digest(ROOT/"szse_etf_units_refresh.py"))+str(digest(ROOT/"akshare_request_policy.py"))+str(digest(ROOT/"rqdata_refresh.py"))).encode()).hexdigest()
     hashes = {p: digest(ROOT / p) for p in outputs}
     if name in {"build", "page-rebuild"}:
         hashes["inputs"] = hashlib.sha256("".join(str(digest(p)) for p in sorted(ROOT.glob("*.json")) if p.name != "daily-update-status.json").encode()).hexdigest()
@@ -73,6 +75,7 @@ def main():
     os.environ["RQDATA_AS_OF"] = target
     os.environ["DEFER_DASHBOARD_BUILD"] = "1"
     tasks = [
+        ("etf-shares", ["etf_share_public_recovery.py"], ["etf-net-subscription.json", "etf-shares-history.json", "public-etf-flow.json", "etf-share-recovery-status.json"]),
         ("options", ["akshare_options_refresh.py"], ["akshare-options-pcr.json"]),
         ("cffex-options", ["option_gap_recovery.py"], ["akshare-options-pcr.json", "option-gap-recovery-status.json"]),
         ("ifind-turnover", ["ifind_index_turnover_refresh.py"], ["ifind-index-turnover.json"]),
@@ -84,7 +87,6 @@ def main():
         ("medium-matching-inputs", ["public_recovery.py", "--medium-only"], ["medium-input-audit.json", "cloud-market-inputs.json"]),
         ("margin", ["akshare_margin_risk.py"], ["akshare-margin-risk.json"]),
         ("etf", ["etf_market_refresh.py"], ["etf-market.json"]),
-        ("etf-shares", ["etf_share_public_recovery.py"], ["etf-net-subscription.json", "etf-shares-history.json"]),
         ("etf-weekly", ["etf_weekly_relative_flow.py"], ["etf-weekly-relative-flow.json"]),
         ("industry-flow", ["sw_flow_refresh.py"], ["sw-industry-flow.json"]),
         ("industry-rotation", ["sw_rotation_refresh.py"], ["akshare-sw-industry-rotation.json"]),
