@@ -24,7 +24,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for f in remaining-final-checks.json etf-market.json broad-sentiment-page-cache.json data-freshness.json; do
+          for f in remaining-final-checks.json macro-tracking.json etf-market.json broad-sentiment-page-cache.json data-freshness.json; do
             if [ -f "$f" ]; then git add -- "$f"; fi
           done
           if git diff --cached --quiet; then exit 0; fi
