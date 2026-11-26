@@ -64,13 +64,18 @@ def worker(shard,shards):
  for i,code in enumerate(codes):
   if time.monotonic()>deadline:break
   p=cache/(code+".json")
+  wanted={day for day,rows in config["master"].items() if any(r["code"]==code for r in rows)}
+  known={}
   if p.exists():
    old=json.loads(p.read_text())
-   if old.get("targetDate")==target:output["bars"][code]=old["bars"];continue
+   known={day:bar for day,bar in old.get("bars",{}).items() if day in wanted}
+  if known:output["bars"][code]=known
+  if wanted<=known.keys():continue
+  missing_days=wanted-known.keys()
   try:
-   data=requests.get("https://push2his.eastmoney.com/api/qt/stock/kline/get",params={"secid":"10."+code,"klt":"101","fqt":"0","beg":days[0].replace("-",""),"end":target.replace("-",""),"fields1":"f1,f2,f3,f4,f5,f6","fields2":"f51,f52,f53,f54,f55,f56,f57"},timeout=(8,25)).json()
+   data=requests.get("https://push2his.eastmoney.com/api/qt/stock/kline/get",params={"secid":"10."+code,"klt":"101","fqt":"0","beg":min(missing_days).replace("-",""),"end":target.replace("-",""),"fields1":"f1,f2,f3,f4,f5,f6","fields2":"f51,f52,f53,f54,f55,f56,f57"},timeout=(8,25)).json()
    raw=(data.get("data") or {}).get("klines") or []
-   bars={}
+   bars=dict(known);received_new=False
    for line in raw:
     fields=line.split(",");day=fields[0]
     if day not in days:continue
@@ -78,7 +83,8 @@ def worker(shard,shards):
     volume,amount=float(fields[5]),float(fields[6])
     if volume<0 or amount<0:raise ValueError("Negative contract amount")
     bars[day]={"volume":volume,"amount":amount}
-   if not bars:raise ValueError("Empty contract daily bars")
+    if day in missing_days:received_new=True
+   if not received_new:raise ValueError("No missing contract session returned")
    failures=0
    output["bars"][code]=bars;p.write_text(json.dumps({"targetDate":target,"bars":bars}),encoding="utf-8")
   except Exception as e:
