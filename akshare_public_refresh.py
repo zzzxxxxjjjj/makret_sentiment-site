@@ -228,7 +228,7 @@ def apply_public_inputs(payload, directory):
     for card in payload.get("cards", []):
         if card.get("id") in {"market-turnover", "top5-concentration"}:
             item = series.get(card["id"], {})
-            if item.get("source", "").startswith(("AKShare","iFind")) and item.get("points"):
+            if item.get("source", "").lower().startswith(("akshare","ifind","baostock")) and item.get("points"):
                 history = [p["value"] for p in item["points"][-250:]]
                 last = item["points"][-1]
                 card.update(value=last["value"], asOf=last["date"], source=item["source"],
