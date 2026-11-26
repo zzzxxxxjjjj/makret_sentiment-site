@@ -1,6 +1,8 @@
 name: Repair cached breadth listing universe
 on:
   workflow_dispatch:
+  push:
+    paths: ['.github/workflows/breadth-listing-repair.yml']
   workflow_run:
     workflows: ['Retry remaining cloud datasets']
     types: [completed]
