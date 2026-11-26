@@ -33,7 +33,7 @@ def main():
  def entry(day):return entries.setdefault(day,{"date":day,"shares":{},"close":{}})
  def merge_units(day,code,units,name,provider):
   e=entry(day);e.setdefault("shares",{})[code]=units;e.setdefault("verifiedUnits",{})[code]=provider
-  if name:names[code]=name
+  if name and not names.get(code):names[code]=name
  # Import all dated SZSE records, not a realtime snapshot.
  from szse_etf_units_refresh import main as szse
  cached=read("szse-etf-dated-units.json")
