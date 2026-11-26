@@ -37,7 +37,7 @@ jobs:
           import ast, hashlib, importlib.util, json, pathlib, yaml
           assert importlib.util.find_spec('rqdatac') is None
           before={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in pathlib.Path('.').rglob('*') if p.suffix.lower() in ('.json','.csv','.xlsx','.xlsm') and '.git' not in p.parts}
-          for name in ('daily_batch.py','broad_sentiment.py','completed_session.py','akshare_options_refresh.py','market_data_sync.py','cloud_display.py','sw_flow_refresh.py'): ast.parse(pathlib.Path(name).read_text(encoding='utf-8-sig'))
+          for name in ('daily_batch.py','broad_sentiment.py','completed_session.py','akshare_options_refresh.py','market_data_sync.py','cloud_display.py','sw_flow_refresh.py','akshare_index_turnover_refresh.py','akshare_medium_bond_refresh.py','akshare_stock_fallback.py','public_stock_snapshot_refresh.py'): ast.parse(pathlib.Path(name).read_text(encoding='utf-8-sig'))
           for p in pathlib.Path('.github/workflows').glob('*.yml'): yaml.safe_load(p.read_text())
           import daily_batch as d
           from unittest.mock import patch
@@ -51,7 +51,8 @@ jobs:
               clock.now.return_value=datetime(2026,11,23,19,tzinfo=ZoneInfo('Asia/Shanghai'))
               d.main()
           assert ['akshare_public_refresh.py','--sources-only'] in commands
-          assert any(c[0] in {'akshare_medium_bond_refresh.py','ifind_medium_bond_refresh.py'} for c in commands)
+          assert ['akshare_medium_bond_refresh.py'] in commands
+          assert ['akshare_index_turnover_refresh.py'] in commands
           if ['akshare_medium_bond_refresh.py'] in commands:
               assert not any(c[0] in {'ifind_medium_bond_refresh.py','ifind_index_turnover_refresh.py'} for c in commands)
           assert not any(c[0] in ('cloud_daily_update.py','sw_valuation_rotation.py','position_refresh.py') for c in commands)
