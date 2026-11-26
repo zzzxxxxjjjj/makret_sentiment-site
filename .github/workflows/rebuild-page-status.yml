@@ -33,6 +33,9 @@ jobs:
           print('Derived breadth audit:',payload.get('derivedBreadthStatus'))
           assert payload.get('derivedBreadthStatus',{}).get('compatible') is True
           assert payload['cycleComparison']['asOf']=='2026-11-24'
+          cards={c['id']:c for c in payload['cards']}
+          assert cards['market-turnover']['asOf']=='2026-11-25'
+          assert cards['top5-concentration']['asOf']=='2026-11-25'
           assert report['allDailyCurrent'] is False
           for name,digest in before.items(): assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==digest,name
           print('Historical source files unchanged; report retains real gaps')
