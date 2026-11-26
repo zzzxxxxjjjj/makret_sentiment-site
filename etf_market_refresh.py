@@ -47,6 +47,13 @@ def update_history(value):
     if HISTORY_FILE.exists():
         history = json.loads(HISTORY_FILE.read_text(encoding='utf-8'))
     history.setdefault('entries', [])
+    # A realtime snapshot must not discard verified exchange units or their provenance.
+    saved = next((e for e in history['entries'] if e.get('date') == as_of), {})
+    verified = saved.get('verifiedUnits', {})
+    for code in verified:
+        entry['shares'][code] = saved['shares'][code]
+    entry['verifiedUnits'] = verified
+    entry['close'] = {**saved.get('close', {}), **{k:v for k,v in entry['close'].items() if v is not None}}
     history['entries'] = [e for e in history['entries'] if e.get('date') != as_of]
     history['entries'].append(entry)
     history['entries'].sort(key=lambda entry: entry['date'])
