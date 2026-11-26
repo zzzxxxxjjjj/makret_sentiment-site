@@ -3,6 +3,7 @@ import argparse
 import copy
 import json
 import os
+import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -17,6 +18,16 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--target")
     args = parser.parse_args()
+    # An unchanged older artifact must never roll back a newer committed breadth recovery.
+    try:
+        committed=json.loads(subprocess.check_output(["git","show","HEAD:rqdata-breadth-sentiment.json"],cwd=BASE,stderr=subprocess.DEVNULL,timeout=10))
+        working=read(BASE,"rqdata-breadth-sentiment.json")
+        if committed.get("asOf","")>working.get("asOf",""):
+            (BASE/"rqdata-breadth-sentiment.json").write_text(json.dumps(committed,ensure_ascii=False),encoding="utf-8")
+            status=json.loads(subprocess.check_output(["git","show","HEAD:breadth-public-status.json"],cwd=BASE,stderr=subprocess.DEVNULL,timeout=10))
+            (BASE/"breadth-public-status.json").write_text(json.dumps(status,ensure_ascii=False),encoding="utf-8")
+    except (OSError,ValueError,subprocess.SubprocessError):
+        pass
     previous = read(BASE, "data-freshness.json")
     calendar = previous.get("tradingCalendar", [])
     now = datetime.now(ZoneInfo("Asia/Shanghai"))
