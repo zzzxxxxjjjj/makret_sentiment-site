@@ -30,7 +30,7 @@ def main():
         raise ValueError("Previous valid page snapshot is required")
     payload = apply_public_inputs(apply_market_data_sync(payload, BASE), BASE)
     series = {s["id"]: s for s in payload["series"]}
-    for filename in ("ifind-index-turnover.json", "akshare-margin-risk.json", "rqdata-breadth-sentiment.json"):
+    for filename in ("ifind-index-turnover.json", "akshare-margin-risk.json", "rqdata-breadth-sentiment.json", "public-etf-flow.json"):
         source = read(BASE, filename)
         for incoming in source.get("series", []):
             if not incoming.get("points"): continue
@@ -46,6 +46,19 @@ def main():
     medium = broad.broad_market_medium_term_sentiment_snapshot()
     for incoming in medium.get("series", []):
         series[incoming["id"]] = incoming
+    # Refresh the ETF card from the same verified points displayed in its chart.
+    etf_points=series.get("broad-etf-flow",{}).get("points",[])
+    if etf_points:
+        values={p["date"]:p["value"] for p in etf_points}
+        last=max(values)
+        for card in payload["cards"]:
+            if card.get("id")=="broad-etf-flow":
+                card.update(asOf=last,value=values[last],source=series["broad-etf-flow"].get("source"))
+                for metric in card.get("submetrics",[]):
+                    label=metric.get("label","")
+                    window=5 if "5" in label else 20 if "20" in label else 1
+                    dates=[d for d in calendar if d<=last][-window:]
+                    metric["value"]=sum(values[d] for d in dates) if len(dates)==window and all(d in values for d in dates) else None
     payload["series"] = list(series.values())
     payload["generatedAt"] = now.isoformat(timespec="seconds")
     payload["rebuildTargetDate"] = target
