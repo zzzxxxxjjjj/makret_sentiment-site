@@ -91,6 +91,7 @@ def main():
         ("industry-flow", ["sw_flow_refresh.py"], ["sw-industry-flow.json"]),
         ("industry-rotation", ["sw_rotation_refresh.py"], ["akshare-sw-industry-rotation.json"]),
         ("ifind-medium-bond", ["ifind_medium_bond_refresh.py"], ["ifind-medium-bond.json"]),
+        ("macro-monthly", ["macro_tracking_refresh.py"], ["macro-tracking.json"]),
     ]
     if os.environ.get("AIDO_API_KEY"):
         tasks += [
