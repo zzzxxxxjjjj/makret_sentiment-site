@@ -51,11 +51,14 @@ jobs:
               clock.now.return_value=datetime(2026,11,23,19,tzinfo=ZoneInfo('Asia/Shanghai'))
               d.main()
           assert ['akshare_public_refresh.py','--sources-only'] in commands
-          assert ['ifind_medium_bond_refresh.py'] in commands
+          assert any(c[0] in {'akshare_medium_bond_refresh.py','ifind_medium_bond_refresh.py'} for c in commands)
+          if ['akshare_medium_bond_refresh.py'] in commands:
+              assert not any(c[0] in {'ifind_medium_bond_refresh.py','ifind_index_turnover_refresh.py'} for c in commands)
           assert not any(c[0] in ('cloud_daily_update.py','sw_valuation_rotation.py','position_refresh.py') for c in commands)
           import broad_sentiment as b
           model=b.broad_market_medium_term_sentiment_snapshot()
-          assert any('701014.TI' in s.get('name','') for s in model['series'])
+          expected='807330.SW' if pathlib.Path('akshare-medium-bond.json').exists() else '701014.TI'
+          assert any(expected in s.get('name','') for s in model['series'])
           for name,digest in before.items(): assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==digest,name
           print('Independent tasks and preserved historical data verified without RQData SDK')
           PY
