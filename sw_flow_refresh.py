@@ -112,7 +112,7 @@ def main():
     stamp = now.strftime('%H:%M') if now.date().isoformat() == day else '收盘快照'
     points = old.get('snapshots', [])
     points = [p for p in points if not (p['date'] == day and p['time'] == stamp)]
-    points.append(dict(date=day, time=stamp, rows=rows))
+    points.append(dict(date=day, time=stamp, rows=rows, completedSession=True, source='AKShare申万成分股＋东方财富个股主力净流入汇总', membershipDate=day))
     days = sorted({p['date'] for p in points})[-20:]
     points = [p for p in points if p['date'] in days]
     value = dict(available=True, asOf=day, collectedAt=now.isoformat(), classification='申万2021一级行业（剔除综合）',
