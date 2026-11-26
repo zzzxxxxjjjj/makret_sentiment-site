@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>A股宽基情绪指标</title>
-  <link rel="stylesheet" href="/styles.css?v=20261016-position">
+  <link rel="stylesheet" href="/styles.css?v=20261126-pcr-placement">
   <link rel="stylesheet" href="/cycle.css?v=20261016-flowbar">
 </head>
 <body>
@@ -112,8 +112,7 @@
         </div>
       </div>
       <div id="momentumChartGrid" class="indicator-chart-grid" aria-live="polite"></div>
-      <div class="derivatives-chart-grid">
-        <article class="derivatives-chart-card">
+        <article id="derivativesOiCard" class="derivatives-chart-card">
           <div class="derivatives-chart-head">
             <div>
               <h3>持仓量认沽认购比率</h3>
@@ -127,8 +126,6 @@
           </div>
           <div id="derivativesOiLegend" class="derivatives-legend"></div>
         </article>
-
-      </div>
     </section>
 
     <section class="indicator-section" id="fundDimensionCharts">
@@ -145,6 +142,6 @@
   </main>
 
   <footer><span>数据用于市场观察，不构成投资建议</span><span id="generatedAt">—</span></footer>
-  <script src="/app.js?v=20261126-position-pcr" defer></script>
+  <script src="/app.js?v=20261126-pcr-placement" defer></script>
 </body>
 </html>
