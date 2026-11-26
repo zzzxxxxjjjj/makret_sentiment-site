@@ -1,6 +1,8 @@
 name: Rebuild page and freshness status
 on:
   workflow_dispatch:
+  push:
+    paths: ['.github/workflows/rebuild-page-status.yml']
 permissions:
   contents: write
 jobs:
@@ -21,12 +23,16 @@ jobs:
           assert importlib.util.find_spec('rqdatac') is None
           allowed={'broad-sentiment-page-cache.json','data-freshness.json'}
           before={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in pathlib.Path('.').rglob('*') if p.suffix.lower() in ('.json','.csv','.xlsx','.xlsm') and '.git' not in p.parts and str(p) not in allowed}
-          subprocess.run([sys.executable,'rebuild_saved_page.py','--target','2026-11-20'],check=True)
+          subprocess.run([sys.executable,'rebuild_saved_page.py','--target','2026-11-25'],check=True)
           report=json.loads(pathlib.Path('data-freshness.json').read_text())
           dates={e['id']:e['asOf'] for e in report['entries']}
           for sid in ('hs300-turnover','csi1000-turnover','star50-turnover','margin-guarantee-ratio','margin-investor-participation-ratio'):
               assert dates[sid]>='2026-11-20',(sid,dates[sid])
-          assert report['targetDate']=='2026-11-20'
+          assert report['targetDate']=='2026-11-25'
+          payload=json.loads(pathlib.Path('broad-sentiment-page-cache.json').read_text())['payload']
+          print('Derived breadth audit:',payload.get('derivedBreadthStatus'))
+          assert payload.get('derivedBreadthStatus',{}).get('compatible') is True
+          assert payload['cycleComparison']['asOf']=='2026-11-24'
           assert report['allDailyCurrent'] is False
           for name,digest in before.items(): assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest()==digest,name
           print('Historical source files unchanged; report retains real gaps')
