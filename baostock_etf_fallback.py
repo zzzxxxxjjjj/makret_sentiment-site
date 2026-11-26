@@ -11,7 +11,7 @@ def finite(value):
     return value if math.isfinite(value) else None
 
 def build(records,previous,target,exceptions):
-    names={r["code"]:r.get("name",r["code"]) for r in previous.get("rows",[])}
+    names={r["code"]:r.get("name",r["code"]) for r in previous.get("rows",[])+previous.get("unavailableRows",[])}
     inactive={code:entry for code,entry in exceptions.items() if entry.get("inactiveFrom","9999")<=target}
     expected=set(names)-set(inactive)
     if not expected:raise ValueError("No verified active ETF universe")
@@ -27,7 +27,11 @@ def build(records,previous,target,exceptions):
         found[code]=dict(code=code,name=names[code],asOf=target,close=close,amount=amount/1e8,
                          change=finite(row.get("pctChg")),shares=None)
     missing=expected-found.keys()
-    if missing:raise ValueError("Missing active Baostock ETFs: "+",".join(sorted(missing)))
+    if missing:
+        from etf_net_subscription_refresh import TARGET
+        required=set(TARGET)-set(inactive)
+        if not set(TARGET)<=set(names) or not required<=set(found):
+            raise ValueError("Missing active Baostock ETFs: "+",".join(sorted(missing)))
     archived={r["code"]:r for r in previous.get("inactiveRows",[])}
     for row in previous.get("rows",[]):
         if row["code"] in inactive:
@@ -37,7 +41,9 @@ def build(records,previous,target,exceptions):
         source="Baostock / ETF日线批量；不复权价格、成交额人民币亿元",
         rows=[found[c] for c in sorted(found)],inactiveRows=list(archived.values()),
         sharesAvailable=False,providerUniverseCount=len(records),activeCoverage=len(found),
-        note="AKShare失败后的Baostock历史日线兜底；原ETF清单全部在交易标的校验通过。公告确认停牌清算标的保留历史，不要求每日交易行情；份额未提供，净申赎未推算。")
+        expectedCoverage=len(expected),partialUniverse=bool(missing),unavailableCodes=sorted(missing),
+        unavailableRows=[r for r in previous.get("rows",[])+previous.get("unavailableRows",[]) if r["code"] in missing],
+        note=("23只展示用重点ETF全部核验为同日行情；其他缺失ETF保留旧日期，不记零、不计入当前合计。" if missing else "AKShare失败后的Baostock历史日线兜底；原ETF清单全部在交易标的校验通过。公告确认停牌清算标的保留历史，不要求每日交易行情；份额未提供，净申赎未推算。"))
 
 def collect(previous,target):
     if len(previous.get("rows",[]))<100:raise ValueError("Verified ETF universe unavailable")
