@@ -13,7 +13,8 @@ def main():
  result={"targetDate":target,"expectedDates":expected,"results":[]}
  for code,market in [("600036","sh"),("000001","sz"),("300750","sz")]:
   try:
-   f=resolve(ak,"stock_fund_flow_individual_hist_em")(stock=code,market=market)
+   from sw_flow_api import history
+   f=history(ak,code,market)
    points={str(r["日期"])[:10]:float(r["主力净流入-净额"]) for r in f.to_dict("records") if str(r["日期"])[:10] in expected and finite(r.get("主力净流入-净额"))}
    result["results"].append({"code":code,"ok":set(points)==set(expected),"returnedRows":len(f),"points":[{"date":d,"value":points[d]} for d in sorted(points)]})
   except Exception as exc:
