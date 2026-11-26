@@ -14,7 +14,7 @@ def etf():
  from baostock_etf_fallback import build
  from etf_net_subscription_refresh import TARGET
  done=subprocess.run([sys.executable,"baostock_etf_fallback.py",target],capture_output=True,text=True,timeout=120)
- if done.returncode:raise ValueError("BaoStock public ETF batch failed")
+ if done.returncode:raise ValueError("BaoStock public ETF batch failed: "+(done.stderr.strip().splitlines()[-1] if done.stderr.strip() else "worker returned "+str(done.returncode))[:400])
  lines=[l.split("BAOSTOCK_ETF=",1)[1] for l in done.stdout.splitlines() if l.startswith("BAOSTOCK_ETF=")]
  if len(lines)!=1:raise ValueError("No unique dated batch")
  rows=json.loads(lines[0])["rows"];old=read("etf-market.json");exceptions=read("etf-trading-exceptions.json")
@@ -50,5 +50,11 @@ def macro():
  if done.returncode:
   lines=[l for l in done.stderr.splitlines() if "Error" in l]
   raise ValueError((lines[-1] if lines else "Existing macro collector failed")[:500])
- return {"candidateWritten":True,"note":"Candidate only; definition validation required before replacing macro history"}
+ candidate=read("macro-retry-candidate.json");prior=read("macro-tracking.json")
+ items={s["id"]:s for s in candidate.get("series",[])}
+ hs=items.get("hs300-yoy",{})
+ if len(hs.get("points",[]))<60 or "AKShare" not in hs.get("source",""):raise ValueError("Unverified public monthly index series")
+ for item in prior.get("series",[]):items.setdefault(item["id"],item)
+ candidate["series"]=list(items.values());save("macro-tracking.json",candidate)
+ return {"published":True,"seriesDates":{k:max((p["date"] for p in s.get("points",[])),default=None) for k,s in items.items()} }
 record("existing-macro-collector",macro)
