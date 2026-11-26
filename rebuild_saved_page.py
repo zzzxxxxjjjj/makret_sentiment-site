@@ -140,6 +140,11 @@ def main():
     etf_status=read(BASE,"etf-share-recovery-status.json")
     if etf_status.get("ok") and etf_status.get("targetDate")==target:
         failures=[name for name in failures if name!="etf-shares"]
+    index_status=read(BASE,"index-recovery-status.json")
+    index_result=next((r for r in index_status.get("results",[]) if r.get("id")=="index-financing"),{})
+    detail=index_result.get("detail",[])
+    if index_status.get("targetDate")==target and index_result.get("ok") and len(detail)==4 and all("error" not in r for r in detail):
+        failures=[name for name in failures if name!="index-financing"]
     errors = [{"source":name, "error":"Daily collection stage failed; actual older dates retained"} for name in failures]
     public = read(BASE, "akshare-public-inputs.json")
     errors.extend(public.get("errors", []))
