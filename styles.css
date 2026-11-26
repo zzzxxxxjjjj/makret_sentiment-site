@@ -59,3 +59,5 @@ html.theme-anim *{transition:background-color .42s var(--ease),color .42s var(--
 
 /* Keep the primary pages reachable on mobile as well as desktop. */
 @media(max-width:1000px){.topbar{height:auto;min-height:68px;flex-wrap:wrap;gap:14px 18px;padding-top:14px;padding-bottom:12px}.topbar .brand{min-width:0;flex:1}.topbar nav{display:flex;order:4;flex:0 0 100%;gap:24px;overflow-x:auto;white-space:nowrap;padding-bottom:3px}.topbar nav a{flex:none}.topbar .status{margin-left:auto}.topbar .theme-toggle{flex:none}}
+
+#momentumChartGrid #derivativesOiCard .derivatives-chart-wrap{height:230px}#momentumChartGrid #derivativesOiCard .derivatives-legend{min-height:22px}@media(max-width:640px){#momentumChartGrid #derivativesOiCard .derivatives-chart-wrap{height:210px}}
