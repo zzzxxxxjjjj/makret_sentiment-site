@@ -13,7 +13,11 @@ def plan():
  import baostock as bs
  from akshare_request_policy import install
  install();target=target_day()
- calendar=read("data-freshness.json")["tradingCalendar"];days=[d for d in calendar if "2026-11-23"<=d<=target]
+ cached=read("akshare-stock-snapshot.json")
+ if cached.get("complete") and cached.get("asOf")==target:
+  save("public-snapshot-plan.json",{"targetDate":target,"days":[],"beijing":[],"base":{},"alreadyCurrent":True})
+  print("Public snapshot already current",target,flush=True);return
+ calendar=read("data-freshness.json")["tradingCalendar"];days=[d for d in calendar if (cached.get("asOf") or "2026-11-22")<d<=target]
  if len(days)>8:days=days[-3:]
  listed=resolve(ak,"stock_info_bj_name_code")()
  bj={str(r["证券代码"]).split(".")[0].zfill(6) for r in listed.to_dict("records") if str(r.get("上市日期",""))[:10]<=target}
@@ -90,6 +94,8 @@ def worker(shard,total):
  save("public-snapshot-part-"+str(shard)+".json",output)
 def combine():
  config=read("public-snapshot-plan.json");target=config["targetDate"];allrows={};errors=[]
+ if config.get("alreadyCurrent"):
+  print("Verified public snapshot already retained",target,flush=True);return
  for path in ROOT.glob("public-snapshot-part-*.json"):
   part=json.loads(path.read_text(encoding="utf-8"))
   if part["targetDate"]!=target:raise ValueError("Snapshot shard date mismatch")
