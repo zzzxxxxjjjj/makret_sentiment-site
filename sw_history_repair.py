@@ -12,6 +12,9 @@ ROOT=Path(__file__).resolve().parent
 def main():
     import akshare as ak
     import requests
+    from sw_flow_api import history as stock_history
+    from akshare_request_policy import install
+    install()
     original=requests.sessions.Session.request
     def bounded(self,method,url,**kwargs):
         kwargs['timeout']=15
@@ -34,7 +37,7 @@ def main():
                 histories[code]=saved['values'];continue
         values={}
         try:
-            frame=ak.stock_individual_fund_flow(stock=code,market=market)
+            frame=stock_history(ak,code,market)
             for row in frame.to_dict('records'):
                 day=str(row['日期'])[:10]
                 try:v=float(row['主力净流入-净额'])
