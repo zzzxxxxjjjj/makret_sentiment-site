@@ -13,13 +13,29 @@ def merge_points(existing, incoming):
     return [points[dt] for dt in sorted(points)]
 
 
-def moving_average(points, window=3):
-    return [{"date": points[i]["date"], "value": round(sum(p["value"] for p in points[i-window+1:i+1]) / window, 4)}
-            for i in range(window-1, len(points))]
+def moving_average(points, window=3, calendar=None):
+    sessions=sorted(set(calendar or []))
+    positions={day:i for i,day in enumerate(sessions)}
+    output=[]
+    for i in range(window-1,len(points)):
+        rows=points[i-window+1:i+1]
+        day=points[i]["date"]
+        if sessions and sessions[0]<=day<=sessions[-1]:
+            position=positions.get(day)
+            if position is None:
+                continue
+            if position>=window-1 and [r["date"] for r in rows]!=sessions[position-window+1:position+1]:
+                continue
+        output.append({"date":day,"value":round(sum(p["value"] for p in rows)/window,4)})
+    return output
 
 
 def apply_market_data_sync(payload, directory):
     series = {item["id"]: item for item in payload.get("series", [])}
+    try:
+        calendar=json.loads((Path(directory)/"data-freshness.json").read_text(encoding="utf-8")).get("tradingCalendar",[])
+    except (OSError,ValueError):
+        calendar=[]
     try:
         rqdata = json.loads((Path(directory) / "rqdata-broad-sentiment.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -83,7 +99,7 @@ def apply_market_data_sync(payload, directory):
             sid = f"pcr-oi-ma3-{key}"
             series[sid] = {**series.get(sid, {}), "id": sid, "unit": "倍",
                            "name": series.get(sid, {}).get("name", f"{key}持仓量PCR MA3"),
-                           "source": oi.get("source", "Wind快照"), "points": moving_average(oi["points"])}
+                           "source": oi.get("source", "Wind快照"), "points": moving_average(oi["points"],calendar=calendar)}
         amount = {p["date"]: p["value"] for p in series.get(f"pcr-amount-{key}", {}).get("points", [])}
         volume = {p["date"]: p["value"] for p in series.get(f"pcr-volume-{key}", {}).get("points", [])}
         ratio = [{"date": dt, "value": round(amount[dt] / volume[dt], 4)}
@@ -94,7 +110,7 @@ def apply_market_data_sync(payload, directory):
                            "source": oi.get("source", "Wind快照"), "points": ratio}
             sid = f"pcr-amount-volume-ma3-{key}"
             positive = [{"date": p["date"], "value": round(1 / p["value"], 4)}
-                        for p in moving_average(ratio) if p["value"] > 0]
+                        for p in moving_average(ratio,calendar=calendar) if p["value"] > 0]
             series[sid] = {**series.get(sid, {}), "id": sid, "unit": "倍", "name": f"{key}PCR价量比 MA3（倒数正向化）",
                            "source": oi.get("source", "Wind快照"), "points": positive}
     # Canonical display metadata also repairs older cached exports with damaged labels.
