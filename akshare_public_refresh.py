@@ -106,15 +106,9 @@ def collect(ak, target):
     now = datetime.now(ZoneInfo("Asia/Shanghai"))
     if True:
         try:
-            spot_source="AKShare / 东方财富收盘快照"
-            try:
-                if target!=now.date().isoformat() or now.hour<18:raise ValueError("Historical AKShare spot unsupported")
-                spot = ak.stock_zh_a_spot_em()
-            except Exception as exc:
-                print("Checking dated public stock snapshot: "+type(exc).__name__,flush=True)
-                from akshare_stock_fallback import collect as public_snapshot
-                spot=pd.DataFrame(public_snapshot(target))
-                spot_source=read("akshare-stock-snapshot.json").get("source","AKShare / 精确日期全A快照")
+            from akshare_stock_fallback import collect as public_snapshot
+            spot=pd.DataFrame(public_snapshot(target))
+            spot_source=read("akshare-stock-snapshot.json").get("source","AKShare / 精确日期全A快照")
             codes = spot["代码"].astype(str).str.zfill(6)
             spot = spot[codes.str.match(r"^(00|30|60|68|43|83|87|88|92)")]
             amount = pd.to_numeric(spot["成交额"], errors="coerce")
