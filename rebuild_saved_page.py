@@ -145,6 +145,16 @@ def main():
     detail=index_result.get("detail",[])
     if index_status.get("targetDate")==target and index_result.get("ok") and len(detail)==4 and all("error" not in r for r in detail):
         failures=[name for name in failures if name!="index-financing"]
+    failures=[{"ifind-turnover":"akshare-turnover","ifind-medium-bond":"akshare-medium-bond"}.get(name,name) for name in failures]
+    turnover=read(BASE,"akshare-index-turnover.json")
+    if len(turnover.get("series",[]))==3 and all(s.get("points") and s["points"][-1]["date"]==target for s in turnover["series"]):
+        failures=[name for name in failures if name!="akshare-turnover"]
+    proxy=read(BASE,"akshare-medium-bond.json")
+    if proxy.get("asOf")==target and proxy.get("code")=="807330.SW":
+        failures=[name for name in failures if name!="akshare-medium-bond"]
+    public_check=read(BASE,"akshare-public-inputs.json")
+    if public_check.get("targetDate")==target and not public_check.get("errors"):
+        failures=[name for name in failures if name!="public"]
     errors = [{"source":name, "error":"Daily collection stage failed; actual older dates retained"} for name in failures]
     public = read(BASE, "akshare-public-inputs.json")
     errors.extend(public.get("errors", []))
