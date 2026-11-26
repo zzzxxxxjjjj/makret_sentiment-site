@@ -98,14 +98,26 @@ def combine():
  status={"targetDate":target,"expectedBeijing":len(config["beijing"]),"receivedBeijing":len(allrows),"errors":errors,"complete":False}
  save("akshare-stock-snapshot-status.json",status)
  if set(allrows)!=set(config["beijing"]):raise ValueError("Full SH/SZ/BJ snapshot not complete; old data retained")
- rows=list(config["base"][target])
- for code in config["beijing"]:
-  current=[r for r in allrows[code] if r["date"]==target]
-  if len(current)!=1:raise ValueError("Beijing target observation not unique")
-  rows.append({k:v for k,v in current[0].items() if k!="date"})
- if len({r["代码"] for r in rows})!=len(rows):raise ValueError("Duplicate public stock snapshot")
- save("akshare-stock-snapshot.json",{"asOf":target,"source":config["source"],"complete":True,"rows":rows})
- status.update(complete=True,total=len(rows));save("akshare-stock-snapshot-status.json",status);print(status,flush=True)
+ metrics={sid:[] for sid in ("market-turnover","top5-concentration","alla-turnover-amount")}
+ latest_rows=None
+ import math
+ for day in config["days"]:
+  rows=list(config["base"][day])
+  for code in config["beijing"]:
+   current=[r for r in allrows[code] if r["date"]==day]
+   if len(current)!=1:raise ValueError("Dated Beijing observation missing or duplicated: "+code+" "+day)
+   rows.append({k:v for k,v in current[0].items() if k!="date"})
+  if len({r["代码"] for r in rows})!=len(rows):raise ValueError("Duplicate public stock snapshot")
+  active=[r for r in rows if r["成交额"]>0 and r["换手率"]>=0]
+  if len(active)<4000:raise ValueError("Incomplete active all-A sample")
+  amounts=sorted((r["成交额"] for r in active),reverse=True)
+  values={"market-turnover":sum(r["换手率"] for r in active)/len(active),"top5-concentration":sum(amounts[:math.ceil(len(active)*.05)])/sum(amounts)*100,"alla-turnover-amount":sum(amounts)/1e8}
+  for sid,value in values.items():metrics[sid].append({"date":day,"value":value})
+  if day==target:latest_rows=rows
+ if latest_rows is None:raise ValueError("No target snapshot")
+ save("akshare-stock-snapshot.json",{"asOf":target,"source":config["source"],"complete":True,"rows":latest_rows})
+ status.update(complete=True,total=len(latest_rows),metrics=metrics);save("akshare-stock-snapshot-status.json",status);print({**status,"metrics":{k:v[-1] for k,v in metrics.items()}},flush=True)
+
 if __name__=="__main__":
  if sys.argv[1]=="plan":plan()
  elif sys.argv[1]=="combine":combine()
