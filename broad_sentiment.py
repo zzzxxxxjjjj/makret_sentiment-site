@@ -709,12 +709,14 @@ def broad_market_medium_term_sentiment_snapshot():
         workbook.close()
 
     # Use the independently verified proxy history as a complete series.
-    proxy_path = BASE_DIR / "ifind-medium-bond.json"
+    proxy_path = BASE_DIR / "akshare-medium-bond.json"
+    if not proxy_path.exists():
+        proxy_path = BASE_DIR / "ifind-medium-bond.json"
     bond_proxy = None
     if proxy_path.exists():
         bond_proxy = json.loads(proxy_path.read_text(encoding="utf-8"))
-        if bond_proxy.get("code") != "701014.TI" or len(bond_proxy.get("points", [])) < 1000:
-            raise ValueError("Invalid iFind medium bond proxy history")
+        if bond_proxy.get("code") not in {"701014.TI","807330.SW"} or len(bond_proxy.get("points", [])) < 1000:
+            raise ValueError("Invalid independently verified medium bond proxy history")
         bond_fund_rows = [
             {"date": date.fromisoformat(p["date"]), "close": p["value"]}
             for p in bond_proxy["points"]
@@ -1146,8 +1148,8 @@ def broad_market_medium_term_sentiment_snapshot():
             {"id": "medium-erp", "name": "万得全A股权风险溢价ERP", "unit": "%", "points": erp_points},
             {"id": "medium-erp-band-percent", "name": "ERP通道百分化", "unit": "分", "points": erp_band_points[-1900:]},
             {"id": "medium-erp-rolling-3y", "name": "ERP三年滚动均值", "unit": "%", "points": erp_rolling_points[-1900:]},
-            {"id": "medium-equity-bond-position", "name": ("权益指数/iFind 701014.TI偏债基金代理" if bond_proxy else "万得全A/偏债混合型基金指数"), "unit": "倍", "points": position_points},
-            {"id": "medium-equity-bond-relative-return-120d", "name": ("权益指数相对iFind 701014.TI的120日收益差" if bond_proxy else "万得全A相对偏债基金120日收益差"), "unit": "pct", "points": relative_strength_points},
+            {"id": "medium-equity-bond-position", "name": (f"权益指数/{bond_proxy.get('name','偏债基金代理')} {bond_proxy['code']}" if bond_proxy else "万得全A/偏债混合型基金指数"), "unit": "倍", "points": position_points},
+            {"id": "medium-equity-bond-relative-return-120d", "name": (f"权益指数相对{bond_proxy.get('name','偏债基金代理')} {bond_proxy['code']}的120日收益差" if bond_proxy else "万得全A相对偏债基金120日收益差"), "unit": "pct", "points": relative_strength_points},
             {"id": "medium-equity-bond-yield-spread", "name": "万得全A股息率TTM-10年国开债收益率", "unit": "pct", "points": spread_points},
             {"id": "medium-yield-spread-band-percent", "name": "股债收益差通道百分化", "unit": "分", "points": spread_band_points[-1900:]},
             {"id": "medium-yield-spread-rolling-3y", "name": "股债收益差三年滚动均值", "unit": "pct", "points": spread_rolling_points[-1900:]},
