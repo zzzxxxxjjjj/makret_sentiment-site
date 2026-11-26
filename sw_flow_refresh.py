@@ -98,7 +98,8 @@ def main():
     def supplement(code):
         market = 'sh' if code.startswith('6') else 'bj' if code.startswith(('4','8','9')) else 'sz'
         try:
-            history = (getattr(ak,'stock_fund_flow_individual_hist_em',None) or ak.stock_individual_fund_flow)(stock=code, market=market)
+            from sw_flow_api import history as stock_history
+            history = stock_history(ak,code,market)
             current = history[history['日期'].astype(str).str[:10] == day]
             value = float(current.iloc[-1]['主力净流入-净额']) if len(current) else float('nan')
             if math.isfinite(value): return {'代码': code, '今日主力净流入-净额': value}
