@@ -20,7 +20,8 @@ jobs:
       - run: |
           git fetch origin main
           git reset --hard origin/main
-      - run: python sw_chart_source_probe.py
+      - name: Check corrected public history interface
+        run: python sw_chart_source_probe.py
       - run: |
           python sw_history_sync.py
           python rebuild_saved_page.py
