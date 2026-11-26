@@ -235,6 +235,49 @@ def refresh_excel_files(market_path, credit_path, fx_path):
         print("Excel/Wind自动刷新未完全成功；继续读取上一次已保存值。")
 
 
+def refresh_public_ppi(series):
+    """Append same-definition monthly PPI only after overlap verification."""
+    import re
+    import akshare as ak
+    from public_recovery import resolve
+    from completed_session import completed_target
+    from zoneinfo import ZoneInfo
+    from akshare_request_policy import install
+    install()
+    calendar=json.loads((BASE_DIR/"data-freshness.json").read_text(encoding="utf-8"))["tradingCalendar"]
+    target=completed_target(datetime.now(ZoneInfo("Asia/Shanghai")),calendar)
+    completed=latest_completed_month(target)
+    path=BASE_DIR/"macro-tracking.json"
+    saved=json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    prior=next((s for s in saved.get("series",[]) if s.get("id")=="china-ppi-yoy"),{})
+    item=next((s for s in series if s.get("id")=="china-ppi-yoy"),None)
+    if item is None:return
+    points={p["date"]:p for p in item.get("points",[])}
+    points.update({p["date"]:p for p in prior.get("points",[])})
+    item["points"]=[points[d] for d in sorted(points)]
+    if max(points,default="")[:7]>=completed.strftime("%Y-%m"):
+        if prior.get("source"):item["source"]=prior["source"]
+        return
+    try:
+        frame=resolve(ak,"macro_china_ppi")()
+        incoming={}
+        for row in frame.to_dict("records"):
+            match=re.search(r"(\d{4})\D*(\d{1,2})",str(row.get("月份","")))
+            value=number(row.get("当月同比增长"))
+            if not match or value is None:continue
+            month=date(int(match[1]),int(match[2]),1)
+            stamp=(pd.Timestamp(month)+pd.offsets.MonthEnd(0)).date()
+            if stamp<=completed:incoming[stamp.isoformat()]=value
+        shared=sorted(set(incoming)&set(points))[-6:]
+        error=max((abs(incoming[d]-points[d]["value"]) for d in shared),default=float("inf"))
+        if len(shared)<3 or error>0.001:raise ValueError("PPI definition overlap failed")
+        last=max(points,default="")
+        points.update({d:{"date":d,"value":v} for d,v in incoming.items() if d>last})
+        item.update(points=[points[d] for d in sorted(points)],source="AKShare / 中国工业品出厂价格指数当月同比；原历史保留")
+        print("Public PPI",max(points),"overlap",len(shared),"error",error,flush=True)
+    except Exception as exc:
+        print("Public PPI retained dated history:",type(exc).__name__,flush=True)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default=str(BASE_DIR / "macro-tracking.json"))
@@ -252,6 +295,7 @@ def main():
         refresh_excel_files(market_path, credit_path, fx_path)
 
     series = read_credit(credit_path) + read_fx(fx_path) + [read_hs300_yoy()]
+    refresh_public_ppi(series)
     cap_deposit = read_all_a_market_cap_to_deposits(market_path)
     if cap_deposit:
         series.append(cap_deposit)
