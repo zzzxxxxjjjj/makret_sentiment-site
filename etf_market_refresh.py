@@ -90,9 +90,7 @@ if __name__ == '__main__':
             from baostock_etf_fallback import collect
             value=collect(previous,target)
         except Exception as bao_error:
-            print("Baostock ETF failed: "+type(bao_error).__name__+"; switching to iFind",flush=True)
-            from ifind_etf_fallback import collect
-            value=collect(previous,target)
+            raise RuntimeError("Public ETF sources unavailable; retained previous dated snapshot: "+type(bao_error).__name__) from bao_error
         value['fallbackReason']=type(exc).__name__
     if path.exists() and json.loads(path.read_text(encoding='utf-8')).get('asOf', '') > value['asOf']:
         raise ValueError('Refusing date rollback')
