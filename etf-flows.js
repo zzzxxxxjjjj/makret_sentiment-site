@@ -1,5 +1,4 @@
-// Modified: also read /etf-net-subscription.json (Eastmoney shares) as a fallback
-// for ETFs that RQData does not cover, so all 23 Huijin key ETFs can show 净申赎.
+// Prefer verified dated public ETF subscriptions; show their date independently of turnover.
 'use strict';
 const el = id => document.getElementById(id);
 let rows = [], direction = 'desc';
@@ -41,20 +40,17 @@ async function load() {
     let subMap = new Map();
     try { const s = await fetch('/etf-net-subscription.json?t=' + Date.now(), { cache: 'no-store' }); if (s.ok) subMap = new Map((await s.json()).rows.map(x => [String(x.code), x])); } catch (_) {}
     rows = rows.map(x => {
-      const f = map.get(x.code);
-      let flow1D = f && f.asOf === x.asOf ? f.flow1D : null;
-      let flow5D = f && f.asOf === x.asOf ? f.flow5D : null;
-      if ((flow1D == null || flow5D == null) && subMap.has(x.code)) {
-        const s = subMap.get(x.code);
-        if (flow1D == null) flow1D = s.flow1D;
-        if (flow5D == null) flow5D = s.flow5D;
-      }
-      return { ...x, flow1D, flow5D };
+      const f = map.get(x.code), s = subMap.get(x.code);
+      const verified = s?.asOf && (!f?.asOf || s.asOf >= f.asOf) ? s : f;
+      return { ...x, flow1D: verified?.flow1D ?? null, flow5D: verified?.flow5D ?? null,
+        flowAsOf: verified?.asOf || null };
     });
-    el('asOf').textContent = d.asOf + ' · ' + new Date(d.generatedAt).toLocaleTimeString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
+    const flowDates = [...new Set(rows.filter(x => finite(x.flow1D)).map(x => x.flowAsOf).filter(Boolean))].sort();
+    const flowDateText = flowDates.length === 1 ? flowDates[0] : flowDates.join('、') || '暂无';
+    el('asOf').textContent = '成交额：' + d.asOf + ' · 净申赎：' + flowDateText;
     render();
     el('emptyHint').textContent = '';
-    el('statusText').textContent = '东方财富成交额已读取';
+    el('statusText').textContent = '成交额与净申赎已读取（各自日期见上方）';
     el('statusDot').className = 'dot';
   } catch (e) {
     el('emptyHint').textContent = e.message;
