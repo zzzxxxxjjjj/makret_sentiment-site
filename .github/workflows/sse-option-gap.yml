@@ -29,9 +29,12 @@ jobs:
           path: sse-option-plan.json
           retention-days: 3
   bars:
+    env:
+      SSE_BAR_BUDGET_SECONDS: '600'
+      PYTHONUNBUFFERED: '1'
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 13
     strategy:
       fail-fast: false
       max-parallel: 3
