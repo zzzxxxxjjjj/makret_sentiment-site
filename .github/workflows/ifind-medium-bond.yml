@@ -1,13 +1,8 @@
-name: Update iFind medium bond proxy
+name: Update public mixed-bond proxy
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '40 12 * * 1-5'
 permissions:
   contents: write
-concurrency:
-  group: ifind-medium-bond
-  cancel-in-progress: false
 jobs:
   refresh:
     runs-on: ubuntu-latest
@@ -15,33 +10,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: python -m py_compile ifind_medium_bond_refresh.py
-      - name: Fetch verified proxy history
-        env:
-          IFIND_REFRESH_TOKEN: ${{ secrets.IFIND_REFRESH_TOKEN }}
-        run: python ifind_medium_bond_refresh.py
-      - run: python -m pip install -r requirements-cloud.txt
-      - name: Validate medium model recomputation
-        run: |
-          python -m py_compile broad_sentiment.py ifind_medium_bond_refresh.py
-          python - <<'PY'
-          import broad_sentiment as b
-          result = b.broad_market_medium_term_sentiment_snapshot()
-          rows = [s for s in result['series'] if s['id'] in ('medium-equity-bond-position', 'medium-equity-bond-relative-return-120d')]
-          assert len(rows) == 2
-          for row in rows:
-              assert '701014.TI' in row['name']
-              assert len(row['points']) > 750
-              print(row['id'], len(row['points']), row['points'][-1])
-          PY
-      - name: Publish isolated history
-        run: |
+        with: {python-version: '3.12'}
+      - run: python -m pip install -r requirements-daily.txt
+      - run: python akshare_medium_bond_refresh.py
+      - run: |
+          python rebuild_saved_page.py
+          python build_static_site.py
+      - run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- ifind-medium-bond.json
+          git add -- akshare-medium-bond.json broad-sentiment-page-cache.json data-freshness.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Update iFind 701014.TI history'
-          git pull --rebase origin main
+          git commit -m 'Update public SW mixed-bond proxy and recomputed relative history'
+          git -c rebase.autoStash=true pull --rebase origin main
           git push origin HEAD:main
