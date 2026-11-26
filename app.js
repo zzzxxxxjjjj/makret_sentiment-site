@@ -187,7 +187,9 @@ function renderIndicatorCharts(series,cards){
       <div class="mini-chart-legend">${seriesLegend}<span class="chart-note">${selected.some(item=>(item.points||[]).length>1)?'近260个交易日':'当前快照'}</span></div>
     </article>`};
   });
+  const positionPcrCard=el('derivativesOiCard');
   el('momentumChartGrid').innerHTML=markup.filter(item=>item.group==='momentum').map(item=>item.html).join('');
+  if(positionPcrCard)el('momentumChartGrid').append(positionPcrCard);
   el('fundChartGrid').innerHTML=markup.filter(item=>item.group==='funds').map(item=>item.html).join('');
   chartDefinitions.forEach((definition,index)=>drawIndicatorChart(definition,index,seriesMap,cardMap));
   document.querySelectorAll('[data-chart-href]').forEach(card=>{
@@ -724,7 +726,7 @@ async function loadData(){
     const data=await response.json();state.payload=data;state.series=withAmountBands(data.series||[]);
     el('asOf').textContent=fmtDate(data.asOf);el('coverage').textContent=`${data.availableCount}/${data.cards.length}`;
     el('generatedAt').textContent=`生成于 ${String(data.generatedAt||'').replace('T',' ')}`;
-    renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderDerivatives(state.series);renderIndicatorCharts(state.series,data.cards);
+    renderCards(data.cards||[]);renderCycle(data.cycleComparison);renderIndicatorCharts(state.series,data.cards);renderDerivatives(state.series);
     el('statusText').textContent=data.freshness?.delayedCount?'已读取 · 部分指标待更新':data.missingCount?`已更新 · ${data.missingCount}项待接入`:'数据已更新';el('statusDot').className='dot';
   }catch(error){el('statusText').textContent='数据读取失败';el('statusDot').className='dot error';el('momentumMetricGrid').innerHTML=`<article class="metric-card"><h3>暂时无法读取数据</h3><p class="summary">${escapeHtml(error.message)}</p></article>`;el('fundMetricGrid').innerHTML=''}
   finally{el('refreshButton').disabled=false}
@@ -746,7 +748,7 @@ el('cycleStart').addEventListener('input',()=>updateCycleRange('start'));
 el('cycleEnd').addEventListener('input',()=>updateCycleRange('end'));
 el('cycleChart').addEventListener('pointermove',showCycleTooltip);
 el('cycleChart').addEventListener('pointerleave',hideCycleTooltip);
-window.addEventListener('resize',()=>{if(state.payload){renderDerivatives(state.series);renderIndicatorCharts(state.series,state.payload.cards)}if(state.cyclePoints.length)updateCycleRange()});
+window.addEventListener('resize',()=>{if(state.payload){renderIndicatorCharts(state.series,state.payload.cards);renderDerivatives(state.series)}if(state.cyclePoints.length)updateCycleRange()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadData()});
 window.setInterval(loadData,5*60*1000);
 loadData();
