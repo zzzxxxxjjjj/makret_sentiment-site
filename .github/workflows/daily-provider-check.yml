@@ -19,6 +19,9 @@ on:
       - 'cloud_display.py'
       - 'sw_flow_refresh.py'
       - 'completed_session.py'
+      - 'sw_history_sync.py'
+      - 'sw_flow_api.py'
+      - 'tests/test_sw_history_sync.py'
 permissions:
   contents: read
 jobs:
@@ -65,4 +68,5 @@ jobs:
           PY
       - run: python -m unittest discover -s tests -p 'test_akshare_*.py'
       - run: python -m unittest discover -s tests -p 'test_completed_session.py'
+      - run: python -m unittest discover -s tests -p 'test_sw_*.py'
       - run: python build_static_site.py
