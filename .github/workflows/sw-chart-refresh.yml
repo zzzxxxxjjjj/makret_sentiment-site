@@ -1,0 +1,26 @@
+name: Verify and synchronize SW cumulative chart
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/sw-chart-refresh.yml']
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install -r requirements-daily.txt
+      - run: python sw_chart_source_probe.py
+      - if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- sw-chart-source-status.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Record current SW chart history source availability'
+          git -c rebase.autoStash=true pull --rebase origin main
+          git push origin HEAD:main
