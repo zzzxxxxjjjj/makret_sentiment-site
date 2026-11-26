@@ -14,7 +14,7 @@ def plan():
  from akshare_request_policy import install
  install();target=target_day()
  days=[d for d in read("data-freshness.json")["tradingCalendar"] if "2026-11-18"<d<=target and datetime.fromisoformat(d).weekday()<5]
- master={};expected={}
+ master={};expected={};expiry_repairs=[]
  for day in days:
   f=resolve(ak,"option_risk_indicator_sse")(date=day.replace("-",""))
   rows=[]
@@ -32,10 +32,24 @@ def plan():
   for row in stats.to_dict("records"):
    code=str(row["合约标的代码"]).split(".")[0]
    if code in MAP:expected[day][code]={"contracts":int(row["合约数量"]),"callVolume":float(row["认购成交量"]),"putVolume":float(row["认沽成交量"]),"totalAmount":float(row["总成交额"])}
+  # On monthly expiry, the post-close risk list can already omit expiring contracts.
+  # Restore only that month's contracts from the preceding verified session, then
+  # still require exact agreement with official daily contract counts.
+  stamp=datetime.fromisoformat(day)
+  if stamp.weekday()==2 and 22<=stamp.day<=28:
+   previous=max((d for d in read("data-freshness.json")["tradingCalendar"] if d<day),default=None)
+   if previous:
+    prior=resolve(ak,"option_risk_indicator_sse")(date=previous.replace("-",""))
+    codes={r["code"] for r in rows};added=[]
+    for r in prior.to_dict("records"):
+     trade=str(r["合约交易代码"]);under=trade[:6];code=str(r["合约编码"]).split(".")[0]
+     if under in MAP and str(r["交易日期"])[:10]==previous and trade[6:7] in ("C","P") and trade[7:11]==stamp.strftime("%y%m") and code not in codes:
+      rows.append({"code":code,"under":under,"side":trade[6]});codes.add(code);added.append(code)
+    expiry_repairs.append({"date":day,"previousSession":previous,"restoredExpiryContracts":added})
   for under in MAP:
    if under not in expected[day] or sum(r["under"]==under for r in rows)!=expected[day][under]["contracts"]:raise ValueError("Contract master coverage differs from daily statistics")
   master[day]=rows
- save("sse-option-plan.json",{"targetDate":target,"master":master,"expected":expected})
+ save("sse-option-plan.json",{"targetDate":target,"master":master,"expected":expected,"expiryRepairs":expiry_repairs})
  print("SSE plan",len({r["code"] for rows in master.values() for r in rows}),days,flush=True)
 def worker(shard,shards):
  from akshare_request_policy import install
