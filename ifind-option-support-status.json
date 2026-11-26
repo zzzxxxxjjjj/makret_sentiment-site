@@ -1,0 +1,1 @@
+{"checkedAt": "2026-11-26T14:39:14.658758+08:00", "usable": false, "results": [{"underlying": "上证50ETF", "error": "iFind HTTP status 401"}, {"underlying": "沪深300ETF", "error": "iFind HTTP status 401"}, {"underlying": "科创50ETF", "error": "iFind HTTP status 401"}], "authentication": "ok"}
