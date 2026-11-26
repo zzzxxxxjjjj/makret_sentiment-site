@@ -92,29 +92,15 @@ def collect(ak, target):
         except Exception as exc:
             errors.append({"source": f"index-{code}", "error": str(exc)[:240]})
 
-    for code, sid, name in (
-        ("000300", "hs300-turnover", "沪深300换手率"),
-        ("000852", "csi1000-turnover", "中证1000换手率"),
-        ("000688", "star50-turnover", "科创50换手率"),
-    ):
-        try:
-            frame = (getattr(ak, "index_zh_hist_em", None) or ak.index_zh_a_hist)(
-                symbol=code, period="daily", start_date=tail(sid),
-                end_date=target.replace("-", ""))
-            history = merged(sid, points(frame, "换手率", target))
-            history = [p for p in history if 0 <= p["value"] <= 100]
-            if len(history) < 126 or history[-1]["date"] != target or not any(p["value"] for p in history[-20:]):
-                raise ValueError("Incomplete index turnover history through " + target)
-            put(sid, name, "%", history, "AKShare / 东方财富指数换手率")
-        except Exception as exc:
-            # Use the separately validated iFind turnover history on provider failure.
-            fallback = next((s for s in read("ifind-index-turnover.json").get("series", []) if s.get("id") == sid), {})
-            observations = [p for p in fallback.get("points", []) if p.get("date", "") <= target]
-            if observations and observations[-1]["date"] == target and len(observations) >= 126:
-                put(sid, name, "%", merged(sid, observations), fallback.get("source", "iFind"))
-            else:
-                errors.append({"source": sid, "error": str(exc)[:240]})
-
+    # The dedicated public collector owns a complete same-source turnover history.
+    public_turnover={s["id"]:s for s in read("akshare-index-turnover.json").get("series",[])}
+    for sid,name in (("hs300-turnover","沪深300换手率"),("csi1000-turnover","中证1000换手率"),("star50-turnover","科创50换手率")):
+        item=public_turnover.get(sid,{})
+        observations=item.get("points",[])
+        if observations and observations[-1]["date"]==target and len(observations)>=126:
+            put(sid,name,"%",observations,item.get("source","AKShare"))
+        else:errors.append({"source":sid,"error":"AkShare指数换手率尚未覆盖目标交易日；保留历史日期"})
+    
     # The public spot feed has no reliable historical-date selector. Only use
     # it after the close of today's confirmed trading session.
     now = datetime.now(ZoneInfo("Asia/Shanghai"))
@@ -125,10 +111,10 @@ def collect(ak, target):
                 if target!=now.date().isoformat() or now.hour<18:raise ValueError("Historical AKShare spot unsupported")
                 spot = ak.stock_zh_a_spot_em()
             except Exception as exc:
-                print("AKShare closing snapshot unavailable; switching to iFind: "+type(exc).__name__,flush=True)
-                from ifind_stock_fallback import collect as ifind_snapshot
-                spot=pd.DataFrame(ifind_snapshot(target))
-                spot_source="iFind问财 / 精确日期A股快照"
+                print("Checking dated public stock snapshot: "+type(exc).__name__,flush=True)
+                from akshare_stock_fallback import collect as public_snapshot
+                spot=pd.DataFrame(public_snapshot(target))
+                spot_source=read("akshare-stock-snapshot.json").get("source","AKShare / 精确日期全A快照")
             codes = spot["代码"].astype(str).str.zfill(6)
             spot = spot[codes.str.match(r"^(00|30|60|68|43|83|87|88|92)")]
             amount = pd.to_numeric(spot["成交额"], errors="coerce")
@@ -200,7 +186,7 @@ def collect(ak, target):
     activity={p["date"]:p for p in prior+series.get("financing-activity",{}).get("points",[])}
     activity.update({d:{"date":d,"value":buys[d]/amounts[d]*100} for d in sorted(buys.keys()&amounts.keys()) if amounts[d]>0})
     activity=[activity[d] for d in sorted(activity)]
-    if activity:put("financing-activity","全A融资买入额占比","%",activity,"交易所融资买入额 / AKShare优先、iFind兜底全A成交额；历史保留")
+    if activity:put("financing-activity","全A融资买入额占比","%",activity,"交易所融资买入额 / AKShare公开全A成交额；历史保留")
 
     output = dict(targetDate=target, generatedAt=datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(),
                   series=list(series.values()), errors=errors)
